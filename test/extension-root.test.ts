@@ -22,7 +22,8 @@ describe("extension package root on non-/directus installs", () => {
 			JSON.stringify({ name: "directus-extension-backport", version: "1.0.0" }),
 		);
 		fs.writeFileSync(path.join(dist, "api.js"), "export default {}\n");
-		fs.writeFileSync(path.join(ext, "cli.mjs"), "// cli\n");
+		fs.writeFileSync(path.join(dist, "cli.mjs"), "// cli\n");
+		fs.writeFileSync(path.join(dist, "rollback.mjs"), "// rollback\n");
 
 		const prevRoot = process.env.DIRECTUS_BACKPORT_ROOT;
 		const prevExt = process.env.DIRECTUS_BACKPORT_EXTENSION;
@@ -37,7 +38,7 @@ describe("extension package root on non-/directus installs", () => {
 			const { extensionPackageRoot } = await import(`${runtimeUrl}?t=${Date.now()}`);
 			const found = extensionPackageRoot(dist);
 			assert.equal(found, ext);
-			assert.ok(fs.existsSync(path.join(found, "cli.mjs")));
+			assert.ok(fs.existsSync(path.join(found, "dist", "cli.mjs")));
 		} finally {
 			if (prevRoot === undefined) delete process.env.DIRECTUS_BACKPORT_ROOT;
 			else process.env.DIRECTUS_BACKPORT_ROOT = prevRoot;

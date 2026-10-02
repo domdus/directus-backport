@@ -65,8 +65,27 @@ function nodeModulesAt(root: string): string | null {
 
 function installAt(dir: string): DirectusInstall | null {
 	const pkg = path.join(dir, "package.json");
-	const rootVersion = readVersion(pkg);
 	const nestedModules = path.join(dir, "node_modules");
+
+	// Prefer node_modules/directus (real app). Project scaffolds often use
+	// { "name": "directus", "version": "1.0.0", "dependencies": { "directus": "11.x" } }.
+	const nodeModules = nodeModulesAt(dir);
+	if (nodeModules) {
+		const directusPackage = findDirectusPackage(nodeModules);
+		if (directusPackage) {
+			const version = readVersion(directusPackage);
+			if (version) {
+				return {
+					root: dir,
+					nodeModules,
+					version,
+					directusPackage,
+				};
+			}
+		}
+	}
+
+	const rootVersion = readVersion(pkg);
 	if (rootVersion && fs.existsSync(nestedModules) && fs.statSync(nestedModules).isDirectory()) {
 		return {
 			root: dir,
@@ -76,18 +95,7 @@ function installAt(dir: string): DirectusInstall | null {
 		};
 	}
 
-	const nodeModules = nodeModulesAt(dir);
-	if (!nodeModules) return null;
-	const directusPackage = findDirectusPackage(nodeModules);
-	if (!directusPackage) return null;
-	const version = readVersion(directusPackage);
-	if (!version) return null;
-	return {
-		root: dir,
-		nodeModules,
-		version,
-		directusPackage,
-	};
+	return null;
 }
 
 function walkFrom(start: string): DirectusInstall | null {
@@ -109,7 +117,13 @@ function discoveryStarts(): string[] {
 	} catch {
 		here = undefined;
 	}
-	return uniqueExisting([process.env.DIRECTUS_BACKPORT_ROOT, process.cwd(), here, "/directus"]);
+	return uniqueExisting([
+		process.env.DIRECTUS_BACKPORT_ROOT,
+		process.cwd(),
+		here,
+		"/opt/node/directus",
+		"/directus",
+	]);
 }
 
 function notFound(from: string): Error {

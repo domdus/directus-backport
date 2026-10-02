@@ -66,8 +66,9 @@ export function extensionPackageRoot(start = path.dirname(fileURLToPath(import.m
 
 	for (const candidate of seen) {
 		if (
-			fs.existsSync(path.join(candidate, "cli.mjs")) &&
-			fs.existsSync(path.join(candidate, "dist", "api.js"))
+			fs.existsSync(path.join(candidate, "dist", "api.js")) &&
+			(fs.existsSync(path.join(candidate, "dist", "cli.mjs")) ||
+				fs.existsSync(path.join(candidate, "cli.mjs")))
 		) {
 			return candidate;
 		}

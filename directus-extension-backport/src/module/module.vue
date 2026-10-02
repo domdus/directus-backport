@@ -8,20 +8,6 @@
 			<module-navigation />
 		</template>
 
-		<template #actions>
-			<v-button
-				v-tooltip.bottom="'Check for Updates — fetch catalog from GitHub (does not apply patches)'"
-				icon
-				rounded
-				secondary
-				:disabled="busy || restartPhase !== 'idle' || !report?.catalogRemote?.configured"
-				:loading="catalogBusy"
-				@click="refreshCatalog"
-			>
-				<v-icon name="cloud_download" />
-			</v-button>
-		</template>
-
 		<template #sidebar>
 			<sidebar-detail id="info" icon="info" title="Info">
 				<p class="sidebar-text">
@@ -34,8 +20,8 @@
 			</sidebar-detail>
 			<sidebar-detail id="catalog" icon="inventory_2" title="Patch catalog">
 				<p class="sidebar-text">
-					This extension does not ship overlays. Use <strong>Check for Updates</strong> (header) to opt in and
-					fetch the GitHub catalog into <code>catalog-remote/</code>. That does not apply patches.
+					This extension does not ship overlays. Use <strong>Check for Updates</strong> on the page to fetch
+					the GitHub catalog into <code>catalog-remote/</code>. That does not apply patches.
 				</p>
 				<p class="sidebar-text">{{ catalogLine }}</p>
 				<p v-if="report?.catalogRemote?.advisories" class="sidebar-text mono">{{ report.catalogRemote.advisories }}</p>
@@ -83,10 +69,8 @@
 			</v-notice>
 
 			<v-notice v-if="report && report.cli && !report.cli.bundled" type="danger" class="notice">
-				<code>cli.mjs</code> is missing at
-				<code>{{ report.cli.bundledPath }}</code>.
-				Re-install the extension zip (must include <code>cli.mjs</code> next to <code>package.json</code> and
-				<code>dist/</code>), not <code>dist</code> alone.
+				Bundled CLI missing at <code>{{ report.cli.bundledPath }}</code>. Rebuild the extension so
+				<code>dist/cli.mjs</code> and <code>dist/rollback.mjs</code> ship with <code>dist/api.js</code>.
 			</v-notice>
 
 			<v-notice v-if="error" type="danger" class="notice">{{ error }}</v-notice>
@@ -100,32 +84,7 @@
 				<p class="page-intro">{{ introText }}</p>
 				<p class="explain">{{ catalogLine }}</p>
 
-				<v-notice v-if="report.catalogMissing" type="info" class="notice">
-					No patch catalog on this host yet. Fetch it from GitHub with Check for Updates (does not apply
-					anything). Or run <code>cli.mjs catalog --refresh</code>.
-					<div class="actions" style="margin-top: 12px">
-						<v-button
-							:disabled="busy || !report.catalogRemote?.configured"
-							:loading="catalogBusy"
-							@click="refreshCatalog"
-						>
-							Check for Updates
-						</v-button>
-					</div>
-				</v-notice>
-
-				<v-notice v-if="report.last?.health === 'failed'" type="danger" class="notice">
-					Last apply failed its health check. Rollback now if Studio is flaky.
-				</v-notice>
-
-				<v-notice v-if="!canWrite" type="warning" class="notice">
-					This process cannot write <code>node_modules</code>
-					<template v-if="report.write?.reason"> — {{ report.write.reason }}</template>.
-					Apply and rollback are disabled. Run the CLI as a user that owns the install, or bind-mount a writable
-					tree.
-				</v-notice>
-
-				<div v-if="report.ready.length || report.applied.length" class="actions">
+				<div class="actions">
 					<v-button
 						v-if="report.ready.length"
 						secondary
@@ -152,13 +111,36 @@
 					</v-button>
 					<v-button
 						v-if="report.ready.length"
-						class="actions-apply"
 						:disabled="selected.length === 0 || busy || !canWrite || restartPhase !== 'idle'"
 						@click="askApply(selected)"
 					>
 						Apply Selected ({{ selected.length }})
 					</v-button>
+					<v-button
+						class="actions-end"
+						:disabled="busy || catalogBusy || restartPhase !== 'idle' || !report.catalogRemote?.configured"
+						:loading="catalogBusy"
+						@click="refreshCatalog"
+					>
+						Check for Updates
+					</v-button>
 				</div>
+
+				<v-notice v-if="report.catalogMissing" type="info" class="notice">
+					No patch catalog on this host yet. Use Check for Updates above (does not apply anything), or run
+					<code>node dist/cli.mjs catalog --refresh</code> from this extension folder.
+				</v-notice>
+
+				<v-notice v-if="report.last?.health === 'failed'" type="danger" class="notice">
+					Last apply failed its health check. Rollback now if Studio is flaky.
+				</v-notice>
+
+				<v-notice v-if="!canWrite" type="warning" class="notice">
+					This process cannot write <code>node_modules</code>
+					<template v-if="report.write?.reason"> — {{ report.write.reason }}</template>.
+					Apply and rollback are disabled. Run the CLI as a user that owns the install, or bind-mount a writable
+					tree.
+				</v-notice>
 
 				<template v-if="report.ready.length">
 				<v-divider
@@ -236,6 +218,7 @@
 								<div class="item-title">
 									<strong>{{ item.title }}</strong>
 									<v-chip :class="item.severity" x-small>{{ chipLabel(item.severity) }}</v-chip>
+									<v-chip class="patched" x-small>Patched</v-chip>
 								</div>
 								<p class="item-meta">{{ item.id }} · Fixed upstream in {{ item.upstreamPatched }}</p>
 								<a class="advisory-link" :href="item.advisory" target="_blank" rel="noreferrer">Advisory</a>
@@ -408,12 +391,12 @@ const catalogLine = computed(() => {
 	if (!remote) return '';
 	const origin = remote.configured ? `${remote.github}@${remote.ref}` : 'GitHub';
 	if (remote.using === 'remote' && remote.fetchedAt) {
-		return `Using GitHub ${origin} (fetched ${remote.fetchedAt}). Check for Updates refreshes it.`;
+		return `Using GitHub ${origin} (fetched ${remote.fetchedAt}).`;
 	}
 	if (remote.using === 'bundled') {
-		return `Using a catalog bundled with this install. Check for Updates prefers GitHub ${origin}.`;
+		return `Using a catalog bundled with this install. Check for Updates pulls GitHub ${origin}.`;
 	}
-	return `No catalog yet. Check for Updates fetches ${origin} (opt-in; does not apply patches).`;
+	return `No catalog yet. Check for Updates fetches ${origin} (does not apply patches).`;
 });
 const restartPhase = ref<'idle' | 'applying' | 'waiting' | 'reloading' | 'failed'>('idle');
 const restartKind = ref<'apply' | 'rollback'>('apply');
@@ -756,7 +739,7 @@ onUnmounted(() => {
 	margin-bottom: 16px;
 }
 
-.actions-apply {
+.actions-end {
 	margin-inline-start: auto;
 }
 
@@ -847,6 +830,11 @@ onUnmounted(() => {
 
 .high {
 	--v-chip-color: var(--theme--warning);
+}
+
+.patched {
+	--v-chip-color: var(--theme--success);
+	--v-chip-background-color: var(--theme--success-background, color-mix(in srgb, var(--theme--success) 16%, transparent));
 }
 
 .confirm-card {

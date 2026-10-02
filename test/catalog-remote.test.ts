@@ -15,9 +15,9 @@ describe("package root without bundled catalog", () => {
 			path.join(root, "package.json"),
 			JSON.stringify({ name: "directus-extension-backport", version: "1.0.0" }),
 		);
-		fs.writeFileSync(path.join(root, "cli.mjs"), "// cli\n");
 		fs.mkdirSync(path.join(root, "dist"));
 		fs.writeFileSync(path.join(root, "dist", "api.js"), "// api\n");
+		fs.writeFileSync(path.join(root, "dist", "cli.mjs"), "// cli\n");
 		assert.equal(isPackageRoot(root), true);
 		assert.equal(findPackageRoot(path.join(root, "dist")), root);
 		assert.equal(fs.existsSync(path.join(root, "catalog", "advisories.yml")), false);

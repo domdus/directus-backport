@@ -21,10 +21,10 @@ export function isPackageRoot(dir: string): boolean {
 	if (name && PACKAGE_NAMES.has(name)) return true;
 	if (fs.existsSync(path.join(dir, "catalog", "advisories.yml"))) return true;
 	if (fs.existsSync(path.join(dir, "catalog-remote", "advisories.yml"))) return true;
-	// Marketplace / zip layout: dist + cli without a bundled catalog yet
+	// Marketplace / zip layout: dist/ holds api + cli (catalog optional)
 	if (
-		fs.existsSync(path.join(dir, "cli.mjs")) &&
-		(fs.existsSync(path.join(dir, "dist", "api.js")) || fs.existsSync(path.join(dir, "package.json")))
+		fs.existsSync(path.join(dir, "dist", "api.js")) &&
+		(fs.existsSync(path.join(dir, "dist", "cli.mjs")) || fs.existsSync(path.join(dir, "cli.mjs")))
 	) {
 		return true;
 	}

@@ -1,10 +1,14 @@
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const esbuild = path.join(root, "directus-extension-backport/node_modules/esbuild/bin/esbuild");
-const outfile = path.join(root, "directus-extension-backport/cli.mjs");
+const ext = path.join(root, "directus-extension-backport");
+const esbuild = path.join(ext, "node_modules/esbuild/bin/esbuild");
+const distDir = path.join(ext, "dist");
+fs.mkdirSync(distDir, { recursive: true });
+const outfile = path.join(distDir, "cli.mjs");
 const result = spawnSync(
 	esbuild,
 	[

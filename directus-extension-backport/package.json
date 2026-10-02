@@ -15,8 +15,6 @@
 	"type": "module",
 	"files": [
 		"dist",
-		"cli.mjs",
-		"rollback.mjs",
 		"README.md"
 	],
 	"directus:extension": {
@@ -45,9 +43,10 @@
 		"host": "10.13.4 || 11.17.4"
 	},
 	"scripts": {
-		"prebuild": "rm -rf catalog && cp ../rollback.mjs rollback.mjs && node ../scripts/bundle-cli.mjs",
-		"prebuild:with-catalog": "rm -rf catalog && cp -r ../catalog catalog && cp ../rollback.mjs rollback.mjs && node ../scripts/bundle-cli.mjs",
+		"prebuild": "rm -rf catalog && node ../scripts/bundle-cli.mjs",
+		"prebuild:with-catalog": "rm -rf catalog && cp -r ../catalog catalog && node ../scripts/bundle-cli.mjs",
 		"build": "directus-extension build",
+		"postbuild": "node ../scripts/bundle-cli.mjs && cp ../rollback.mjs dist/rollback.mjs && cp dist/cli.mjs cli.mjs && cp dist/rollback.mjs rollback.mjs",
 		"prepublishOnly": "npm run build",
 		"zip": "node ../scripts/pack-extension.mjs",
 		"dev": "directus-extension build -w --no-minify"

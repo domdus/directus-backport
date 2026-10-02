@@ -15,6 +15,9 @@ own overlay. The CLI will still detect those installs; it just will not apply a
 pin that is not in the catalog. “Latest of each major” is only which overlays
 exist today, not a hard rule.
 
+Version detection reads `node_modules/directus` (not a project scaffold
+`package.json` that happens to be named `"directus"` at `1.0.0`).
+
 ```
 npx tsx src/cli.ts          # prompt UI (run from the Directus folder)
 directus-backport status

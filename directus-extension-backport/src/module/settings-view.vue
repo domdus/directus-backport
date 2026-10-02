@@ -61,8 +61,7 @@
 					(<code>cli.mjs</code>). Directus does not need to be up.
 				</p>
 				<v-notice v-if="!cli.bundled" type="danger" class="notice">
-					<code>cli.mjs</code> missing at <code>{{ cli.bundledPath }}</code>. Re-install the zip so
-					<code>cli.mjs</code> sits next to <code>package.json</code> and <code>dist/</code>.
+					CLI missing at <code>{{ cli.bundledPath }}</code>. Rebuild so <code>dist/cli.mjs</code> is included.
 				</v-notice>
 				<p class="sidebar-text mono">{{ cli.rollbackCli }}</p>
 				<p class="sidebar-text mono">{{ cli.rollbackDocker }}</p>

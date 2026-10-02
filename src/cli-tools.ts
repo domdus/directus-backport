@@ -14,7 +14,6 @@ export type CliToolsOptions = {
 
 function resolvePackageRoot(opts?: string | CliToolsOptions): string {
 	if (typeof opts === "string") {
-		// legacy: catalog root → parent folder
 		return path.dirname(path.resolve(opts));
 	}
 	if (opts?.packageRoot) return path.resolve(opts.packageRoot);
@@ -22,12 +21,19 @@ function resolvePackageRoot(opts?: string | CliToolsOptions): string {
 	return findPackageRoot();
 }
 
+/** Prefer dist/cli.mjs (extension build output), then root cli.mjs. */
 export function bundledCliPath(opts?: string | CliToolsOptions): string {
-	return path.join(resolvePackageRoot(opts), "cli.mjs");
+	const root = resolvePackageRoot(opts);
+	const inDist = path.join(root, "dist", "cli.mjs");
+	if (fs.existsSync(inDist)) return inDist;
+	return path.join(root, "cli.mjs");
 }
 
 export function emergencyRollbackPath(opts?: string | CliToolsOptions): string {
-	return path.join(resolvePackageRoot(opts), "rollback.mjs");
+	const root = resolvePackageRoot(opts);
+	const inDist = path.join(root, "dist", "rollback.mjs");
+	if (fs.existsSync(inDist)) return inDist;
+	return path.join(root, "rollback.mjs");
 }
 
 export function rollbackCommands(opts?: string | CliToolsOptions) {
@@ -43,15 +49,16 @@ export function cliStatus(install: DirectusInstall, opts?: string | CliToolsOpti
 		typeof opts === "string" ? { catalogRoot: opts } : opts ?? {};
 	const packageRoot = resolvePackageRoot(normalized);
 	const catalogRoot = normalized.catalogRoot;
-	const bundledPath = path.join(packageRoot, "cli.mjs");
+	const bundledPath = bundledCliPath(normalized);
+	const emergencyRollback = emergencyRollbackPath(normalized);
 	const desiredFile = loadState(install.nodeModules).desiredFile || desiredPath(catalogRoot);
 	const snapshots = dataDir(install.nodeModules);
-	const commands = rollbackCommands({ packageRoot, catalogRoot });
+	const commands = rollbackCommands(normalized);
 	return {
 		bundled: fs.existsSync(bundledPath),
 		bundledPath,
 		packageRoot,
-		emergencyRollback: path.join(packageRoot, "rollback.mjs"),
+		emergencyRollback,
 		rollbackCli: commands.cli,
 		rollbackDocker: commands.docker,
 		desiredFile,

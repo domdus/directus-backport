@@ -141,6 +141,26 @@ describe("apply / rollback", () => {
 		assert.equal(install.nodeModules, path.join(root, "node_modules"));
 	});
 
+	it("prefers node_modules/directus over a scaffold package.json named directus@1.0.0", () => {
+		const root = fs.mkdtempSync(path.join(os.tmpdir(), "directus-scaffold-"));
+		fs.writeFileSync(
+			path.join(root, "package.json"),
+			JSON.stringify({
+				name: "directus",
+				version: "1.0.0",
+				dependencies: { directus: "11.17.4" },
+			}),
+		);
+		fs.mkdirSync(path.join(root, "node_modules", "directus"), { recursive: true });
+		fs.writeFileSync(
+			path.join(root, "node_modules", "directus", "package.json"),
+			JSON.stringify({ name: "directus", version: "11.17.4" }),
+		);
+		const install = detectInstall(root);
+		assert.equal(install.version, "11.17.4");
+		assert.equal(install.root, path.resolve(root));
+	});
+
 	it("walks up from an extension folder to the Directus root", () => {
 		const root = fs.mkdtempSync(path.join(os.tmpdir(), "directus-ext-walk-"));
 		fs.writeFileSync(path.join(root, "package.json"), JSON.stringify({ name: "directus", version: "9.26.0" }));
