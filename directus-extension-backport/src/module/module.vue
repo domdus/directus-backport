@@ -8,23 +8,6 @@
 			<module-navigation />
 		</template>
 
-		<template #actions>
-			<v-button
-				v-tooltip.bottom="'Check for catalog updates'"
-				icon
-				rounded
-				secondary
-				:disabled="busy || restartPhase !== 'idle' || !report?.catalogRemote?.configured"
-				:loading="catalogBusy"
-				@click="refreshCatalog"
-			>
-				<v-icon name="cloud_download" />
-			</v-button>
-			<v-button v-tooltip.bottom="'Refresh'" icon rounded secondary :disabled="busy || restartPhase !== 'idle'" @click="load">
-				<v-icon name="refresh" />
-			</v-button>
-		</template>
-
 		<template #sidebar>
 			<sidebar-detail id="info" icon="info" title="Info">
 				<p class="sidebar-text">
@@ -37,8 +20,8 @@
 			</sidebar-detail>
 			<sidebar-detail id="catalog" icon="inventory_2" title="Patch catalog">
 				<p class="sidebar-text">
-					New patches come from GitHub. Updating the catalog does not apply them. Cloud-download fetches the
-					latest YAML; then Apply as usual.
+					New patches come from GitHub. Run <code>cli.mjs catalog --refresh</code> to fetch them into
+					<code>catalog-remote/</code>. That does not apply patches.
 				</p>
 				<p class="sidebar-text">{{ catalogLine }}</p>
 				<p v-if="report?.catalogRemote?.advisories" class="sidebar-text mono">{{ report.catalogRemote.advisories }}</p>
@@ -98,6 +81,7 @@
 
 			<template v-else-if="report">
 				<p class="page-intro">{{ introText }}</p>
+				<p class="explain">{{ catalogLine }}</p>
 
 				<v-notice v-if="report.last?.health === 'failed'" type="danger" class="notice">
 					Last apply failed its health check. Rollback now if Studio is flaky.
@@ -238,33 +222,6 @@
 						</div>
 					</div>
 				</template>
-
-				<template v-if="report.waiting.length">
-					<v-divider
-						class="section-divider add-margin-top"
-						large
-						:inline-title="false"
-						:style="{ '--v-divider-color': 'var(--theme--border-color-subdued)' }"
-					>
-						<template #icon><v-icon name="pending" /></template>
-						Open on this version — no backport yet
-					</v-divider>
-					<p class="explain">These cannot be selected. They are listed so the catalog can track what still needs a port.</p>
-					<div class="list">
-						<div v-for="item in report.waiting" :key="item.id" class="item item--static">
-							<div class="item-body">
-								<div class="item-title">
-									<strong>{{ item.title }}</strong>
-									<v-chip :class="item.severity" x-small>{{ chipLabel(item.severity) }}</v-chip>
-									<v-chip x-small>{{ chipLabel(item.port.status) }}</v-chip>
-								</div>
-								<p class="item-meta">{{ item.id }} · Fixed upstream in {{ item.upstreamPatched }}</p>
-								<p v-if="item.port.notes" class="item-note">{{ item.port.notes }}</p>
-								<a class="advisory-link" :href="item.advisory" target="_blank" rel="noreferrer">Advisory</a>
-							</div>
-						</div>
-					</div>
-				</template>
 			</template>
 			</template>
 		</div>
@@ -387,7 +344,6 @@ const RESTART_KEY = 'directus-backport-restarting';
 let responseInterceptor: number | null = null;
 const loading = ref(true);
 const busy = ref(false);
-const catalogBusy = ref(false);
 const error = ref('');
 const notice = ref<{ type: string; text: string } | null>(null);
 const report = ref<Report | null>(null);
@@ -523,24 +479,6 @@ async function load() {
 		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Failed to load catalog';
 	} finally {
 		loading.value = false;
-	}
-}
-
-async function refreshCatalog() {
-	catalogBusy.value = true;
-	error.value = '';
-	notice.value = null;
-	try {
-		const { data } = await api.post('/backport/catalog/refresh');
-		notice.value = {
-			type: 'success',
-			text: `Catalog updated from ${data.data.github}@${data.data.ref} (${data.data.files} files). Nothing was applied.`,
-		};
-		await load();
-	} catch (err: any) {
-		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Catalog update failed';
-	} finally {
-		catalogBusy.value = false;
 	}
 }
 

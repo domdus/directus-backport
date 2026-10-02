@@ -142,9 +142,9 @@ export function advisoryApplies(advisory: Advisory, version: string): boolean {
 export function hasApplyablePatch(advisory: Advisory, version?: string): boolean {
 	const targets = version ? targetsForVersion(advisory, version) : advisory.port.targets;
 	if (targets.length === 0) return false;
-	if (advisory.port.status !== "experimental" && advisory.port.status !== "stable") return false;
+	if (advisory.port.status === "needs-port" || advisory.port.status === "wont-port") return false;
 	if (version) return isStillVulnerable(advisory, version);
-	return true;
+	return advisory.port.status === "experimental" || advisory.port.status === "stable" || advisory.port.status === "already-fixed";
 }
 
 export function partitionAdvisories(catalog: Catalog, version: string) {

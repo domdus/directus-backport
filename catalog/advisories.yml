@@ -37,7 +37,7 @@ advisories:
     port:
       status: experimental
       risk: high
-      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. sanitizeDeep builds Object.create(null) so prototype pollution in `deep` cannot persist. Restart required."
+      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. sanitizeDeep builds Object.create(null) so prototype pollution in `deep` cannot persist. Restart required."
 
   - id: GHSA-7vcx-mhxq-9j96
     title: DoS via image-transform endpoint accepting unvalidated target dimensions
@@ -48,7 +48,7 @@ advisories:
     port:
       status: experimental
       risk: medium
-      notes: Checksum-pinned to Directus 10.13.4 and 11.17.4. Caps requested resize width/height at ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION. Restart required.
+      notes: Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Caps requested resize width/height at ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION. Restart required.
 
   - id: GHSA-mww8-4gwh-rjfw
     title: Missing Origin validation on WebSocket upgrades (CSWSH)
@@ -125,7 +125,7 @@ advisories:
     port:
       status: experimental
       risk: low
-      notes: Checksum-pinned to Directus 10.13.4 and 11.17.4. Requires an authenticated user on POST /utils/hash/generate and /utils/hash/verify. Restart required.
+      notes: Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Requires an authenticated user on POST /utils/hash/generate and /utils/hash/verify. Restart required.
 
   - id: GHSA-j5h6-vqc3-phqh
     title: SSRF protection bypass via 0.0.0.0 in file import
@@ -136,7 +136,7 @@ advisories:
     port:
       status: experimental
       risk: medium
-      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. IMPORT_IP_DENY_LIST=0.0.0.0 also blocks 0.0.0.0/8 and IPv6 unspecified. Restart required."
+      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. IMPORT_IP_DENY_LIST=0.0.0.0 also blocks 0.0.0.0/8 and IPv6 unspecified. Restart required."
 
   - id: GHSA-c6w9-5g5j-jh2p
     title: Authorization-dependent response served from an unsegmented cache key
@@ -169,7 +169,7 @@ advisories:
     port:
       status: experimental
       risk: medium
-      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Share updates cannot reassign user_created; non-admins cannot set role. Restart required."
+      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Share updates cannot reassign user_created; non-admins cannot set role. Restart required."
 
   - id: GHSA-8xp8-xrh2-88vr
     title: Public registration sends the verification email to the submitted address instead of the matched account
@@ -202,7 +202,7 @@ advisories:
     port:
       status: experimental
       risk: high
-      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Files create/update check access before filename/storage side effects. Restart required."
+      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Files create/update check access before filename/storage side effects. Restart required."
 
   - id: GHSA-r9xq-xp38-j4j3
     title: Sensitive directus_settings fields readable by minimal app_access users
@@ -246,7 +246,7 @@ advisories:
     port:
       status: experimental
       risk: high
-      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Mail templates must resolve inside the configured templates directories. Restart required."
+      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Mail templates must resolve inside the configured templates directories. Restart required."
 
   - id: GHSA-38hg-ww64-rrwc
     title: Authenticated users can extract concealed fields via aggregate queries
@@ -257,7 +257,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
-      notes: Fixed in Directus 11.17.0. Stay on 11.17.4 or later 11.x.
+      notes: "Fixed in Directus 11.17.0. Checksum-pinned overlay for 9.26.0 redacts concealed fields in min/max aggregates. Stay on 11.17.4 or later 11.x."
 
   - id: GHSA-ph52-67fq-75wj
     title: GraphQL alias amplification DoS due to missing query cost limits
@@ -268,7 +268,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
-      notes: Fixed in Directus 11.17.0.
+      notes: Fixed in Directus 11.17.0. Checksum-pinned overlay for 9.26.0 caps GraphQL aliases at 50 per request.
 
   - id: GHSA-6q22-g298-grjh
     title: Unauthenticated DoS via GraphQL alias amplification of the health check resolver
@@ -279,7 +279,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
-      notes: Fixed in Directus 11.17.0.
+      notes: Fixed in Directus 11.17.0. Checksum-pinned overlay for 9.26.0 dedupes server_health within a GraphQL request.
 
   - id: GHSA-mvv8-v4jj-g47j
     title: Sensitive fields exposed in revision history
@@ -290,7 +290,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
-      notes: Fixed in Directus 11.17.0.
+      notes: Fixed in Directus 11.17.0. Checksum-pinned overlay for 9.26.0 runs update snapshots through prepareDelta.
 
   - id: GHSA-wxwm-3fxv-mrvx
     title: GraphQL schema SDL disclosure setting
@@ -301,7 +301,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
-      notes: Fixed in Directus 11.16.1.
+      notes: Fixed in Directus 11.16.1. Checksum-pinned overlay for 9.26.0 hides server_specs_graphql and /server/specs/graphql when GRAPHQL_INTROSPECTION=false.
 
   - id: GHSA-qqmv-5p3g-px89
     title: TUS upload authorization bypass allows arbitrary file overwrite
@@ -334,7 +334,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
-      notes: Fixed in Directus 11.16.1.
+      notes: Fixed in Directus 11.16.1. Checksum-pinned overlay for 9.26.0 requires OAuth2/OpenID/SAML redirects to match PUBLIC_URL.
 
   - id: GHSA-wv3h-5fx7-966h
     title: SSRF protection bypass via IPv4-mapped IPv6 addresses in file import
@@ -345,4 +345,4 @@ advisories:
     port:
       status: already-fixed
       risk: none
-      notes: Fixed in Directus 11.16.0.
+      notes: Fixed in Directus 11.16.0. Checksum-pinned overlay for 9.26.0 unwraps IPv4-mapped IPv6 before IMPORT_IP_DENY_LIST.

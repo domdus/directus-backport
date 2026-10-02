@@ -1,12 +1,6 @@
 import type { Request, Response, Router } from "express";
 import { applyPatches, rollbackAdvisory, rollbackAll, rollbackLast, statusReport } from "../../../src/engine.js";
-import {
-	cliStatus,
-	installHostCli,
-	purgeWorkingFiles,
-	rollbackCommands,
-	uninstallHostCli,
-} from "../../../src/cli-tools.js";
+import { cliStatus, purgeWorkingFiles, rollbackCommands } from "../../../src/cli-tools.js";
 import { catalogRemoteStatus, refreshRemoteCatalog } from "../../../src/catalog-fetch.js";
 import { accountabilityIsAdmin } from "../shared/admin.js";
 import { catalogRoot, installFromEnv } from "../shared/runtime.js";
@@ -120,26 +114,6 @@ export default (router: Router) => {
 			res.json({ data: result });
 		} catch (err) {
 			sendError(res, 502, err instanceof Error ? err.message : String(err));
-		}
-	});
-
-	router.post("/tools/install-cli", (req: Request, res: Response) => {
-		if (!requireAdmin(req, res)) return;
-		try {
-			const result = installHostCli(installFromEnv(), catalogRoot());
-			res.json({ data: result });
-		} catch (err) {
-			sendError(res, 500, err instanceof Error ? err.message : String(err));
-		}
-	});
-
-	router.post("/tools/uninstall-cli", (req: Request, res: Response) => {
-		if (!requireAdmin(req, res)) return;
-		try {
-			const result = uninstallHostCli(catalogRoot());
-			res.json({ data: result });
-		} catch (err) {
-			sendError(res, 500, err instanceof Error ? err.message : String(err));
 		}
 	});
 

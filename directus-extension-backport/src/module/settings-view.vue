@@ -11,8 +11,8 @@
 		<template #sidebar>
 			<sidebar-detail id="info" icon="info" title="Info">
 				<p class="sidebar-text">
-					Studio already includes the patch engine. The bundled CLI is the same engine for when Directus will
-					not start. Installing the host command is optional.
+					Studio already includes the patch engine. If Directus will not start, run <code>cli.mjs</code> from
+					this extension folder. There is nothing else to install.
 				</p>
 			</sidebar-detail>
 		</template>
@@ -36,17 +36,12 @@
 					Patch catalog
 				</v-divider>
 				<p class="explain">
-					The engine stays in this extension. <strong>Check for updates</strong> downloads newer GHSA overlays
-					from GitHub into <code>catalog-remote/</code>. That does not apply patches. No environment variables
-					are required.
+					The engine stays in this extension. To pull newer GHSA overlays from GitHub into
+					<code>catalog-remote/</code>, run <code>cli.mjs catalog --refresh</code>. That does not apply
+					patches.
 				</p>
 				<p class="sidebar-text">{{ catalogLine }}</p>
 				<p v-if="cli.catalogRemote?.advisories" class="sidebar-text mono">{{ cli.catalogRemote.advisories }}</p>
-				<div class="actions">
-					<v-button :disabled="busy || !cli.catalogRemote?.configured" :loading="busy" @click="refreshCatalog">
-						Check for Updates
-					</v-button>
-				</div>
 
 				<v-divider
 					class="section-divider add-margin-top"
@@ -54,34 +49,18 @@
 					:inline-title="false"
 					:style="{ '--v-divider-color': 'var(--theme--border-color-subdued)' }"
 				>
-					<template #icon><v-icon name="terminal" /></template>
-					Host CLI
+					<template #icon><v-icon name="restart_alt" /></template>
+					If Directus does not start
 				</v-divider>
 				<p class="explain">
-					The extension ships <code>cli.mjs</code>. That is enough for apply, status, and rollback when Directus
-					is down. The host command is an optional shortcut in the Directus install folder.
+					Studio cannot help then. Run the CLI that already ships with this extension
+					(<code>cli.mjs</code>). Directus does not need to be up.
 				</p>
 				<v-notice v-if="!cli.bundled" type="danger" class="notice">
 					Bundled CLI is missing at <code>{{ cli.bundledPath }}</code>. Rebuild the extension.
 				</v-notice>
 				<p class="sidebar-text mono">{{ cli.rollbackCli }}</p>
 				<p class="sidebar-text mono">{{ cli.rollbackDocker }}</p>
-				<p v-if="cli.hostCommandInstalled" class="explain">
-					Host command installed at <code>{{ cli.hostCommand }}</code>
-				</p>
-				<div class="actions">
-					<v-button
-						v-if="!cli.hostCommandInstalled"
-						:disabled="busy || !cli.bundled"
-						:loading="busy"
-						@click="installCli"
-					>
-						Install Host Command
-					</v-button>
-					<v-button v-else secondary :disabled="busy" :loading="busy" @click="uninstallCli">
-						Uninstall Host Command
-					</v-button>
-				</div>
 
 				<v-divider
 					class="section-divider add-margin-top"
@@ -131,8 +110,6 @@ import ModuleNavigation from './navigation.vue';
 type CliStatus = {
 	bundled: boolean;
 	bundledPath: string;
-	hostCommand: string;
-	hostCommandInstalled: boolean;
 	rollbackCli: string;
 	rollbackDocker: string;
 	desiredFile: string;
@@ -179,54 +156,6 @@ async function load() {
 		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Failed to load settings';
 	} finally {
 		loading.value = false;
-	}
-}
-
-async function refreshCatalog() {
-	busy.value = true;
-	error.value = '';
-	notice.value = null;
-	try {
-		const { data } = await api.post('/backport/catalog/refresh');
-		notice.value = {
-			type: 'success',
-			text: `Catalog updated from ${data.data.github}@${data.data.ref} (${data.data.files} files). Nothing was applied.`,
-		};
-		await load();
-	} catch (err: any) {
-		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Catalog update failed';
-	} finally {
-		busy.value = false;
-	}
-}
-
-async function installCli() {
-	busy.value = true;
-	error.value = '';
-	notice.value = null;
-	try {
-		const { data } = await api.post('/backport/tools/install-cli');
-		notice.value = { type: 'success', text: `Host command written to ${data.data.path}` };
-		await load();
-	} catch (err: any) {
-		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Install failed';
-	} finally {
-		busy.value = false;
-	}
-}
-
-async function uninstallCli() {
-	busy.value = true;
-	error.value = '';
-	notice.value = null;
-	try {
-		await api.post('/backport/tools/uninstall-cli');
-		notice.value = { type: 'success', text: 'Host command removed' };
-		await load();
-	} catch (err: any) {
-		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Uninstall failed';
-	} finally {
-		busy.value = false;
 	}
 }
 

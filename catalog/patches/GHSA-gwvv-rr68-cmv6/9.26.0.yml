@@ -1,0 +1,10 @@
+- file: "@directus/api/dist/utils/sanitize-query.js"
+  before_sha256: "e5c8e21661ffb6a8d6f88806b1936052ce92dd60aca16aad0fd4fe2a5b8fca15"
+  after_sha256: "d7b6bcf130f37b2fa11f0609b97a599a81a9112e1bae36ba4cd50ff4149b888c"
+  replace:
+    - from: "function sanitizeDeep(deep, accountability) {\n    const result = {};"
+      to: "function sanitizeDeep(deep, accountability) {\n    const result = Object.create(null);"
+    - from: "    function parse(level, path = []) {\n        const parsedLevel = {};"
+      to: "    function parse(level, path = []) {\n        const parsedLevel = Object.create(null);"
+    - from: "            set(result, path, merge({}, get(result, path, {}), parsedLevel));"
+      to: "            set(result, path, merge(Object.create(null), get(result, path, Object.create(null)), parsedLevel));"

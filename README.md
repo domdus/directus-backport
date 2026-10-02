@@ -52,7 +52,19 @@ broken files if you want to inspect them.
 
 ## No-code usage
 
-### CLI usage
+On **10.13.4** and **11.17.4**, drop `directus-extension-backport/` into
+`/directus/extensions/`, enable **Security Backports** under
+**Settings → Project Settings → Modules**, then use the catalog: apply and
+rollback are buttons. **Check for updates** pulls newer overlays from GitHub.
+Nothing is applied until you click Apply.
+
+Apply and rollback still write `node_modules` on that host, then exit the Node
+process so whatever starts Directus (Docker, systemd, Kubernetes, you) can load
+the patched files.
+
+On **9.26.0** Studio will not load. Use the CLI.
+
+## CLI usage
 
 From the Directus install folder (or inside the container):
 
@@ -61,12 +73,13 @@ npm install && npm run build
 node dist/cli.js
 node dist/cli.js status
 node dist/cli.js apply --yes GHSA-xw72-c69j-h2rj
+node dist/cli.js apply --all --yes
 node dist/cli.js rollback
 node dist/cli.js rollback --id GHSA-xw72-c69j-h2rj
 node dist/cli.js rollback --all
 ```
 
-The UI detects the version, shows open advisories vs ready backports, asks
+The prompt detects the version, shows open advisories vs ready backports, asks
 which to apply, then snapshots → apply → optional health wait → rollback on
 fail.
 
@@ -78,23 +91,8 @@ node dist/cli.js apply --yes GHSA-xxxx-xxxx-xxxx \
   --restart-cmd "docker compose restart directus"
 ```
 
-### Studio module
-
-Build `directus-extension-backport/` and drop it into `/directus/extensions/directus-extension-backport`.
-Admins get a **Security Backports** module: catalog, apply, rollback. `cli.mjs` is
-copied with the extension. Apply still writes `node_modules` on that host. Apply
-and rollback exit the Node process (`process.exit(0)`). They do not call Docker.
-Whatever starts Directus — systemd, PM2, Docker `restart: unless-stopped`,
-Kubernetes, or you — has to bring it back.
-
-Studio loads on **10.13.4** and **11.17.4** only (Vue 3 host). On **9.26.0** use
-the CLI; that Studio module will not load.
-
-Optional host command (Settings → Install Host Command):
-
-```bash
-node /directus/directus-backport status
-```
+`cli.mjs` in the extension folder is the same engine if you already installed
+Studio. Directus does not need to be up.
 
 ## Catalog
 
@@ -124,8 +122,9 @@ checksum-pinned 10.13.4 overlays.
 
 On **9.26.0**, the Studio module cannot load. The CLI can. Features that did not
 exist yet (TUS, WebSocket CSWSH, public registration, AI, Flows auth) are out of
-range. A small set of 12.x fixes whose compiled files still match 9.26.0 are
-checksum-pinned; the rest wait for a 9.26.0-specific port.
+range. Overlays whose 9.26.0 compiled files could be checksum-pinned are in the
+catalog; WebSocket, TUS, and Studio 2FA redirect still wait (those features are
+missing or live outside the API tree on 9.26.0).
 
 ## Persistence (Docker recreate)
 
@@ -173,6 +172,7 @@ that are `stable` for that exact image tag.
 | `catalog` | Full registry |
 | `catalog --refresh` | Download the GitHub catalog (does not apply) |
 | `apply [ids] --yes` | Non-interactive apply |
+| `apply --all --yes` | Apply every ready backport for this version |
 | `apply --yes --desired` | Apply ids from `desired.json` |
 | `rollback` | Restore the most recently applied GHSA |
 | `rollback --id GHSA-…` | Restore one advisory |

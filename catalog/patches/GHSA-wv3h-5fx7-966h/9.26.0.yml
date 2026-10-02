@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/request/validate-ip.js"
+  before_sha256: "0e021c07d449b8698782aa1e377ea88d4ed880990cf5f655f4e6b9364206e0c4"
+  after_sha256: "8a5cd70eac5cc20098b77fa9ca9d7e7f617e149b595a4ddbe0a5931ad2161a73"
+  replace:
+    - from: "export const validateIP = async (ip, url) => {\n    const env = getEnv();"
+      to: "export const validateIP = async (ip, url) => {\n    const mapped = String(ip).toLowerCase();\n    if (mapped.startsWith('::ffff:'))\n        ip = mapped.slice('::ffff:'.length);\n    const env = getEnv();"

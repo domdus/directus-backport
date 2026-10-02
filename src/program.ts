@@ -3,7 +3,7 @@ import path from "node:path";
 import { detectInstall } from "./detect.js";
 import { applyPatches, rollbackAdvisory, rollbackAll, rollbackLast, rollbackSnapshot, statusReport, verifyInstall } from "./engine.js";
 import { loadDesired } from "./desired.js";
-import { loadCatalog, partitionAdvisories } from "./catalog.js";
+import { hasApplyablePatch, isFixedOnThisVersion, isStillVulnerable, loadCatalog } from "./catalog.js";
 import { catalogRemoteStatus, refreshRemoteCatalog } from "./catalog-fetch.js";
 import { findPackageRoot } from "./paths.js";
 import * as p from "@clack/prompts";
@@ -25,24 +25,33 @@ function printJson(value: unknown): void {
 	process.stdout.write(`${JSON.stringify(value, null, 2)}\n`);
 }
 
-function severityColor(severity: Advisory["severity"]): string {
-	if (severity === "critical") return pc.red(severity);
-	if (severity === "high") return pc.magenta(severity);
-	if (severity === "medium") return pc.yellow(severity);
-	return pc.cyan(severity);
-}
-
-function statusLabel(advisory: Advisory): string {
+function statusLabel(advisory: Advisory, version?: string): string {
+	if (version && isFixedOnThisVersion(advisory, version)) {
+		return pc.green(`already in ${advisory.upstreamPatched}+`);
+	}
+	if (version && isStillVulnerable(advisory, version)) {
+		if (hasApplyablePatch(advisory, version)) return pc.yellow("experimental");
+		return pc.dim("needs-port");
+	}
 	const s = advisory.port.status;
 	if (s === "stable") return pc.green("stable");
 	if (s === "experimental") return pc.yellow("experimental");
 	if (s === "needs-port") return pc.dim("needs-port");
-	if (s === "already-fixed") return pc.green("already in 11.x");
+	if (s === "already-fixed") return pc.green(`already in ${advisory.upstreamPatched}+`);
 	return pc.dim(s);
 }
 
-function formatAdvisory(advisory: Advisory): string {
-	return `${pc.bold(advisory.id)}  ${severityColor(advisory.severity)}  ${statusLabel(advisory)}\n    ${advisory.title}`;
+/** Action-oriented summary for operators — omit catalog gaps the host cannot act on. */
+function formatStatusCounts(counts: {
+	applied: number;
+	ready: number;
+	alreadyFixed: number;
+}): string {
+	const parts = [`${pc.bold(String(counts.applied))} applied`, `${pc.bold(String(counts.ready))} ready to apply`];
+	if (counts.alreadyFixed > 0) {
+		parts.push(`${pc.bold(String(counts.alreadyFixed))} already fixed upstream`);
+	}
+	return parts.join(" · ");
 }
 
 export async function interactive(
@@ -56,15 +65,7 @@ export async function interactive(
 
 	const report = statusReport(install);
 	p.log.info(`Directus ${pc.bold(install.version)}\n${pc.dim(install.nodeModules)}`);
-	p.log.message(
-		[
-			`${pc.bold(String(report.counts.open))} open on this version`,
-			`${pc.bold(String(report.counts.ready))} backports ready to apply`,
-			`${pc.bold(String(report.counts.waiting))} waiting for a port`,
-			`${pc.bold(String(report.counts.alreadyFixed))} already fixed in this 11.x line`,
-			`${pc.bold(String(report.counts.applied))} applied here`,
-		].join(" · "),
-	);
+	p.log.message(formatStatusCounts(report.counts));
 
 	if (report.last?.health === "failed") {
 		p.log.error(`Last apply failed health check. Run ${pc.bold("directus-backport rollback")} if Studio is down.`);
@@ -75,17 +76,7 @@ export async function interactive(
 			p.outro(`${pc.bold(String(report.counts.applied))} already applied on this install.`);
 			return;
 		}
-		p.note(
-			report.waiting
-				.slice(0, 8)
-				.map((a) => `${a.id}  ${a.severity}  ${a.title}`)
-				.concat(report.waiting.length > 8 ? [`… ${report.waiting.length - 8} more`] : [])
-				.join("\n") || "Catalog is empty.",
-			"Open advisories (no backport yet)",
-		);
-		p.outro(
-			`Browse the registry with ${pc.bold("directus-backport catalog")}. When a PR lands a stable patch, it will show up here.`,
-		);
+		p.outro("Nothing ready to apply for this version.");
 		return;
 	}
 
@@ -93,7 +84,7 @@ export async function interactive(
 		message: "Apply which backports?",
 		options: report.ready.map((a) => ({
 			value: a.id,
-			label: `${a.id}  ${a.severity}  ${a.port.status}`,
+			label: `${a.id}  ${a.severity}  ${statusLabel(a, install.version)}`,
 			hint: a.title,
 		})),
 		required: false,
@@ -203,9 +194,7 @@ export function createProgram(): Command {
 			}
 			p.intro("directus-backport status");
 			p.log.info(`Directus ${install.version}\n${install.nodeModules}`);
-			p.log.message(
-				`${report.counts.open} open · ${report.counts.ready} ready · ${report.counts.waiting} waiting · ${report.counts.alreadyFixed} already fixed · ${report.counts.applied} applied`,
-			);
+			p.log.message(formatStatusCounts(report.counts));
 			if (report.last) {
 				p.log.message(`Last ${report.last.action}  health=${report.last.health}  snapshot=${report.last.snapshot}`);
 			}
@@ -213,63 +202,107 @@ export function createProgram(): Command {
 				p.log.message(`Persisted ${report.desired.ids.length} in desired.json (${report.desiredFile})`);
 			}
 			if (report.ready.length) {
-				p.note(report.ready.map((a) => `${a.id}  ${a.severity}  ${a.port.status}`).join("\n"), "Ready to apply");
+				p.note(report.ready.map((a) => `${a.id}  ${a.severity}  ${statusLabel(a, install.version)}`).join("\n"), "Ready to apply");
 			}
 			p.outro(
 				report.counts.ready
 					? `Run ${pc.bold("directus-backport")} to apply interactively.`
 					: report.counts.applied
-						? `${report.counts.applied} already applied.`
-						: "No backports in the catalog yet.",
+						? `${report.counts.applied} applied on this install.`
+						: "Nothing to do for this version.",
 			);
 		});
 
 	program
 		.command("catalog")
-		.description("List the advisory registry")
+		.description("Show this install vs the catalog (use --all for the full registry)")
 		.option("--refresh", "Download the GitHub catalog into the local cache (does not apply patches)", false)
-		.action(async (cmdOpts: { refresh?: boolean }) => {
+		.option("--all", "List every advisory in the registry (maintainer view)", false)
+		.action(async (cmdOpts: { refresh?: boolean; all?: boolean }) => {
 			const opts = program.opts<{ root?: string; json?: boolean }>();
 			if (cmdOpts.refresh) {
 				try {
 					const result = await refreshRemoteCatalog();
 					if (opts.json) {
 						printJson(result);
-					} else {
-						process.stdout.write(
-							`fetched ${result.github}@${result.ref} (${result.files} files) → ${result.cacheDir}\n`,
-						);
+						return;
 					}
+					p.intro("directus-backport catalog --refresh");
+					p.log.success(`Fetched ${result.github}@${result.ref} (${result.files} files)`);
+					p.log.message(pc.dim(result.cacheDir));
+					p.log.message(pc.dim("Nothing was applied. This only updates the local catalog cache."));
 				} catch (err) {
 					process.stderr.write(`${err instanceof Error ? err.message : err}\n`);
 					process.exitCode = 1;
 					return;
 				}
 			}
+
 			let install: DirectusInstall | null = null;
 			try {
 				install = resolveInstall(opts.root);
 			} catch {
 				install = null;
 			}
-			const catalog = loadCatalog();
+
 			if (opts.json && !cmdOpts.refresh) {
-				printJson(install ? { install, remote: catalogRemoteStatus(), ...partitionAdvisories(catalog, install.version) } : { remote: catalogRemoteStatus(), ...catalog });
+				const catalog = loadCatalog();
+				printJson(
+					install
+						? { install, remote: catalogRemoteStatus(), ...statusReport(install) }
+						: { remote: catalogRemoteStatus(), ...catalog },
+				);
 				return;
 			}
-			if (opts.json && cmdOpts.refresh) {
+
+			if (!install) {
+				const catalog = loadCatalog();
+				const remote = catalogRemoteStatus();
+				p.intro("directus-backport catalog");
+				p.log.message(`Source  ${remote.using}  ${pc.dim(catalog.source)}`);
+				p.outro("No Directus install detected. Pass --root, or use --all to dump the registry.");
 				return;
 			}
-			process.stdout.write(`\n${pc.bold("directus-backport catalog")}  ${pc.dim(catalog.source)}\n\n`);
-			for (const a of catalog.advisories) {
-				if (install) {
-					const applies = partitionAdvisories({ ...catalog, advisories: [a] }, install.version).applicable.length > 0;
-					if (!applies && a.port.status === "already-fixed") continue;
-				}
-				process.stdout.write(`${formatAdvisory(a)}\n`);
-				if (a.port.notes) process.stdout.write(`    ${pc.dim(a.port.notes)}\n`);
-				process.stdout.write("\n");
+
+			const report = statusReport(install);
+			const remote = catalogRemoteStatus();
+
+			if (!cmdOpts.refresh) {
+				p.intro("directus-backport catalog");
 			}
+			p.log.info(`Directus ${pc.bold(install.version)}\n${pc.dim(install.nodeModules)}`);
+			p.log.message(`Catalog  ${remote.using}${remote.fetchedAt ? `  fetched ${remote.fetchedAt}` : ""}`);
+			p.log.message(pc.dim(remote.advisories));
+			p.log.message(formatStatusCounts(report.counts));
+
+			if (report.ready.length) {
+				p.note(
+					report.ready.map((a) => `${a.id}  ${a.severity}  ${a.title}`).join("\n"),
+					"Ready to apply",
+				);
+			}
+
+			if (cmdOpts.all) {
+				const catalog = loadCatalog();
+				const applied = new Set(report.appliedIds);
+				p.note(
+					catalog.advisories
+						.map((a) => {
+							const tag = applied.has(a.id) ? "applied" : statusLabel(a, install.version);
+							return `${a.id}  ${a.severity}  ${tag}  ${a.title}`;
+						})
+						.join("\n"),
+					"Full registry",
+				);
+			}
+
+			p.outro(
+				report.counts.ready
+					? `Run ${pc.bold("directus-backport apply --all --yes")} to apply the ready set.`
+					: report.counts.applied
+						? "This install is up to date with the catalog it is using."
+						: "Nothing to do for this version.",
+			);
 		});
 
 	program
@@ -277,6 +310,7 @@ export function createProgram(): Command {
 		.description("Apply one or more GHSA backports (non-interactive with --yes)")
 		.argument("[ids...]", "GHSA ids")
 		.option("-y, --yes", "Do not prompt", false)
+		.option("--all", "Apply every ready backport for this version", false)
 		.option("--desired", "Use GHSA ids from desired.json (next to the catalog, or DIRECTUS_BACKPORT_DESIRED)", false)
 		.option("--health-url <url>", "GET this URL after apply until it returns 2xx")
 		.option("--restart-cmd <cmd>", "Shell command to restart Directus after apply")
@@ -284,6 +318,7 @@ export function createProgram(): Command {
 		.option("--health-timeout <ms>", "Health wait timeout", "90000")
 		.action(async (ids: string[], cmdOpts: {
 			yes?: boolean;
+			all?: boolean;
 			desired?: boolean;
 			rollbackOnFail?: boolean;
 			healthTimeout?: string;
@@ -292,11 +327,22 @@ export function createProgram(): Command {
 		}) => {
 			const opts = program.opts<{ root?: string; json?: boolean }>();
 			const install = resolveInstall(opts.root);
-			if (!cmdOpts.yes) {
+			if (!cmdOpts.yes && !cmdOpts.all) {
 				await interactive(install, { healthUrl: cmdOpts.healthUrl, restartCmd: cmdOpts.restartCmd });
 				return;
 			}
-			if (!ids.length && cmdOpts.desired) {
+			if (cmdOpts.all && (ids.length || cmdOpts.desired)) {
+				process.stderr.write("Use --all alone, not with GHSA ids or --desired.\n");
+				process.exitCode = 1;
+				return;
+			}
+			if (cmdOpts.all) {
+				ids = statusReport(install).ready.map((a) => a.id);
+				if (!ids.length) {
+					process.stdout.write("No ready backports\n");
+					return;
+				}
+			} else if (!ids.length && cmdOpts.desired) {
 				ids = loadDesired().ids;
 				if (!ids.length) {
 					process.stdout.write("desired.json has no ids\n");
@@ -304,7 +350,7 @@ export function createProgram(): Command {
 				}
 			}
 			if (!ids.length) {
-				process.stderr.write("Pass GHSA ids, use --desired, or run without --yes for the prompt UI.\n");
+				process.stderr.write("Pass GHSA ids, --all, --desired, or run without --yes for the prompt UI.\n");
 				process.exitCode = 1;
 				return;
 			}

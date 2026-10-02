@@ -14,8 +14,8 @@ apply anything.
 
 Admins see the catalog, apply ready patches to **this host's** `node_modules`,
 and roll them back. Studio bundles the same engine as the CLI. `cli.mjs` ships
-with the extension so you can still rollback if Directus will not start. The
-optional host command (Settings) is only a shortcut.
+with the extension so you can still rollback if Directus will not start. There
+is nothing else to install.
 
 Applied GHSAs are stored in `desired.json` next to this extension. After
 `node_modules` is reset, a boot hook re-applies them and exits once so the
@@ -44,10 +44,12 @@ under **Settings → Project Settings → Modules**.
 
 ## Usage
 
+![Security Backports catalog](docs/backport.png)
+
 In Studio: **Security Backports → Catalog**. Apply one or more ready GHSAs.
 **Rollback Last Apply** undoes the most recently applied remaining GHSA.
-**Rollback All** undoes every applied backport. **Settings** can install an
-optional host command and remove working files (`desired.json`, snapshots).
+**Rollback All** undoes every applied backport. **Settings** can check the GitHub
+catalog and remove working files (`desired.json`, snapshots).
 
 If Directus does not start, Studio cannot help. From the host:
 
@@ -56,6 +58,7 @@ If Directus does not start, Studio cannot help. From the host:
 node /directus/extensions/directus-extension-backport/cli.mjs rollback
 node /directus/extensions/directus-extension-backport/cli.mjs rollback --id GHSA-97xr-jchp-xm3c
 node /directus/extensions/directus-extension-backport/cli.mjs rollback --all
+node /directus/extensions/directus-extension-backport/cli.mjs apply --all --yes
 node /directus/extensions/directus-extension-backport/cli.mjs status
 
 # Docker

@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/graphql/index.js"
+  before_sha256: "3f7ed9145984cfb42aed0466eb9fb86eebfc69cf307fb8cbe542f7c380aaa372"
+  after_sha256: "a652e1e9332d55ee1421a2ec208daa1ad2ad33fd6cf85efc95fd1b1d9013b859"
+  replace:
+    - from: "        const schema = this.getSchema();\n        const validationErrors = validate(schema, document, validationRules).map((validationError) => addPathToValidationError(validationError));"
+      to: "        const schema = this.getSchema();\n        const aliasCap = (context) => {\n            let n = 0;\n            return {\n                Field(node) {\n                    if (!node.alias)\n                        return;\n                    n += 1;\n                    if (n > 50)\n                        context.reportError(new GraphQLError('Query too complex'));\n                },\n            };\n        };\n        const validationErrors = validate(schema, document, [...validationRules, aliasCap]).map((validationError) => addPathToValidationError(validationError));"

@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/graphql/index.js"
+  before_sha256: "3f7ed9145984cfb42aed0466eb9fb86eebfc69cf307fb8cbe542f7c380aaa372"
+  after_sha256: "2a3c488f3a8fd40628a965c6a1f0f2cd720e98f5cf048a80a2ca864d70fe76cd"
+  replace:
+    - from: "            result = await execute({\n                schema,\n                document,\n                contextValue,"
+      to: "            result = await execute({\n                schema,\n                document,\n                contextValue: contextValue ?? {},"
+    - from: "            server_health: {\n                type: GraphQLJSON,\n                resolve: async () => {\n                    const service = new ServerService({\n                        accountability: this.accountability,\n                        schema: this.schema,\n                    });\n                    return await service.health();\n                },\n            },"
+      to: "            server_health: {\n                type: GraphQLJSON,\n                resolve: async (_source, _args, ctx) => {\n                    const bag = ctx ?? {};\n                    if (!bag.__directusHealth) {\n                        const service = new ServerService({\n                            accountability: this.accountability,\n                            schema: this.schema,\n                        });\n                        bag.__directusHealth = service.health();\n                    }\n                    return await bag.__directusHealth;\n                },\n            },"

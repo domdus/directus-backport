@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/request/validate-ip.js"
+  before_sha256: "0e021c07d449b8698782aa1e377ea88d4ed880990cf5f655f4e6b9364206e0c4"
+  after_sha256: "d2119cd0a0764abd151f5969f87ae70062680716f7ffd09090ce0aab2a39e96d"
+  replace:
+    - from: "    if (env['IMPORT_IP_DENY_LIST'].includes('0.0.0.0')) {\n        const networkInterfaces = os.networkInterfaces();"
+      to: "    if (env['IMPORT_IP_DENY_LIST'].includes('0.0.0.0')) {\n        if (ip === '::' || ip === '0.0.0.0' || String(ip).startsWith('0.'))\n            throw new Error(`Requested URL \"${url}\" resolves to a denied IP address`);\n        const networkInterfaces = os.networkInterfaces();"

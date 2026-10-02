@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/items.js"
+  before_sha256: "803c396061923a47c8f162b06c1c2cbb13af421a354301f8bdd9a65ffae21d98"
+  after_sha256: "2f14d798cc02fc7412ebe71439c4944e9f061fdd83654c5294cc585cf8c82067"
+  replace:
+    - from: "                        data: snapshots && Array.isArray(snapshots) ? JSON.stringify(snapshots[index]) : JSON.stringify(snapshots),\n                        delta: await payloadService.prepareDelta(payloadWithTypeCasting),"
+      to: "                        data: snapshots && Array.isArray(snapshots) ? await payloadService.prepareDelta(snapshots[index]) : await payloadService.prepareDelta(snapshots),\n                        delta: await payloadService.prepareDelta(payloadWithTypeCasting),"

@@ -1,0 +1,10 @@
+- file: "@directus/api/dist/services/files.js"
+  before_sha256: "f382bafbdc5c174ca2a420fef0e1dcacbb1653861384890faf3604e43e880eb5"
+  after_sha256: "3b4e24442616a391cfaa57cfc3303d9422e866f9ad3b4484ce0c113382c16202"
+  replace:
+    - from: "import { ItemsService } from './items.js';"
+      to: "import { AuthorizationService } from './authorization.js';\nimport { ItemsService } from './items.js';"
+    - from: "    async uploadOne(stream, data, primaryKey, opts) {\n        const storage = await getStorage();"
+      to: "    async uploadOne(stream, data, primaryKey, opts) {\n        if (this.accountability && this.accountability.admin !== true) {\n            if (primaryKey !== undefined) {\n                const authorizationService = new AuthorizationService({\n                    accountability: this.accountability,\n                    knex: this.knex,\n                    schema: this.schema,\n                });\n                await authorizationService.checkAccess('update', 'directus_files', primaryKey);\n            }\n            else {\n                const fileCreatePermissions = this.accountability?.permissions?.find((permission) => permission.collection === 'directus_files' && permission.action === 'create');\n                if (!fileCreatePermissions)\n                    throw new ForbiddenException();\n            }\n        }\n        const storage = await getStorage();"
+    - from: "    async createOne(data, opts) {\n        if (!data.type) {\n            throw new InvalidPayloadException(`\"type\" is required`);\n        }"
+      to: "    async createOne(data, opts) {\n        if (this.accountability && this.accountability.admin !== true) {\n            const fileCreatePermissions = this.accountability?.permissions?.find((permission) => permission.collection === 'directus_files' && permission.action === 'create');\n            if (!fileCreatePermissions)\n                throw new ForbiddenException();\n        }\n        if (!data.type) {\n            throw new InvalidPayloadException(`\"type\" is required`);\n        }"

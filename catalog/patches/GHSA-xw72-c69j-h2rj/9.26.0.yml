@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/controllers/utils.js"
+  before_sha256: "73997a3605724979dd5eaf0264f24183226f7e9a35383d83d53b17054ded1cca"
+  after_sha256: "d3d901c2d0ca5473f6fb8e91e584851eddfd9e726cef989cac4e53dddc6294ce"
+  replace:
+    - from: "router.post('/hash/generate', asyncHandler(async (req, res) => {\n    if (!req.body?.string) {\n        throw new InvalidPayloadException(`\"string\" is required`);\n    }"
+      to: "router.post('/hash/generate', asyncHandler(async (req, res) => {\n    if (!req.accountability?.user) {\n        throw new ForbiddenException();\n    }\n    if (!req.body?.string) {\n        throw new InvalidPayloadException(`\"string\" is required`);\n    }"
+    - from: "router.post('/hash/verify', asyncHandler(async (req, res) => {\n    if (!req.body?.string) {\n        throw new InvalidPayloadException(`\"string\" is required`);\n    }"
+      to: "router.post('/hash/verify', asyncHandler(async (req, res) => {\n    if (!req.accountability?.user) {\n        throw new ForbiddenException();\n    }\n    if (!req.body?.string) {\n        throw new InvalidPayloadException(`\"string\" is required`);\n    }"
