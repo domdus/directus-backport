@@ -4,8 +4,30 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
-import { loadCatalogSource } from "../src/catalog-source.js";
+import { loadCatalogSource, resolveCatalogDir } from "../src/catalog-source.js";
+import { findPackageRoot, isPackageRoot } from "../src/paths.js";
 import { catalogRelFromTarPath, extractCatalogTarGz } from "../src/tar-catalog.js";
+
+describe("package root without bundled catalog", () => {
+	it("recognizes the extension by package.json even with no catalog/", () => {
+		const root = fs.mkdtempSync(path.join(os.tmpdir(), "directus-backport-ext-"));
+		fs.writeFileSync(
+			path.join(root, "package.json"),
+			JSON.stringify({ name: "directus-extension-backport", version: "1.0.0" }),
+		);
+		fs.writeFileSync(path.join(root, "cli.mjs"), "// cli\n");
+		fs.mkdirSync(path.join(root, "dist"));
+		fs.writeFileSync(path.join(root, "dist", "api.js"), "// api\n");
+		assert.equal(isPackageRoot(root), true);
+		assert.equal(findPackageRoot(path.join(root, "dist")), root);
+		assert.equal(fs.existsSync(path.join(root, "catalog", "advisories.yml")), false);
+	});
+
+	it("resolveCatalogDir prefers remote over bundled when both exist", () => {
+		const dir = resolveCatalogDir();
+		assert.ok(fs.existsSync(path.join(dir, "advisories.yml")));
+	});
+});
 
 describe("GitHub catalog marketplace", () => {
 	it("defaults to domdus/directus-backport on main", () => {

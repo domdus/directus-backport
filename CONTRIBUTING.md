@@ -52,7 +52,7 @@ port:
 
 5. Flip that GHSA to `experimental`. Run `npm test`. Verify apply + restart +
    rollback on the playground. Push `catalog/` to GitHub. Hosts opt in with
-   **Check for updates** (or `directus-backport catalog --refresh`).
+   **Check for Updates** in Studio (or `directus-backport catalog --refresh`).
 
 `replace` is preferred for tiny ports. Use `diff_file: change.patch` for larger ones.
 

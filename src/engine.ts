@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type { Advisory, ApplyOptions, ApplyResult, DirectusInstall, HealthStatus } from "./types.js";
 import { loadCatalog, partitionAdvisories, hasApplyablePatch, targetsForVersion } from "./catalog.js";
+import { hasLocalCatalog, resolveCatalogDir } from "./catalog-source.js";
 import { dataDir, ensureDir } from "./paths.js";
 import { applyTarget, restoreMemory, restoreSnapshot, revertTarget, writeSnapshot, type SnapFile } from "./patch.js";
 import { loadState, saveState } from "./state.js";
@@ -13,22 +14,59 @@ function snapshotId(): string {
 	return new Date().toISOString().replaceAll(":", "-").replaceAll(".", "-");
 }
 
+function resolveOptionalCatalogRoot(catalogRoot?: string): string | null {
+	if (catalogRoot) return path.resolve(catalogRoot);
+	if (hasLocalCatalog()) return resolveCatalogDir();
+	return null;
+}
+
 export function statusReport(install: DirectusInstall, catalogRoot?: string) {
-	const catalog = loadCatalog(catalogRoot ? path.join(catalogRoot) : undefined);
-	const parts = partitionAdvisories(catalog, install.version);
+	const root = resolveOptionalCatalogRoot(catalogRoot);
 	const state = loadState(install.nodeModules);
+	const write = probeWriteAccess(install);
 	const appliedIds = new Set(state.applied.map((a) => a.id));
+	const lastApplied = state.applied.at(-1);
+	const lastApplyIds = lastApplied ? [lastApplied.id] : [];
+
+	if (!root) {
+		return {
+			install,
+			write,
+			catalogMissing: true as const,
+			catalogSource: null,
+			catalogUpdated: null,
+			counts: {
+				open: 0,
+				ready: 0,
+				waiting: 0,
+				alreadyFixed: 0,
+				applied: state.applied.length,
+			},
+			open: [] as Advisory[],
+			ready: [] as Advisory[],
+			waiting: [] as Advisory[],
+			alreadyFixed: [] as Advisory[],
+			applied: state.applied,
+			appliedCatalog: [] as Advisory[],
+			lastApplyIds,
+			last: state.last,
+			appliedIds: [...appliedIds],
+			desired: loadDesired(undefined, state.desiredFile),
+			desiredFile: state.desiredFile || desiredPath(),
+		};
+	}
+
+	const catalog = loadCatalog(root);
+	const parts = partitionAdvisories(catalog, install.version);
 	const pending = parts.ready.filter((a) => !appliedIds.has(a.id));
 	const catalogById = new Map(catalog.advisories.map((a) => [a.id, a]));
 	const appliedCatalog = state.applied
 		.map((row) => catalogById.get(row.id))
 		.filter((a): a is Advisory => Boolean(a));
-	const lastApplied = state.applied.at(-1);
-	const lastApplyIds = lastApplied ? [lastApplied.id] : [];
-	const write = probeWriteAccess(install);
 	return {
 		install,
 		write,
+		catalogMissing: false as const,
 		catalogSource: catalog.source,
 		catalogUpdated: catalog.updated,
 		counts: {
@@ -47,8 +85,8 @@ export function statusReport(install: DirectusInstall, catalogRoot?: string) {
 		lastApplyIds,
 		last: state.last,
 		appliedIds: [...appliedIds],
-		desired: loadDesired(catalogRoot, state.desiredFile),
-		desiredFile: state.desiredFile || desiredPath(catalogRoot),
+		desired: loadDesired(root, state.desiredFile),
+		desiredFile: state.desiredFile || desiredPath(root),
 	};
 }
 

@@ -37,6 +37,7 @@ function publicReport() {
 			root: install.root,
 			nodeModules: install.nodeModules,
 		},
+		catalogMissing: report.catalogMissing,
 		counts: report.counts,
 		last: report.last,
 		applied: report.applied,
@@ -96,10 +97,12 @@ export default (router: Router) => {
 		if (!requireAdmin(req, res)) return;
 		try {
 			const install = installFromEnv();
+			const catalog = catalogRoot();
 			res.json({
 				data: {
-					...cliStatus(install, catalogRoot()),
+					...cliStatus(install, catalog),
 					catalogRemote: catalogRemoteStatus(),
+					catalogMissing: !catalog,
 				},
 			});
 		} catch (err) {
@@ -135,6 +138,11 @@ export default (router: Router) => {
 			return;
 		}
 		try {
+			const catalog = catalogRoot();
+			if (!catalog) {
+				sendError(res, 409, "No catalog yet. Use Check for Updates first (does not apply patches).");
+				return;
+			}
 			const install = installFromEnv();
 			const result = await applyPatches(
 				install,
@@ -142,7 +150,7 @@ export default (router: Router) => {
 					ids,
 					rollbackOnFail: false,
 				},
-				catalogRoot(),
+				catalog,
 			);
 			if (!result.ok) {
 				sendError(res, 409, result.error || "Apply failed");
@@ -164,8 +172,8 @@ export default (router: Router) => {
 	router.post("/rollback", (req: Request, res: Response) => {
 		if (!requireAdmin(req, res)) return;
 		try {
-			const install = installFromEnv();
 			const catalog = catalogRoot();
+			const install = installFromEnv();
 			const all = req.body?.all === true;
 			const id = req.body?.id ? String(req.body.id) : "";
 			const result = all

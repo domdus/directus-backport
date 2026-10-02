@@ -60,8 +60,24 @@ export function remoteMetaPath(): string {
 	return path.join(remoteCatalogDir(), ".fetched.json");
 }
 
+export function hasBundledCatalog(): boolean {
+	return fs.existsSync(path.join(bundledCatalogDir(), "advisories.yml"));
+}
+
+export function hasRemoteCatalog(): boolean {
+	return fs.existsSync(path.join(remoteCatalogDir(), "advisories.yml"));
+}
+
+export function hasLocalCatalog(): boolean {
+	return hasRemoteCatalog() || hasBundledCatalog();
+}
+
+/** Prefer GitHub cache, else bundled catalog shipped with the package. */
 export function resolveCatalogDir(): string {
-	const remote = path.join(remoteCatalogDir(), "advisories.yml");
-	if (fs.existsSync(remote)) return remoteCatalogDir();
-	return bundledCatalogDir();
+	if (hasRemoteCatalog()) return remoteCatalogDir();
+	if (hasBundledCatalog()) return bundledCatalogDir();
+	throw new Error(
+		`No catalog yet under ${bundledCatalogDir()} or ${remoteCatalogDir()}. ` +
+			`Opt in with Studio “Check for Updates” or: catalog --refresh (${DEFAULT_GITHUB}@${DEFAULT_REF})`,
+	);
 }

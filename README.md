@@ -52,11 +52,15 @@ broken files if you want to inspect them.
 
 ## No-code usage
 
-On **10.13.4** and **11.17.4**, drop `directus-extension-backport/` into
-`/directus/extensions/`, enable **Security Backports** under
-**Settings → Project Settings → Modules**, then use the catalog: apply and
-rollback are buttons. **Check for updates** pulls newer overlays from GitHub.
-Nothing is applied until you click Apply.
+On **10.13.4** and **11.17.4**, drop the built extension into
+`/directus/extensions/` (`npm run zip:extension`). The zip includes
+**`cli.mjs`** (emergency rollback), `package.json`, and `dist/` — not the patch
+`catalog/` (Marketplace default). In Studio, use **Check for Updates** to opt in
+and fetch overlays from
+[domdus/directus-backport](https://github.com/domdus/directus-backport) into
+`catalog-remote/`. That does not apply patches. Enable **Security Backports**
+under **Settings → Project Settings → Modules**. Nothing is applied until you
+click Apply. The CLI package in this repo still ships `catalog/` for offline use.
 
 Apply and rollback still write `node_modules` on that host, then exit the Node
 process so whatever starts Directus (Docker, systemd, Kubernetes, you) can load
@@ -96,12 +100,13 @@ Studio. Directus does not need to be up.
 
 ## Catalog
 
-The engine ships with a **bundled** catalog so apply/rollback works offline.
-**Check for updates** (or `directus-backport catalog --refresh`) pulls newer
-overlays from [domdus/directus-backport](https://github.com/domdus/directus-backport)
-on `main`. No environment variables. Fetch does **not** apply patches.
-
-If GitHub is unreachable, the last cache (or the bundled copy) is used.
+The **CLI package in this repo** ships a bundled `catalog/` for offline use.
+The **Studio extension** does not — operators opt in with **Check for Updates**
+(or `cli.mjs catalog --refresh` / `directus-backport catalog --refresh`), which
+pulls overlays from [domdus/directus-backport](https://github.com/domdus/directus-backport)
+on `main` into `catalog-remote/`. Fetch is never automatic. It does **not** apply
+patches. If GitHub is unreachable, the last `catalog-remote/` cache (or the CLI’s
+bundled copy) is used.
 
 [`catalog/advisories.yml`](catalog/advisories.yml) is the registry: GHSA, severity,
 affected range, upstream patched version, port status, risk, notes.

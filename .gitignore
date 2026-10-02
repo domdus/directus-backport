@@ -12,3 +12,5 @@ desired.json
 directus-extension-backport/desired.json
 *.tsbuildinfo
 .DS_Store
+directus-extension-backport/*.zip
+directus-extension-backport/bp.zip

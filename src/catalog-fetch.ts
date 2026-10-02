@@ -4,6 +4,7 @@ import path from "node:path";
 import { loadCatalog } from "./catalog.js";
 import {
 	bundledCatalogDir,
+	hasLocalCatalog,
 	loadCatalogSource,
 	remoteCatalogDir,
 	remoteMetaPath,
@@ -18,10 +19,10 @@ export type CatalogRemoteStatus = {
 	github: string | null;
 	ref: string;
 	tarballUrl: string | null;
-	using: "remote" | "bundled";
+	using: "remote" | "bundled" | "none";
 	cacheDir: string;
 	fetchedAt: string | null;
-	advisories: string;
+	advisories: string | null;
 };
 
 export type CatalogRefreshResult = {
@@ -54,7 +55,13 @@ function readFetchedAt(): string | null {
 
 export function catalogRemoteStatus(): CatalogRemoteStatus {
 	const source = loadCatalogSource();
-	const using = resolveCatalogDir() === remoteCatalogDir() ? "remote" : "bundled";
+	let using: CatalogRemoteStatus["using"] = "none";
+	let advisories: string | null = null;
+	if (hasLocalCatalog()) {
+		const dir = resolveCatalogDir();
+		using = dir === remoteCatalogDir() ? "remote" : "bundled";
+		advisories = path.join(dir, "advisories.yml");
+	}
 	return {
 		configured: Boolean(source.github),
 		github: source.github,
@@ -63,7 +70,7 @@ export function catalogRemoteStatus(): CatalogRemoteStatus {
 		using,
 		cacheDir: remoteCatalogDir(),
 		fetchedAt: readFetchedAt(),
-		advisories: path.join(resolveCatalogDir(), "advisories.yml"),
+		advisories,
 	};
 }
 
@@ -80,6 +87,7 @@ async function download(source: CatalogSource): Promise<Buffer> {
 	return Buffer.from(await res.arrayBuffer());
 }
 
+/** Opt-in only: Studio “Check for Updates” or `catalog --refresh`. Never called automatically. */
 export async function refreshRemoteCatalog(): Promise<CatalogRefreshResult> {
 	const source = loadCatalogSource();
 	const archive = await download(source);

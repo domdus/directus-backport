@@ -8,6 +8,20 @@
 			<module-navigation />
 		</template>
 
+		<template #actions>
+			<v-button
+				v-tooltip.bottom="'Check for Updates — fetch catalog from GitHub (does not apply patches)'"
+				icon
+				rounded
+				secondary
+				:disabled="busy || restartPhase !== 'idle' || !report?.catalogRemote?.configured"
+				:loading="catalogBusy"
+				@click="refreshCatalog"
+			>
+				<v-icon name="cloud_download" />
+			</v-button>
+		</template>
+
 		<template #sidebar>
 			<sidebar-detail id="info" icon="info" title="Info">
 				<p class="sidebar-text">
@@ -20,8 +34,8 @@
 			</sidebar-detail>
 			<sidebar-detail id="catalog" icon="inventory_2" title="Patch catalog">
 				<p class="sidebar-text">
-					New patches come from GitHub. Run <code>cli.mjs catalog --refresh</code> to fetch them into
-					<code>catalog-remote/</code>. That does not apply patches.
+					This extension does not ship overlays. Use <strong>Check for Updates</strong> (header) to opt in and
+					fetch the GitHub catalog into <code>catalog-remote/</code>. That does not apply patches.
 				</p>
 				<p class="sidebar-text">{{ catalogLine }}</p>
 				<p v-if="report?.catalogRemote?.advisories" class="sidebar-text mono">{{ report.catalogRemote.advisories }}</p>
@@ -82,6 +96,20 @@
 			<template v-else-if="report">
 				<p class="page-intro">{{ introText }}</p>
 				<p class="explain">{{ catalogLine }}</p>
+
+				<v-notice v-if="report.catalogMissing" type="info" class="notice">
+					No patch catalog on this host yet. Fetch it from GitHub with Check for Updates (does not apply
+					anything). Or run <code>cli.mjs catalog --refresh</code>.
+					<div class="actions" style="margin-top: 12px">
+						<v-button
+							:disabled="busy || !report.catalogRemote?.configured"
+							:loading="catalogBusy"
+							@click="refreshCatalog"
+						>
+							Check for Updates
+						</v-button>
+					</div>
+				</v-notice>
 
 				<v-notice v-if="report.last?.health === 'failed'" type="danger" class="notice">
 					Last apply failed its health check. Rollback now if Studio is flaky.
@@ -315,6 +343,7 @@ type AppliedAdvisory = Advisory & {
 
 type Report = {
 	install: { version: string; root: string; nodeModules: string };
+	catalogMissing?: boolean;
 	counts: { open: number; ready: number; waiting: number; alreadyFixed: number; applied: number };
 	last?: { action: string; health: string };
 	applied: { id: string }[];
@@ -335,7 +364,7 @@ type Report = {
 		ref: string;
 		using: string;
 		fetchedAt: string | null;
-		advisories: string;
+		advisories: string | null;
 	};
 };
 
@@ -344,6 +373,7 @@ const RESTART_KEY = 'directus-backport-restarting';
 let responseInterceptor: number | null = null;
 const loading = ref(true);
 const busy = ref(false);
+const catalogBusy = ref(false);
 const error = ref('');
 const notice = ref<{ type: string; text: string } | null>(null);
 const report = ref<Report | null>(null);
@@ -361,6 +391,9 @@ const lastApplyId = computed(() => report.value?.lastApplyIds?.[0] || '');
 const introText = computed(() => {
 	const current = report.value;
 	if (!current) return '';
+	if (current.catalogMissing) {
+		return `Directus ${current.install.version} — fetch the patch catalog from GitHub to see ready backports.`;
+	}
 	if (!current.ready.length && !current.applied.length) {
 		return `No 12.x security backports in the catalog for Directus ${current.install.version}`;
 	}
@@ -370,14 +403,14 @@ const introText = computed(() => {
 const catalogLine = computed(() => {
 	const remote = report.value?.catalogRemote;
 	if (!remote) return '';
-	if (!remote.configured) {
-		return 'Using the catalog bundled with this extension.';
-	}
-	const origin = `${remote.github}@${remote.ref}`;
+	const origin = remote.configured ? `${remote.github}@${remote.ref}` : 'GitHub';
 	if (remote.using === 'remote' && remote.fetchedAt) {
-		return `GitHub ${origin} (fetched ${remote.fetchedAt})`;
+		return `Using GitHub ${origin} (fetched ${remote.fetchedAt}). Check for Updates refreshes it.`;
 	}
-	return `GitHub ${origin} configured; still on the bundled catalog until the first successful fetch.`;
+	if (remote.using === 'bundled') {
+		return `Using a catalog bundled with this install. Check for Updates prefers GitHub ${origin}.`;
+	}
+	return `No catalog yet. Check for Updates fetches ${origin} (opt-in; does not apply patches).`;
 });
 const restartPhase = ref<'idle' | 'applying' | 'waiting' | 'reloading' | 'failed'>('idle');
 const restartKind = ref<'apply' | 'rollback'>('apply');
@@ -479,6 +512,24 @@ async function load() {
 		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Failed to load catalog';
 	} finally {
 		loading.value = false;
+	}
+}
+
+async function refreshCatalog() {
+	catalogBusy.value = true;
+	error.value = '';
+	notice.value = null;
+	try {
+		const { data } = await api.post('/backport/catalog/refresh');
+		notice.value = {
+			type: 'success',
+			text: `Catalog updated from ${data.data.github}@${data.data.ref} (${data.data.files} files). Nothing was applied.`,
+		};
+		await load();
+	} catch (err: any) {
+		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Catalog update failed';
+	} finally {
+		catalogBusy.value = false;
 	}
 }
 

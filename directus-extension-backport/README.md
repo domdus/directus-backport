@@ -8,14 +8,16 @@ patches will not apply there.
 Directus **9.26.0** is CLI-only: this Vue 3 module will not load on that host.
 Use `cli.mjs` from the repo or copy it into the container.
 
-The patch **engine** is in this extension. **Check for updates** pulls new GHSA
-overlays from GitHub into `catalog-remote/` without rebuilding. Fetch does not
-apply anything.
+The patch **engine** and **`cli.mjs`** ship inside this extension (required for
+Marketplace — without the CLI you cannot emergency-rollback when Studio is down).
+The extension does **not** ship `catalog/` by default. Admins opt in with
+**Check for Updates**, which fetches overlays from GitHub into `catalog-remote/`
+(`domdus/directus-backport@main`). That does not apply anything. For air-gapped
+hosts, build with `INCLUDE_CATALOG=1 npm run zip:extension` (or
+`npm run prebuild:with-catalog`).
 
-Admins see the catalog, apply ready patches to **this host's** `node_modules`,
-and roll them back. Studio bundles the same engine as the CLI. `cli.mjs` ships
-with the extension so you can still rollback if Directus will not start. There
-is nothing else to install.
+Admins then apply ready patches to **this host's** `node_modules` and roll them
+back. Studio uses the same engine as the CLI.
 
 Applied GHSAs are stored in `desired.json` next to this extension. After
 `node_modules` is reset, a boot hook re-applies them and exits once so the
@@ -38,18 +40,30 @@ cd directus-extension-backport
 npm install && npm run build
 ```
 
-Copy `directus-extension-backport/` (`package.json`, `dist/`, `catalog/`, `cli.mjs`, `rollback.mjs`)
-into `/directus/extensions/directus-extension-backport`, then enable the module
-under **Settings → Project Settings → Modules**.
+**Marketplace / zip:** `package.json`, `dist/`, **`cli.mjs`**, `rollback.mjs`
+(no `catalog/`). After install, use **Check for Updates** once.
+
+From the repo root:
+
+```bash
+npm run zip:extension
+# → directus-extension-backport/directus-extension-backport.zip
+
+INCLUDE_CATALOG=1 npm run zip:extension   # optional offline catalog
+```
+
+Unpack into `/directus/extensions/directus-extension-backport/`, then enable the
+module under **Settings → Project Settings → Modules**.
 
 ## Usage
 
 ![Security Backports catalog](docs/backport.png)
 
-In Studio: **Security Backports → Catalog**. Apply one or more ready GHSAs.
-**Rollback Last Apply** undoes the most recently applied remaining GHSA.
-**Rollback All** undoes every applied backport. **Settings** can check the GitHub
-catalog and remove working files (`desired.json`, snapshots).
+In Studio: **Check for Updates** (header or Settings) to fetch the catalog, then
+**Security Backports → Catalog** to apply ready GHSAs. **Rollback Last Apply**
+undoes the most recently applied remaining GHSA. **Rollback All** undoes every
+applied backport. Settings can also remove working files (`desired.json`,
+snapshots).
 
 If Directus does not start, Studio cannot help. From the host:
 

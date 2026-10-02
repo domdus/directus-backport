@@ -6,7 +6,14 @@ export default defineHook(({ init }, { logger }) => {
 	init("app.before", async () => {
 		if (!autoReapplyEnabled()) return;
 		try {
-			const result = await ensureDesiredApplied(installFromEnv(), catalogRoot());
+			const catalog = catalogRoot();
+			if (!catalog) {
+				logger.warn(
+					"[backport] no catalog yet — skip persist re-apply. Use Check for Updates (or cli.mjs catalog --refresh) first.",
+				);
+				return;
+			}
+			const result = await ensureDesiredApplied(installFromEnv(), catalog);
 			if (result.error) {
 				logger.warn(`[backport] ${result.error}`);
 			}

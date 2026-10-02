@@ -15,7 +15,6 @@
 	"type": "module",
 	"files": [
 		"dist",
-		"catalog",
 		"cli.mjs",
 		"rollback.mjs",
 		"README.md"
@@ -46,8 +45,11 @@
 		"host": "10.13.4 || 11.17.4"
 	},
 	"scripts": {
-		"prebuild": "rm -rf catalog && cp -r ../catalog catalog && cp ../rollback.mjs rollback.mjs && node ../scripts/bundle-cli.mjs",
+		"prebuild": "rm -rf catalog && cp ../rollback.mjs rollback.mjs && node ../scripts/bundle-cli.mjs",
+		"prebuild:with-catalog": "rm -rf catalog && cp -r ../catalog catalog && cp ../rollback.mjs rollback.mjs && node ../scripts/bundle-cli.mjs",
 		"build": "directus-extension build",
+		"prepublishOnly": "npm run build",
+		"zip": "node ../scripts/pack-extension.mjs",
 		"dev": "directus-extension build -w --no-minify"
 	},
 	"devDependencies": {

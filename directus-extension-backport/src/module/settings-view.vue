@@ -36,12 +36,16 @@
 					Patch catalog
 				</v-divider>
 				<p class="explain">
-					The engine stays in this extension. To pull newer GHSA overlays from GitHub into
-					<code>catalog-remote/</code>, run <code>cli.mjs catalog --refresh</code>. That does not apply
-					patches.
+					This extension does not ship the patch catalog. <strong>Check for Updates</strong> downloads GHSA
+					overlays from GitHub into <code>catalog-remote/</code> (opt-in). That does not apply patches.
 				</p>
 				<p class="sidebar-text">{{ catalogLine }}</p>
 				<p v-if="cli.catalogRemote?.advisories" class="sidebar-text mono">{{ cli.catalogRemote.advisories }}</p>
+				<div class="actions">
+					<v-button :disabled="busy || !cli.catalogRemote?.configured" :loading="busy" @click="refreshCatalog">
+						Check for Updates
+					</v-button>
+				</div>
 
 				<v-divider
 					class="section-divider add-margin-top"
@@ -121,8 +125,9 @@ type CliStatus = {
 		ref: string;
 		using: string;
 		fetchedAt: string | null;
-		advisories: string;
+		advisories: string | null;
 	};
+	catalogMissing?: boolean;
 };
 
 const api = useApi();
@@ -136,14 +141,14 @@ const confirmPurge = ref(false);
 const catalogLine = computed(() => {
 	const remote = cli.value?.catalogRemote;
 	if (!remote) return '';
-	if (!remote.configured) {
-		return 'Using the bundled catalog.';
-	}
-	const origin = `${remote.github}@${remote.ref}`;
+	const origin = remote.configured ? `${remote.github}@${remote.ref}` : 'GitHub';
 	if (remote.using === 'remote' && remote.fetchedAt) {
 		return `Using GitHub ${origin} (fetched ${remote.fetchedAt})`;
 	}
-	return `GitHub ${origin} is set. Fetch has not succeeded yet; using the bundled catalog.`;
+	if (remote.using === 'bundled') {
+		return `Using a catalog bundled with this install. Check for Updates prefers ${origin}.`;
+	}
+	return `No catalog yet. Check for Updates fetches ${origin} (opt-in).`;
 });
 
 async function load() {
@@ -156,6 +161,24 @@ async function load() {
 		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Failed to load settings';
 	} finally {
 		loading.value = false;
+	}
+}
+
+async function refreshCatalog() {
+	busy.value = true;
+	error.value = '';
+	notice.value = null;
+	try {
+		const { data } = await api.post('/backport/catalog/refresh');
+		notice.value = {
+			type: 'success',
+			text: `Catalog updated from ${data.data.github}@${data.data.ref} (${data.data.files} files). Nothing was applied.`,
+		};
+		await load();
+	} catch (err: any) {
+		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Catalog update failed';
+	} finally {
+		busy.value = false;
 	}
 }
 

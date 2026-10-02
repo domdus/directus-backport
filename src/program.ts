@@ -1,10 +1,10 @@
 import { Command } from "commander";
-import path from "node:path";
 import { detectInstall } from "./detect.js";
 import { applyPatches, rollbackAdvisory, rollbackAll, rollbackLast, rollbackSnapshot, statusReport, verifyInstall } from "./engine.js";
 import { loadDesired } from "./desired.js";
 import { hasApplyablePatch, isFixedOnThisVersion, isStillVulnerable, loadCatalog } from "./catalog.js";
-import { catalogRemoteStatus, refreshRemoteCatalog } from "./catalog-fetch.js";
+import { catalogRemoteStatus, refreshRemoteCatalog, resolveCatalogDir } from "./catalog-fetch.js";
+import { hasLocalCatalog } from "./catalog-source.js";
 import { findPackageRoot } from "./paths.js";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
@@ -66,6 +66,11 @@ export async function interactive(
 	const report = statusReport(install);
 	p.log.info(`Directus ${pc.bold(install.version)}\n${pc.dim(install.nodeModules)}`);
 	p.log.message(formatStatusCounts(report.counts));
+
+	if (report.catalogMissing) {
+		p.outro(`No catalog yet. Opt in: ${pc.bold("directus-backport catalog --refresh")} (or Studio Check for Updates).`);
+		return;
+	}
 
 	if (report.last?.health === "failed") {
 		p.log.error(`Last apply failed health check. Run ${pc.bold("directus-backport rollback")} if Studio is down.`);
@@ -184,7 +189,7 @@ export function createProgram(): Command {
 	program
 		.command("status")
 		.description("Show this install vs the catalog")
-		.action(() => {
+		.action(async () => {
 			const opts = program.opts<{ root?: string; json?: boolean }>();
 			const install = resolveInstall(opts.root);
 			const report = statusReport(install);
@@ -195,6 +200,10 @@ export function createProgram(): Command {
 			p.intro("directus-backport status");
 			p.log.info(`Directus ${install.version}\n${install.nodeModules}`);
 			p.log.message(formatStatusCounts(report.counts));
+			if (report.catalogMissing) {
+				p.outro(`No catalog yet. Opt in: ${pc.bold("directus-backport catalog --refresh")}.`);
+				return;
+			}
 			if (report.last) {
 				p.log.message(`Last ${report.last.action}  health=${report.last.health}  snapshot=${report.last.snapshot}`);
 			}
@@ -236,6 +245,14 @@ export function createProgram(): Command {
 					process.exitCode = 1;
 					return;
 				}
+			} else if (!hasLocalCatalog()) {
+				if (opts.json) {
+					printJson({ remote: catalogRemoteStatus(), catalogMissing: true });
+					return;
+				}
+				p.intro("directus-backport catalog");
+				p.outro(`No catalog yet. Opt in: ${pc.bold("directus-backport catalog --refresh")}.`);
+				return;
 			}
 
 			let install: DirectusInstall | null = null;
@@ -249,7 +266,7 @@ export function createProgram(): Command {
 				const catalog = loadCatalog();
 				printJson(
 					install
-						? { install, remote: catalogRemoteStatus(), ...statusReport(install) }
+						? { remote: catalogRemoteStatus(), ...statusReport(install) }
 						: { remote: catalogRemoteStatus(), ...catalog },
 				);
 				return;
@@ -327,6 +344,11 @@ export function createProgram(): Command {
 		}) => {
 			const opts = program.opts<{ root?: string; json?: boolean }>();
 			const install = resolveInstall(opts.root);
+			if (!hasLocalCatalog()) {
+				process.stderr.write("No catalog yet. Opt in: directus-backport catalog --refresh\n");
+				process.exitCode = 1;
+				return;
+			}
 			if (!cmdOpts.yes && !cmdOpts.all) {
 				await interactive(install, { healthUrl: cmdOpts.healthUrl, restartCmd: cmdOpts.restartCmd });
 				return;
@@ -374,10 +396,10 @@ export function createProgram(): Command {
 		.option("--snapshot <id>", "Specific snapshot id")
 		.option("--id <ghsa>", "Rollback one advisory")
 		.option("--all", "Rollback every applied backport")
-		.action((cmdOpts: { snapshot?: string; id?: string; all?: boolean }) => {
+		.action(async (cmdOpts: { snapshot?: string; id?: string; all?: boolean }) => {
 			const opts = program.opts<{ root?: string; json?: boolean }>();
 			const install = resolveInstall(opts.root);
-			const catalogDir = path.join(findPackageRoot(), "catalog");
+			const catalogDir = resolveCatalogDir();
 			const result = cmdOpts.all
 				? rollbackAll(install, catalogDir)
 				: cmdOpts.id
@@ -406,7 +428,7 @@ export function createProgram(): Command {
 	program
 		.command("doctor")
 		.description("Sanity-check install, catalog, and last snapshot")
-		.action(() => {
+		.action(async () => {
 			const opts = program.opts<{ root?: string; json?: boolean }>();
 			const install = resolveInstall(opts.root);
 			const report = statusReport(install);
@@ -422,14 +444,18 @@ export function createProgram(): Command {
 					write: report.write,
 					desired: report.desired,
 					desiredFile: report.desiredFile,
+					catalogMissing: report.catalogMissing,
 				});
 				return;
 			}
 			p.intro("directus-backport doctor");
 			p.log.info(`CLI package  ${pkg}`);
 			p.log.info(`Directus     ${install.version} @ ${install.nodeModules}`);
-			p.log.info(`Catalog      ${catalog.using} ${catalog.advisories}`);
+			p.log.info(`Catalog      ${catalog.using} ${catalog.advisories ?? "(none — run catalog --refresh)"}`);
 			p.log.info(`Open ${report.counts.open} · ready ${report.counts.ready} · applied ${report.counts.applied}`);
+			if (report.catalogMissing) {
+				p.log.warn("No catalog yet. Opt in with catalog --refresh (or Studio Check for Updates).");
+			}
 			if (!report.write.writable) {
 				p.log.warn(report.write.reason || "This process cannot write node_modules.");
 			}
