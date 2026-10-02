@@ -37,9 +37,14 @@ under **Settings → Project Settings → Modules**. Open the module and use
 
 ## Usage
 
-![Security Backports catalog](docs/backport.png)
+**Check for Updates** fetches the catalog. Apply ready GHSAs from the list:
 
-**Check for Updates** fetches the catalog. Apply ready GHSAs from the list.
+![Ready security fixes](docs/backport.png)
+
+Applied items show as **Patched** and can be rolled back:
+
+![Patched security fixes](docs/backport_patched.png)
+
 **Rollback Last Apply** undoes the most recently applied remaining GHSA.
 **Rollback All** undoes every applied backport. Settings can remove working
 files (`desired.json`, snapshots).
