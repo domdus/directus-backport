@@ -11,8 +11,8 @@
 		<template #sidebar>
 			<sidebar-detail id="info" icon="info" title="Info">
 				<p class="sidebar-text">
-					Studio already includes the patch engine. If Directus will not start, run <code>cli.mjs</code> from
-					this extension folder. There is nothing else to install.
+					Studio already includes the patch engine. If Directus will not start, run
+					<code>dist/cli.mjs</code> from this extension folder. There is nothing else to install.
 				</p>
 			</sidebar-detail>
 		</template>
@@ -32,19 +32,26 @@
 					:inline-title="false"
 					:style="{ '--v-divider-color': 'var(--theme--border-color-subdued)' }"
 				>
-					<template #icon><v-icon name="cloud_download" /></template>
-					Patch catalog
+					<template #icon><v-icon name="system_update" /></template>
+					Extension Updates
 				</v-divider>
 				<p class="explain">
-					This extension does not ship the patch catalog. <strong>Check for Updates</strong> downloads GHSA
-					overlays from GitHub into <code>catalog-remote/</code> (opt-in). That does not apply patches.
+					Check npm for the latest published version and compare it with the installed extension version.
+					Patch catalog updates live on the Catalog page.
 				</p>
-				<p class="sidebar-text">{{ catalogLine }}</p>
-				<p v-if="cli.catalogRemote?.advisories" class="sidebar-text mono">{{ cli.catalogRemote.advisories }}</p>
 				<div class="actions">
-					<v-button :disabled="busy || !cli.catalogRemote?.configured" :loading="busy" @click="refreshCatalog">
-						Check for Updates
-					</v-button>
+					<v-button secondary :loading="checkingUpdates" @click="checkUpdates(true)">Check Now</v-button>
+				</div>
+				<div v-if="updateInfo" class="result">
+					<v-notice :type="updateNoticeType">
+						Current: <strong>{{ updateInfo.current_version }}</strong>
+						<template v-if="updateInfo.latest_version">
+							· Latest: <strong>{{ updateInfo.latest_version }}</strong>
+						</template>
+						<template v-if="updateInfo.error"> · {{ updateInfo.error }}</template>
+						<template v-else-if="updateInfo.has_update"> · Update available</template>
+						<template v-else> · Up to date</template>
+					</v-notice>
 				</div>
 
 				<v-divider
@@ -58,7 +65,7 @@
 				</v-divider>
 				<p class="explain">
 					Studio cannot help then. Run the CLI that already ships with this extension
-					(<code>cli.mjs</code>). Directus does not need to be up.
+					(<code>dist/cli.mjs</code>). Directus does not need to be up.
 				</p>
 				<v-notice v-if="!cli.bundled" type="danger" class="notice">
 					CLI missing at <code>{{ cli.bundledPath }}</code>. Rebuild so <code>dist/cli.mjs</code> is included.
@@ -110,6 +117,10 @@
 import { onMounted, ref, computed } from 'vue';
 import { useApi } from '@directus/extensions-sdk';
 import ModuleNavigation from './navigation.vue';
+import {
+	EXTENSION_GITHUB_URL,
+	EXTENSION_NPM_URL,
+} from '../shared/extension-meta';
 
 type CliStatus = {
 	bundled: boolean;
@@ -119,36 +130,31 @@ type CliStatus = {
 	desiredFile: string;
 	dataDir: string;
 	workingFilesPresent: boolean;
-	catalogRemote?: {
-		configured: boolean;
-		github: string | null;
-		ref: string;
-		using: string;
-		fetchedAt: string | null;
-		advisories: string | null;
-	};
-	catalogMissing?: boolean;
+};
+
+type UpdateInfo = {
+	current_version: string;
+	latest_version: string | null;
+	has_update: boolean;
+	checked_at: string;
+	error?: string;
+	links: { npm: string; github: string; marketplace: string | null };
 };
 
 const api = useApi();
 const loading = ref(true);
 const busy = ref(false);
+const checkingUpdates = ref(false);
 const error = ref('');
 const notice = ref<{ type: string; text: string } | null>(null);
 const cli = ref<CliStatus | null>(null);
 const confirmPurge = ref(false);
+const updateInfo = ref<UpdateInfo | null>(null);
 
-const catalogLine = computed(() => {
-	const remote = cli.value?.catalogRemote;
-	if (!remote) return '';
-	const origin = remote.configured ? `${remote.github}@${remote.ref}` : 'GitHub';
-	if (remote.using === 'remote' && remote.fetchedAt) {
-		return `Using GitHub ${origin} (fetched ${remote.fetchedAt})`;
-	}
-	if (remote.using === 'bundled') {
-		return `Using a catalog bundled with this install. Check for Updates prefers ${origin}.`;
-	}
-	return `No catalog yet. Check for Updates fetches ${origin} (opt-in).`;
+const updateNoticeType = computed(() => {
+	if (!updateInfo.value) return 'info';
+	if (updateInfo.value.error) return 'warning';
+	return updateInfo.value.has_update ? 'warning' : 'success';
 });
 
 async function load() {
@@ -164,21 +170,28 @@ async function load() {
 	}
 }
 
-async function refreshCatalog() {
-	busy.value = true;
-	error.value = '';
-	notice.value = null;
+async function checkUpdates(force: boolean) {
+	checkingUpdates.value = true;
 	try {
-		const { data } = await api.post('/backport/catalog/refresh');
-		notice.value = {
-			type: 'success',
-			text: `Catalog updated from ${data.data.github}@${data.data.ref} (${data.data.files} files). Nothing was applied.`,
-		};
-		await load();
+		const res = await api.get('/backport/update-check', {
+			params: { force: force ? '1' : undefined },
+		});
+		updateInfo.value = res.data?.data || null;
 	} catch (err: any) {
-		error.value = err?.response?.data?.errors?.[0]?.message || err?.message || 'Catalog update failed';
+		updateInfo.value = {
+			current_version: 'unknown',
+			latest_version: null,
+			has_update: false,
+			checked_at: new Date().toISOString(),
+			error: err?.response?.data?.errors?.[0]?.message || err?.message || 'Update check failed',
+			links: {
+				npm: EXTENSION_NPM_URL,
+				github: EXTENSION_GITHUB_URL,
+				marketplace: null,
+			},
+		};
 	} finally {
-		busy.value = false;
+		checkingUpdates.value = false;
 	}
 }
 
@@ -246,6 +259,10 @@ onMounted(load);
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
+	margin-bottom: 16px;
+}
+
+.result {
 	margin-bottom: 16px;
 }
 

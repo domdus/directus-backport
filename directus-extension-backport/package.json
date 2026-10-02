@@ -44,7 +44,7 @@
 		"prebuild": "rm -rf catalog && node ../scripts/bundle-cli.mjs",
 		"prebuild:with-catalog": "rm -rf catalog && cp -r ../catalog catalog && node ../scripts/bundle-cli.mjs",
 		"build": "directus-extension build",
-		"postbuild": "node ../scripts/bundle-cli.mjs && cp ../rollback.mjs dist/rollback.mjs && cp dist/cli.mjs cli.mjs && cp dist/rollback.mjs rollback.mjs",
+		"postbuild": "node ../scripts/bundle-cli.mjs && cp ../scripts/rollback.mjs dist/rollback.mjs",
 		"prepublishOnly": "npm run build",
 		"zip": "node ../scripts/pack-extension.mjs",
 		"dev": "directus-extension build -w --no-minify"

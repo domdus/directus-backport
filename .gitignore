@@ -2,9 +2,6 @@ node_modules/
 /dist/
 directus-extension-backport/node_modules/
 directus-extension-backport/catalog/
-# Root-level copies kept for convenience; canonical CLI lives in dist/
-directus-extension-backport/cli.mjs
-directus-extension-backport/rollback.mjs
 catalog-remote/
 directus-extension-backport/catalog-remote/
 .directus-backport/

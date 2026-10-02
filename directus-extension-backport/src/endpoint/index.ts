@@ -4,6 +4,7 @@ import { cliStatus, purgeWorkingFiles, rollbackCommands } from "../../../src/cli
 import { catalogRemoteStatus, refreshRemoteCatalog } from "../../../src/catalog-fetch.js";
 import { accountabilityIsAdmin } from "../shared/admin.js";
 import { catalogRoot, installFromEnv, pinExtensionRoot } from "../shared/runtime.js";
+import { checkForUpdates } from "./update-check.js";
 
 function requireAdmin(req: Request, res: Response): boolean {
 	if (!accountabilityIsAdmin((req as { accountability?: unknown }).accountability)) {
@@ -108,6 +109,17 @@ export default (router: Router) => {
 					catalogMissing: !catalog,
 				},
 			});
+		} catch (err) {
+			sendError(res, 500, err instanceof Error ? err.message : String(err));
+		}
+	});
+
+	router.get("/update-check", async (req: Request, res: Response) => {
+		if (!requireAdmin(req, res)) return;
+		try {
+			const force = req.query.force === "1" || req.query.force === "true";
+			const data = await checkForUpdates(force);
+			res.json({ data });
 		} catch (err) {
 			sendError(res, 500, err instanceof Error ? err.message : String(err));
 		}

@@ -22,7 +22,7 @@ function isExtRoot(root: string): boolean {
 }
 
 /**
- * Folder that holds package.json, dist/, cli.mjs.
+ * Folder that holds package.json and dist/ (including cli.mjs).
  * Order: env → next to running api.js → <Directus root>/extensions/… → cwd guesses.
  */
 export function extensionPackageRoot(start = path.dirname(fileURLToPath(import.meta.url))): string {
@@ -67,8 +67,7 @@ export function extensionPackageRoot(start = path.dirname(fileURLToPath(import.m
 	for (const candidate of seen) {
 		if (
 			fs.existsSync(path.join(candidate, "dist", "api.js")) &&
-			(fs.existsSync(path.join(candidate, "dist", "cli.mjs")) ||
-				fs.existsSync(path.join(candidate, "cli.mjs")))
+			fs.existsSync(path.join(candidate, "dist", "cli.mjs"))
 		) {
 			return candidate;
 		}
@@ -76,7 +75,7 @@ export function extensionPackageRoot(start = path.dirname(fileURLToPath(import.m
 
 	throw new Error(
 		`Could not locate ${EXT_NAME}. Expected something like ` +
-			`/opt/node/directus/extensions/${EXT_NAME} with package.json + dist/ + cli.mjs. ` +
+			`/opt/node/directus/extensions/${EXT_NAME} with package.json and dist/ (including cli.mjs). ` +
 			`Set DIRECTUS_BACKPORT_EXTENSION to that folder.`,
 	);
 }

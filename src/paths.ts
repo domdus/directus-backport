@@ -22,18 +22,15 @@ export function isPackageRoot(dir: string): boolean {
 	if (fs.existsSync(path.join(dir, "catalog", "advisories.yml"))) return true;
 	if (fs.existsSync(path.join(dir, "catalog-remote", "advisories.yml"))) return true;
 	// Marketplace / zip layout: dist/ holds api + cli (catalog optional)
-	if (
-		fs.existsSync(path.join(dir, "dist", "api.js")) &&
-		(fs.existsSync(path.join(dir, "dist", "cli.mjs")) || fs.existsSync(path.join(dir, "cli.mjs")))
-	) {
+	if (fs.existsSync(path.join(dir, "dist", "api.js")) && fs.existsSync(path.join(dir, "dist", "cli.mjs"))) {
 		return true;
 	}
 	return false;
 }
 
 /**
- * Walk up from the caller (CLI source, bundled cli.mjs, or extension dist/api.js)
- * to the package that owns catalog/, catalog-remote/, and cli.mjs.
+ * Walk up from the caller (CLI source, bundled dist/cli.mjs, or extension dist/api.js)
+ * to the package that owns catalog/, catalog-remote/, and dist/cli.mjs.
  * Does not require a locally shipped catalog — GitHub fetch can populate catalog-remote/.
  */
 export function findPackageRoot(start = path.dirname(fileURLToPath(import.meta.url))): string {
@@ -45,8 +42,8 @@ export function findPackageRoot(start = path.dirname(fileURLToPath(import.meta.u
 		dir = parent;
 	}
 	throw new Error(
-		"Could not find the directus-backport package root (looked for package.json name, cli.mjs, or catalog/). " +
-			"Install the extension with package.json, dist/, and cli.mjs. Catalog comes from the CLI repo bundle " +
+		"Could not find the directus-backport package root (looked for package.json name, dist/cli.mjs, or catalog/). " +
+			"Install the extension with package.json and dist/ (including cli.mjs). Catalog comes from the CLI repo bundle " +
 			"or an opt-in GitHub fetch (Check for Updates / catalog --refresh).",
 	);
 }

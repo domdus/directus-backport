@@ -10,7 +10,7 @@ export default defineHook(({ init }, { logger }) => {
 			const catalog = catalogRoot();
 			if (!catalog) {
 				logger.warn(
-					"[backport] no catalog yet — skip persist re-apply. Use Check for Updates (or cli.mjs catalog --refresh) first.",
+					"[backport] no catalog yet — skip persist re-apply. Use Check for Updates (or dist/cli.mjs catalog --refresh) first.",
 				);
 				return;
 			}

@@ -13129,7 +13129,7 @@ function isPackageRoot(dir) {
   if (name && PACKAGE_NAMES.has(name)) return true;
   if (fs2.existsSync(path2.join(dir, "catalog", "advisories.yml"))) return true;
   if (fs2.existsSync(path2.join(dir, "catalog-remote", "advisories.yml"))) return true;
-  if (fs2.existsSync(path2.join(dir, "dist", "api.js")) && (fs2.existsSync(path2.join(dir, "dist", "cli.mjs")) || fs2.existsSync(path2.join(dir, "cli.mjs")))) {
+  if (fs2.existsSync(path2.join(dir, "dist", "api.js")) && fs2.existsSync(path2.join(dir, "dist", "cli.mjs"))) {
     return true;
   }
   return false;
@@ -13143,7 +13143,7 @@ function findPackageRoot(start = path2.dirname(fileURLToPath2(import.meta.url)))
     dir = parent;
   }
   throw new Error(
-    "Could not find the directus-backport package root (looked for package.json name, cli.mjs, or catalog/). Install the extension with package.json, dist/, and cli.mjs. Catalog comes from the CLI repo bundle or an opt-in GitHub fetch (Check for Updates / catalog --refresh)."
+    "Could not find the directus-backport package root (looked for package.json name, dist/cli.mjs, or catalog/). Install the extension with package.json and dist/ (including cli.mjs). Catalog comes from the CLI repo bundle or an opt-in GitHub fetch (Check for Updates / catalog --refresh)."
   );
 }
 function dataDir(nodeModules) {
@@ -15469,7 +15469,7 @@ ${import_picocolors3.default.dim(install.nodeModules)}`);
       M2.warn("Last apply failed health. Rollback from this CLI \u2014 Directus does not need to be up.");
     }
     Se(
-      "If Studio is dead after a patch: node <directus>/extensions/directus-extension-backport/cli.mjs rollback"
+      "If Studio is dead after a patch: node <directus>/extensions/directus-extension-backport/dist/cli.mjs rollback"
     );
   });
   program2.command("tui", { isDefault: true, hidden: true }).description("Interactive prompt UI").action(async () => {

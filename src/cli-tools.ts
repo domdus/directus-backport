@@ -8,7 +8,7 @@ import { loadState } from "./state.js";
 export type CliToolsOptions = {
 	/** Catalog dir (bundled catalog/ or catalog-remote/). */
 	catalogRoot?: string;
-	/** Extension / CLI package root that should contain cli.mjs. */
+	/** Extension / CLI package root that should contain dist/cli.mjs. */
 	packageRoot?: string;
 };
 
@@ -21,19 +21,13 @@ function resolvePackageRoot(opts?: string | CliToolsOptions): string {
 	return findPackageRoot();
 }
 
-/** Prefer dist/cli.mjs (extension build output), then root cli.mjs. */
+/** Extension build output: dist/cli.mjs. */
 export function bundledCliPath(opts?: string | CliToolsOptions): string {
-	const root = resolvePackageRoot(opts);
-	const inDist = path.join(root, "dist", "cli.mjs");
-	if (fs.existsSync(inDist)) return inDist;
-	return path.join(root, "cli.mjs");
+	return path.join(resolvePackageRoot(opts), "dist", "cli.mjs");
 }
 
 export function emergencyRollbackPath(opts?: string | CliToolsOptions): string {
-	const root = resolvePackageRoot(opts);
-	const inDist = path.join(root, "dist", "rollback.mjs");
-	if (fs.existsSync(inDist)) return inDist;
-	return path.join(root, "rollback.mjs");
+	return path.join(resolvePackageRoot(opts), "dist", "rollback.mjs");
 }
 
 export function rollbackCommands(opts?: string | CliToolsOptions) {

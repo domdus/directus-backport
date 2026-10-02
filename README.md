@@ -45,9 +45,9 @@ directus-backport rollback --id GHSA-97xr-jchp-xm3c
 directus-backport rollback --all
 
 # Docker, extension installed (same engine, Directus does not need to be up):
-node /directus/extensions/directus-extension-backport/cli.mjs rollback
+node /directus/extensions/directus-extension-backport/dist/cli.mjs rollback
 docker compose run --no-deps --entrypoint node directus \
-  /directus/extensions/directus-extension-backport/cli.mjs rollback
+  /directus/extensions/directus-extension-backport/dist/cli.mjs rollback
 ```
 
 Default is auto-rollback on failed health. `--no-rollback-on-fail` keeps the
@@ -57,9 +57,9 @@ broken files if you want to inspect them.
 
 On **10.13.4** and **11.17.4**, drop the built extension into
 `/directus/extensions/` (`npm run zip:extension`). The zip includes
-**`cli.mjs`** (emergency rollback), `package.json`, and `dist/` — not the patch
-`catalog/` (Marketplace default). In Studio, use **Check for Updates** to opt in
-and fetch overlays from
+`package.json` and `dist/` (with `cli.mjs` / `rollback.mjs` for emergency
+rollback) — not the patch `catalog/` (Marketplace default). In Studio, use
+**Check for Updates** to opt in and fetch overlays from
 [domdus/directus-backport](https://github.com/domdus/directus-backport) into
 `catalog-remote/`. That does not apply patches. Enable **Security Backports**
 under **Settings → Project Settings → Modules**. Nothing is applied until you
@@ -98,16 +98,17 @@ node dist/cli.js apply --yes GHSA-xxxx-xxxx-xxxx \
   --restart-cmd "docker compose restart directus"
 ```
 
-`cli.mjs` in the extension folder is the same engine if you already installed
-Studio. Directus does not need to be up.
+`dist/cli.mjs` in the extension folder is the same engine if you already
+installed Studio. Directus does not need to be up.
 
 ## Catalog
 
 The **CLI package in this repo** ships a bundled `catalog/` for offline use.
 The **Studio extension** does not — operators opt in with **Check for Updates**
-(or `cli.mjs catalog --refresh` / `directus-backport catalog --refresh`), which
-pulls overlays from [domdus/directus-backport](https://github.com/domdus/directus-backport)
-on `main` into `catalog-remote/`. Fetch is never automatic. It does **not** apply
+(or `dist/cli.mjs catalog --refresh` / `directus-backport catalog --refresh`),
+which pulls overlays from
+[domdus/directus-backport](https://github.com/domdus/directus-backport) on
+`main` into `catalog-remote/`. Fetch is never automatic. It does **not** apply
 patches. If GitHub is unreachable, the last `catalog-remote/` cache (or the CLI’s
 bundled copy) is used.
 
@@ -117,16 +118,17 @@ affected range, upstream patched version, port status, risk, notes.
 New 12.x-only fixes start as `needs-port`. That is intentional. The CLI will show
 them and refuse to pretend a patch exists. We watch
 [Directus security advisories](https://github.com/directus/directus/security)
-and add overlays when a pin is ready. How: [CONTRIBUTING.md](CONTRIBUTING.md).
-Status meanings: [catalog/README.md](catalog/README.md).
+and add overlays when a pin is ready. Maintainer checklist:
+[CONTRIBUTING.md](CONTRIBUTING.md). Status meanings:
+[catalog/README.md](catalog/README.md).
 
 On **11.17.4**, advisories already fixed in 11.16–11.17 are marked `already-fixed`.
 Everything patched only in 12.0 / 12.1 / 12.2 / 12.3 is still open.
 
-On **10.13.4**, those 11.16–11.17 fixes are still open and wait until someone
-ports them. GHSAs that only exist from 11.x onward (AI chat, Flows auth, settings
-AI keys, telemetry) are out of range. The rest of the 12.x catalog has
-checksum-pinned 10.13.4 overlays.
+On **10.13.4**, those 11.16–11.17 fixes are still open until we port them. GHSAs
+that only exist from 11.x onward (AI chat, Flows auth, settings AI keys,
+telemetry) are out of range. The rest of the 12.x catalog has checksum-pinned
+10.13.4 overlays.
 
 On **9.26.0**, the Studio module cannot load. The CLI can. Features that did not
 exist yet (TUS, WebSocket CSWSH, public registration, AI, Flows auth) are out of
@@ -150,8 +152,8 @@ For a Node install of Directus, the same file works as a postinstall step:
 node dist/cli.js apply --yes --desired
 ```
 
-`rollback` (Studio, CLI, or `rollback.mjs`) removes those ids so the next boot
-does not put the patch back.
+`rollback` (Studio, CLI, or `dist/rollback.mjs`) removes those ids so the next
+boot does not put the patch back.
 
 ## Docker notes
 

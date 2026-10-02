@@ -6,8 +6,6 @@ catalog-remote
 tsconfig.json
 package-lock.json
 *.zip
-cli.mjs
-rollback.mjs
 .gitignore
 .npmignore
 .env

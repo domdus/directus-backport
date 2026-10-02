@@ -4,11 +4,11 @@
  * Works when Directus will not boot. The install folder is discovered from
  * cwd, this file, or /directus — you do not pass --root.
  *
- *   node /directus/extensions/directus-extension-backport/rollback.mjs
- *   node /directus/extensions/directus-extension-backport/rollback.mjs all
+ *   node /directus/extensions/directus-extension-backport/dist/rollback.mjs
+ *   node /directus/extensions/directus-extension-backport/dist/rollback.mjs all
  *
  *   docker compose run --no-deps --entrypoint node directus \
- *     /directus/extensions/directus-extension-backport/rollback.mjs
+ *     /directus/extensions/directus-extension-backport/dist/rollback.mjs
  *
  * Advanced: pass an install folder if this file is not next to Directus.
  * Optional trailing snapshot id.
