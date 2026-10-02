@@ -3,7 +3,7 @@ import { applyPatches, rollbackAdvisory, rollbackAll, rollbackLast, statusReport
 import { cliStatus, purgeWorkingFiles, rollbackCommands } from "../../../src/cli-tools.js";
 import { catalogRemoteStatus, refreshRemoteCatalog } from "../../../src/catalog-fetch.js";
 import { accountabilityIsAdmin } from "../shared/admin.js";
-import { catalogRoot, installFromEnv } from "../shared/runtime.js";
+import { catalogRoot, installFromEnv, pinExtensionRoot } from "../shared/runtime.js";
 
 function requireAdmin(req: Request, res: Response): boolean {
 	if (!accountabilityIsAdmin((req as { accountability?: unknown }).accountability)) {
@@ -26,11 +26,13 @@ function exitAfterResponse(res: Response) {
 }
 
 function publicReport() {
+	const packageRoot = pinExtensionRoot();
 	const install = installFromEnv();
 	const catalog = catalogRoot();
 	const report = statusReport(install, catalog);
-	const cli = cliStatus(install, catalog);
-	const commands = rollbackCommands(catalog);
+	const tools = { packageRoot, catalogRoot: catalog };
+	const cli = cliStatus(install, tools);
+	const commands = rollbackCommands(tools);
 	return {
 		install: {
 			version: install.version,
@@ -96,11 +98,12 @@ export default (router: Router) => {
 	router.get("/tools", (req: Request, res: Response) => {
 		if (!requireAdmin(req, res)) return;
 		try {
+			const packageRoot = pinExtensionRoot();
 			const install = installFromEnv();
 			const catalog = catalogRoot();
 			res.json({
 				data: {
-					...cliStatus(install, catalog),
+					...cliStatus(install, { packageRoot, catalogRoot: catalog }),
 					catalogRemote: catalogRemoteStatus(),
 					catalogMissing: !catalog,
 				},
@@ -113,6 +116,7 @@ export default (router: Router) => {
 	router.post("/catalog/refresh", async (req: Request, res: Response) => {
 		if (!requireAdmin(req, res)) return;
 		try {
+			pinExtensionRoot();
 			const result = await refreshRemoteCatalog();
 			res.json({ data: result });
 		} catch (err) {
@@ -123,7 +127,11 @@ export default (router: Router) => {
 	router.post("/tools/purge-files", (req: Request, res: Response) => {
 		if (!requireAdmin(req, res)) return;
 		try {
-			const result = purgeWorkingFiles(installFromEnv(), catalogRoot());
+			const packageRoot = pinExtensionRoot();
+			const result = purgeWorkingFiles(installFromEnv(), {
+				packageRoot,
+				catalogRoot: catalogRoot(),
+			});
 			res.json({ data: result });
 		} catch (err) {
 			sendError(res, 500, err instanceof Error ? err.message : String(err));
@@ -138,6 +146,7 @@ export default (router: Router) => {
 			return;
 		}
 		try {
+			pinExtensionRoot();
 			const catalog = catalogRoot();
 			if (!catalog) {
 				sendError(res, 409, "No catalog yet. Use Check for Updates first (does not apply patches).");
@@ -172,6 +181,7 @@ export default (router: Router) => {
 	router.post("/rollback", (req: Request, res: Response) => {
 		if (!requireAdmin(req, res)) return;
 		try {
+			pinExtensionRoot();
 			const catalog = catalogRoot();
 			const install = installFromEnv();
 			const all = req.body?.all === true;

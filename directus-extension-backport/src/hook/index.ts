@@ -1,11 +1,12 @@
 import { defineHook } from "@directus/extensions-sdk";
 import { ensureDesiredApplied } from "../../../src/engine.js";
-import { autoReapplyEnabled, catalogRoot, installFromEnv } from "../shared/runtime.js";
+import { autoReapplyEnabled, catalogRoot, installFromEnv, pinExtensionRoot } from "../shared/runtime.js";
 
 export default defineHook(({ init }, { logger }) => {
 	init("app.before", async () => {
 		if (!autoReapplyEnabled()) return;
 		try {
+			pinExtensionRoot();
 			const catalog = catalogRoot();
 			if (!catalog) {
 				logger.warn(

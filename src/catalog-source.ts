@@ -3,6 +3,15 @@ import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import { findPackageRoot } from "./paths.js";
 
+/** Prefer the Studio extension folder when the API process sets it. */
+function packageRoot(): string {
+	const env = (process.env.DIRECTUS_BACKPORT_EXTENSION || "").trim();
+	if (env && fs.existsSync(path.join(env, "package.json"))) {
+		return path.resolve(env);
+	}
+	return findPackageRoot();
+}
+
 export type CatalogSource = {
 	github: string | null;
 	ref: string;
@@ -23,9 +32,13 @@ function parseGithub(value: string): string | null {
 
 function readSourceFile(): { github?: string; ref?: string } {
 	try {
-		const file = path.join(findPackageRoot(), "catalog", "source.yml");
-		if (!fs.existsSync(file)) return {};
-		return (parseYaml(fs.readFileSync(file, "utf8")) as { github?: string; ref?: string }) ?? {};
+		const root = packageRoot();
+		for (const rel of ["catalog/source.yml", "catalog-remote/source.yml"]) {
+			const file = path.join(root, rel);
+			if (!fs.existsSync(file)) continue;
+			return (parseYaml(fs.readFileSync(file, "utf8")) as { github?: string; ref?: string }) ?? {};
+		}
+		return {};
 	} catch {
 		return {};
 	}
@@ -49,11 +62,11 @@ export function loadCatalogSource(): CatalogSource {
 }
 
 export function bundledCatalogDir(): string {
-	return path.join(findPackageRoot(), "catalog");
+	return path.join(packageRoot(), "catalog");
 }
 
 export function remoteCatalogDir(): string {
-	return path.join(findPackageRoot(), "catalog-remote");
+	return path.join(packageRoot(), "catalog-remote");
 }
 
 export function remoteMetaPath(): string {

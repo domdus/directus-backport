@@ -65,10 +65,12 @@ if (!includeCatalog && listing.stdout?.includes("catalog/advisories.yml")) {
 	process.exit(1);
 }
 
-console.log(`Wrote ${out}`);
+const st = fs.statSync(out);
+console.log(`Wrote ${out} (${st.size} bytes)`);
+console.log("Contents: package.json, dist/, cli.mjs, rollback.mjs, README.md");
 if (includeCatalog) {
-	console.log("Includes catalog/ (offline). Check for Updates still refreshes catalog-remote/.");
+	console.log("Also includes catalog/ (offline). Check for Updates still refreshes catalog-remote/.");
 } else {
 	console.log("No catalog/ (Marketplace default). Operators use Check for Updates / catalog --refresh.");
 }
-console.log("Unpack into /directus/extensions/directus-extension-backport/");
+console.log("Unpack ALL files into …/extensions/directus-extension-backport/");

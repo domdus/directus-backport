@@ -1,10 +1,7 @@
 node_modules/
-dist/
+/dist/
 directus-extension-backport/node_modules/
-directus-extension-backport/dist/
 directus-extension-backport/catalog/
-directus-extension-backport/rollback.mjs
-directus-extension-backport/cli.mjs
 catalog-remote/
 directus-extension-backport/catalog-remote/
 .directus-backport/
@@ -12,5 +9,4 @@ desired.json
 directus-extension-backport/desired.json
 *.tsbuildinfo
 .DS_Store
-directus-extension-backport/*.zip
 directus-extension-backport/bp.zip

@@ -5,36 +5,53 @@ import { dataDir, findPackageRoot } from "./paths.js";
 import { desiredPath } from "./desired.js";
 import { loadState } from "./state.js";
 
-function extensionRoot(catalogRoot?: string): string {
-	if (catalogRoot) return path.dirname(path.resolve(catalogRoot));
+export type CliToolsOptions = {
+	/** Catalog dir (bundled catalog/ or catalog-remote/). */
+	catalogRoot?: string;
+	/** Extension / CLI package root that should contain cli.mjs. */
+	packageRoot?: string;
+};
+
+function resolvePackageRoot(opts?: string | CliToolsOptions): string {
+	if (typeof opts === "string") {
+		// legacy: catalog root → parent folder
+		return path.dirname(path.resolve(opts));
+	}
+	if (opts?.packageRoot) return path.resolve(opts.packageRoot);
+	if (opts?.catalogRoot) return path.dirname(path.resolve(opts.catalogRoot));
 	return findPackageRoot();
 }
 
-export function bundledCliPath(catalogRoot?: string): string {
-	return path.join(extensionRoot(catalogRoot), "cli.mjs");
+export function bundledCliPath(opts?: string | CliToolsOptions): string {
+	return path.join(resolvePackageRoot(opts), "cli.mjs");
 }
 
-export function emergencyRollbackPath(catalogRoot?: string): string {
-	return path.join(extensionRoot(catalogRoot), "rollback.mjs");
+export function emergencyRollbackPath(opts?: string | CliToolsOptions): string {
+	return path.join(resolvePackageRoot(opts), "rollback.mjs");
 }
 
-export function rollbackCommands(catalogRoot?: string) {
-	const cli = bundledCliPath(catalogRoot);
+export function rollbackCommands(opts?: string | CliToolsOptions) {
+	const cli = bundledCliPath(opts);
 	return {
 		cli: `node ${cli} rollback`,
 		docker: `docker compose run --no-deps --entrypoint node directus ${cli} rollback`,
 	};
 }
 
-export function cliStatus(install: DirectusInstall, catalogRoot?: string) {
-	const bundledPath = bundledCliPath(catalogRoot);
+export function cliStatus(install: DirectusInstall, opts?: string | CliToolsOptions) {
+	const normalized: CliToolsOptions =
+		typeof opts === "string" ? { catalogRoot: opts } : opts ?? {};
+	const packageRoot = resolvePackageRoot(normalized);
+	const catalogRoot = normalized.catalogRoot;
+	const bundledPath = path.join(packageRoot, "cli.mjs");
 	const desiredFile = loadState(install.nodeModules).desiredFile || desiredPath(catalogRoot);
 	const snapshots = dataDir(install.nodeModules);
-	const commands = rollbackCommands(catalogRoot);
+	const commands = rollbackCommands({ packageRoot, catalogRoot });
 	return {
 		bundled: fs.existsSync(bundledPath),
 		bundledPath,
-		emergencyRollback: emergencyRollbackPath(catalogRoot),
+		packageRoot,
+		emergencyRollback: path.join(packageRoot, "rollback.mjs"),
 		rollbackCli: commands.cli,
 		rollbackDocker: commands.docker,
 		desiredFile,
@@ -43,8 +60,11 @@ export function cliStatus(install: DirectusInstall, catalogRoot?: string) {
 	};
 }
 
-export function purgeWorkingFiles(install: DirectusInstall, catalogRoot?: string) {
-	const desiredFile = loadState(install.nodeModules).desiredFile || desiredPath(catalogRoot);
+export function purgeWorkingFiles(install: DirectusInstall, opts?: string | CliToolsOptions) {
+	const normalized: CliToolsOptions =
+		typeof opts === "string" ? { catalogRoot: opts } : opts ?? {};
+	const desiredFile =
+		loadState(install.nodeModules).desiredFile || desiredPath(normalized.catalogRoot);
 	const snapshots = dataDir(install.nodeModules);
 	const removed: string[] = [];
 	for (const file of [desiredFile, snapshots]) {

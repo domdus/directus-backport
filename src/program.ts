@@ -462,7 +462,9 @@ export function createProgram(): Command {
 			if (report.last?.health === "failed") {
 				p.log.warn("Last apply failed health. Rollback from this CLI — Directus does not need to be up.");
 			}
-			p.outro("If Studio is dead after a patch: node /directus/extensions/directus-extension-backport/cli.mjs rollback");
+			p.outro(
+				"If Studio is dead after a patch: node <directus>/extensions/directus-extension-backport/cli.mjs rollback",
+			);
 		});
 
 	program

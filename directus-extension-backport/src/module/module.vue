@@ -83,7 +83,10 @@
 			</v-notice>
 
 			<v-notice v-if="report && report.cli && !report.cli.bundled" type="danger" class="notice">
-				The bundled CLI is missing. Rebuild this extension so host rollback can run if Directus does not start.
+				<code>cli.mjs</code> is missing at
+				<code>{{ report.cli.bundledPath }}</code>.
+				Re-install the extension zip (must include <code>cli.mjs</code> next to <code>package.json</code> and
+				<code>dist/</code>), not <code>dist</code> alone.
 			</v-notice>
 
 			<v-notice v-if="error" type="danger" class="notice">{{ error }}</v-notice>
@@ -354,7 +357,7 @@ type Report = {
 	rollbackHint: string;
 	rollbackCli?: string;
 	rollbackDocker?: string;
-	cli?: { bundled: boolean; bundledPath: string };
+	cli?: { bundled: boolean; bundledPath: string; packageRoot?: string };
 	write?: { writable: boolean; snapshotWritable: boolean; nodeModulesWritable: boolean; reason?: string };
 	desired?: { version: string; ids: string[]; updated: string };
 	desiredFile?: string;
