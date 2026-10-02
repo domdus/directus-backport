@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/tus/data-store.js"
+  before_sha256: "a96538af66afb53f3d2176d2f0e96d963f0c6fc436f82c6ab41731a64cec5d0c"
+  after_sha256: "b22106885df8f459676ebd8bde2b0951ab761722aca175635f112564baf717cb"
+  replace:
+    - from: "\t\tconst primaryKey = await filesItemsService.createOne(fileData, { emitEvents: false });\n\t\tif (!upload.metadata[\"id\"]) upload.metadata[\"id\"] = primaryKey;"
+      to: "\t\tif (existingFile && upload.metadata[\"id\"]) await filesItemsService.readOne(upload.metadata[\"id\"]);\n\t\tconst primaryKey = await filesItemsService.createOne(fileData, { emitEvents: false });\n\t\tif (!existingFile) upload.metadata[\"id\"] = primaryKey;"

@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/shares.js"
+  before_sha256: "b935f88b9ce7cc2422a4955be0e2b1ed059baf7d002a5902d2822f49222abb72"
+  after_sha256: "9d48495b5c207839be92f1657ac15b493388ce523c4016a963a06125a276cc53"
+  replace:
+    - from: "import { ForbiddenError, InvalidCredentialsError } from '@directus/errors';"
+      to: "import { ForbiddenError, InvalidCredentialsError, InvalidPayloadError } from '@directus/errors';"
+    - from: "        await this.authorizationService.checkAccess('share', data['collection'], data['item']);\n        return super.createOne(data, opts);\n    }\n    async login(payload, options) {"
+      to: "        await this.authorizationService.checkAccess('share', data['collection'], data['item']);\n        return super.createOne(data, opts);\n    }\n    async updateMany(keys, data, opts) {\n        if ('user_created' in data)\n            throw new InvalidPayloadError({ reason: `You can't change the \"user_created\" value manually` });\n        if ('role' in data && this.accountability && this.accountability.admin !== true)\n            throw new ForbiddenError();\n        return super.updateMany(keys, data, opts);\n    }\n    async login(payload, options) {"

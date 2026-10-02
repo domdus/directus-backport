@@ -1,0 +1,10 @@
+- file: "@directus/api/dist/utils/sanitize-query.js"
+  before_sha256: "422460fef55a286403407c1e6ce24b58cb0dcd9c995231de2233632161f21e1f"
+  after_sha256: "fd40cf3568f796bd78a08beff9a3512619daaa1dff2c98f833d5a725c596843c"
+  replace:
+    - from: "\tconst result = {};\n\tif (typeof deep === \"string\") try {"
+      to: "\tconst result = Object.create(null);\n\tif (typeof deep === \"string\") try {"
+    - from: "\t\tconst subQuery = {};\n\t\tconst parsedLevel = {};"
+      to: "\t\tconst subQuery = Object.create(null);\n\t\tconst parsedLevel = Object.create(null);"
+    - from: "if (Object.keys(parsedLevel).length > 0) set(result, path, merge({}, get(result, path, {}), parsedLevel));"
+      to: "if (Object.keys(parsedLevel).length > 0) set(result, path, merge(Object.create(null), get(result, path, Object.create(null)), parsedLevel));"

@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/settings.js"
+  before_sha256: "c6bfeac86b1da5df3920bd88d11b3dfacc89729cab0f9b76bae35789b6fb99dc"
+  after_sha256: "ee88ad1a14f45204ffe1f89447fde091a72c9f8e880e190b3ceb5a26720624f4"
+  replace:
+    - from: "\tconstructor(options) {\n\t\tsuper(\"directus_settings\", options);\n\t}\n\tasync setOwner(data) {"
+      to: "\tconstructor(options) {\n\t\tsuper(\"directus_settings\", options);\n\t}\n\tasync readByQuery(query, opts) {\n\t\tconst data = await super.readByQuery(query, opts);\n\t\tif (this.accountability?.admin === true || this.accountability === null) return data;\n\t\tconst sensitive = [\"ai_openai_api_key\", \"ai_anthropic_api_key\", \"ai_google_api_key\", \"ai_openai_compatible_api_key\"];\n\t\tfor (const record of data ?? []) {\n\t\t\tif (!record) continue;\n\t\t\tfor (const field of sensitive) if (field in record) record[field] = null;\n\t\t}\n\t\treturn data;\n\t}\n\tasync setOwner(data) {"

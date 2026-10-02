@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/tus/data-store.js"
+  before_sha256: "564db23c41cda2e1d7fb4930ca36fdd283e1e0ec5795595b4f96759f6a827375"
+  after_sha256: "81bdef88b475e19a93cd5469d94c7beda2b02c96fd428af7f74262d1208ff9db"
+  replace:
+    - from: "            storage: this.location,\n        };\n        // If no folder is specified, we'll use the default folder from the settings if it exists\n        if ('folder' in fileData === false) {"
+      to: "            storage: this.location,\n        };\n        if (fileData.filename_disk) {\n            const disk = String(fileData.filename_disk).replaceAll('\\\\', '/');\n            if (disk.includes('..') || disk.startsWith('/') || disk.includes('\\0'))\n                throw ERRORS.INVALID_METADATA;\n            fileData.filename_disk = disk.split('/').filter(Boolean).join('/');\n        }\n        // If no folder is specified, we'll use the default folder from the settings if it exists\n        if ('folder' in fileData === false) {"

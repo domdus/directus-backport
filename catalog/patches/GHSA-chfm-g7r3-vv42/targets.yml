@@ -1,0 +1,12 @@
+- file: "@directus/api/dist/database/helpers/geometry/types.js"
+  before_sha256: "c8a9c91b89df458d1e77c49da3a4ec272b9ed0a0da8e95e613fd01121334814d"
+  after_sha256: "22e7e490363bc2a32865811d159c93f63f0803f5ef63ce4833ce442c2a6ce5d1"
+  replace:
+    - from: "\tcreateColumn(table, field) {\n\t\tconst type = field.type.split(\".\")[1] ?? \"geometry\";\n\t\treturn table.specificType(field.field, type);\n\t}"
+      to: "\tcreateColumn(table, field) {\n\t\tconst rawType = field.type.split(\".\")[1] ?? \"geometry\";\n\t\tconst allowedGeo = [\"geometry\", \"Point\", \"LineString\", \"Polygon\", \"MultiPoint\", \"MultiLineString\", \"MultiPolygon\", \"GeometryCollection\"];\n\t\tconst type = allowedGeo.find((value) => value.toLowerCase() === String(rawType).toLowerCase()) ?? \"geometry\";\n\t\treturn table.specificType(field.field, type);\n\t}"
+- file: "@directus/api/dist/database/helpers/geometry/dialects/postgres.js"
+  before_sha256: "7141f87befe1a9c9de052126a6200180f0d84a7d238e42c0269497df7b606f0d"
+  after_sha256: "2902307bdfd4f721bfde3f013771267b96ef8c630f80430b38dde41c99d67c27"
+  replace:
+    - from: "\tcreateColumn(table, field) {\n\t\tconst type = field.type.split(\".\")[1] ?? \"geometry\";\n\t\treturn table.specificType(field.field, `geometry(${type}, 4326)`);\n\t}"
+      to: "\tcreateColumn(table, field) {\n\t\tconst rawType = field.type.split(\".\")[1] ?? \"geometry\";\n\t\tconst allowedGeo = [\"geometry\", \"Point\", \"LineString\", \"Polygon\", \"MultiPoint\", \"MultiLineString\", \"MultiPolygon\", \"GeometryCollection\"];\n\t\tconst type = allowedGeo.find((value) => value.toLowerCase() === String(rawType).toLowerCase()) ?? \"geometry\";\n\t\treturn table.specificType(field.field, `geometry(${type}, 4326)`);\n\t}"

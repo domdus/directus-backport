@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/graphql/index.js"
+  before_sha256: "7c948c458a083eee63665402f360b702e90a541dd14ed10e1f963f1908ec24d3"
+  after_sha256: "2a315ae0f6508f8f9a1ce5b5758e3705661533ee26b243d1eeb3c7fed0022dfc"
+  replace:
+    - from: "import { NoSchemaIntrospectionCustomRule, execute, specifiedRules, validate } from \"graphql\";"
+      to: "import { GraphQLError, NoSchemaIntrospectionCustomRule, execute, specifiedRules, validate } from \"graphql\";"
+    - from: "const validationRules = Array.from(specifiedRules);\nif (env[\"GRAPHQL_INTROSPECTION\"] === false) validationRules.push(NoSchemaIntrospectionCustomRule);"
+      to: "const validationRules = Array.from(specifiedRules);\nif (env[\"GRAPHQL_INTROSPECTION\"] === false) validationRules.push(NoSchemaIntrospectionCustomRule);\nconst sensitiveMutations = new Set([\"users_register\", \"users_invite\", \"users_register_verify_email\", \"auth_login\", \"auth_password_request\", \"auth_password_reset\", \"users_me_tfa_enable\", \"users_me_tfa_disable\", \"users_me_tfa_generate\"]);\nvalidationRules.push((context) => {\n\tconst counts = /* @__PURE__ */ new Map();\n\treturn {\n\t\tField(node) {\n\t\t\tif (context.getOperation()?.operation !== \"mutation\") return;\n\t\t\tconst name = node.name.value;\n\t\t\tif (!sensitiveMutations.has(name) && !name.includes(\"users_register\") && !name.includes(\"password\") && !name.includes(\"invite\") && !name.includes(\"tfa\")) return;\n\t\t\tconst n = (counts.get(name) ?? 0) + 1;\n\t\t\tcounts.set(name, n);\n\t\t\tif (n > 1) context.reportError(new GraphQLError(`\"${name}\" can only be used once per request`));\n\t\t}\n\t};\n});"

@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/websocket/controllers/graphql.js"
+  before_sha256: "3b764cf011ecf9ddc87e5190996e7adef466dcc960adba7a1c063399bba09e77"
+  after_sha256: "3937e644708b00414297c2285f31f5a5de608746e31ecff3e77ef197e9e295a1"
+  replace:
+    - from: "import { CloseCode, MessageType, makeServer } from 'graphql-ws';"
+      to: "import { CloseCode, MessageType, makeServer } from 'graphql-ws';\nimport { GraphQLError, parse } from 'graphql';"
+    - from: "                return service.getSchema();\n            },\n        });"
+      to: "                return service.getSchema();\n            },\n            async onSubscribe(_ctx, _id, payload) {\n                const env = useEnv();\n                try {\n                    parse(payload.query, { maxTokens: Number(env['GRAPHQL_QUERY_TOKEN_LIMIT']) || 5000 });\n                }\n                catch {\n                    return [new GraphQLError('Failed to parse GraphQL document.')];\n                }\n            },\n        });"

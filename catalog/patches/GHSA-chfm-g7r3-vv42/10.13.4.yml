@@ -1,0 +1,12 @@
+- file: "@directus/api/dist/database/helpers/geometry/types.js"
+  before_sha256: "fc87f914407db21bb1dbed28b2206320a606d3005c8889c8b65568fd8212ecb4"
+  after_sha256: "a227655575c7e4cc53b368b91b61f78d1f88c38ac345a456a733a25835b9c3cc"
+  replace:
+    - from: "    createColumn(table, field) {\n        const type = field.type.split('.')[1] ?? 'geometry';\n        return table.specificType(field.field, type);\n    }"
+      to: "    createColumn(table, field) {\n        const rawType = field.type.split('.')[1] ?? 'geometry';\n        const allowedGeo = ['geometry', 'Point', 'LineString', 'Polygon', 'MultiPoint', 'MultiLineString', 'MultiPolygon', 'GeometryCollection'];\n        const type = allowedGeo.find((value) => value.toLowerCase() === String(rawType).toLowerCase()) ?? 'geometry';\n        return table.specificType(field.field, type);\n    }"
+- file: "@directus/api/dist/database/helpers/geometry/dialects/postgres.js"
+  before_sha256: "6078b577dbd261a6c29bc1fc36e91fd54bf7ea38684642a4260e744b0e8e005b"
+  after_sha256: "00b1dbf911bdf7587975ba8128750f050fd9331196fbfc9efe148dafba0c4b48"
+  replace:
+    - from: "    createColumn(table, field) {\n        const type = field.type.split('.')[1] ?? 'geometry';\n        return table.specificType(field.field, `geometry(${type}, 4326)`);\n    }"
+      to: "    createColumn(table, field) {\n        const rawType = field.type.split('.')[1] ?? 'geometry';\n        const allowedGeo = ['geometry', 'Point', 'LineString', 'Polygon', 'MultiPoint', 'MultiLineString', 'MultiPolygon', 'GeometryCollection'];\n        const type = allowedGeo.find((value) => value.toLowerCase() === String(rawType).toLowerCase()) ?? 'geometry';\n        return table.specificType(field.field, `geometry(${type}, 4326)`);\n    }"

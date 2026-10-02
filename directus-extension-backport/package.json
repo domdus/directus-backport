@@ -1,0 +1,60 @@
+{
+	"name": "directus-extension-backport",
+	"description": "Studio UI for optional Directus 10.13.4 and 11.17.4 security backports of 12.x fixes. Patches are checksum-pinned to those builds and will not apply on other versions.",
+	"icon": "swords",
+	"version": "1.0.0",
+	"license": "MIT",
+	"keywords": [
+		"directus",
+		"directus-extension",
+		"directus-extension-bundle",
+		"security",
+		"backport",
+		"patch"
+	],
+	"type": "module",
+	"files": [
+		"dist",
+		"catalog",
+		"cli.mjs",
+		"rollback.mjs",
+		"README.md"
+	],
+	"directus:extension": {
+		"type": "bundle",
+		"path": {
+			"app": "dist/app.js",
+			"api": "dist/api.js"
+		},
+		"entries": [
+			{
+				"type": "module",
+				"name": "backport-module",
+				"source": "src/module/index.ts"
+			},
+			{
+				"type": "endpoint",
+				"name": "backport",
+				"source": "src/endpoint/index.ts"
+			},
+			{
+				"type": "hook",
+				"name": "backport-persist",
+				"source": "src/hook/index.ts"
+			}
+		],
+		"host": "10.13.4 || 11.17.4"
+	},
+	"scripts": {
+		"prebuild": "rm -rf catalog && cp -r ../catalog catalog && cp ../rollback.mjs rollback.mjs && node ../scripts/bundle-cli.mjs",
+		"build": "directus-extension build",
+		"dev": "directus-extension build -w --no-minify"
+	},
+	"devDependencies": {
+		"@directus/extensions-sdk": "^17.0.0",
+		"@types/express": "^4.17.21",
+		"@types/node": "^20.0.0",
+		"typescript": "^5.0.0",
+		"vue": "^3.3.7"
+	}
+}

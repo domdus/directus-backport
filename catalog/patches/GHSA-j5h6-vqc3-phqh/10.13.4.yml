@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/request/is-denied-ip.js"
+  before_sha256: "8dc36616517fc841dbf0d59f35ca71bdedd1fcc546610b5c779b66a61a9d172b"
+  after_sha256: "9858bc733898fecdaa9b696d3df320bc26dea3c50dea4c366701a97fe38e5522"
+  replace:
+    - from: "    if (ipDenyList.includes('0.0.0.0')) {\n        const networkInterfaces = os.networkInterfaces();"
+      to: "    if (ipDenyList.includes('0.0.0.0')) {\n        if (ipInNetworks(ip, ['0.0.0.0/8', '::']))\n            return true;\n        const networkInterfaces = os.networkInterfaces();"

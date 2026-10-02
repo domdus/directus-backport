@@ -1,0 +1,7 @@
+# Built-in GitHub catalog. Users do not set env vars.
+# Overrides (forks / private mirror only):
+#   DIRECTUS_BACKPORT_CATALOG=owner/repo
+#   DIRECTUS_BACKPORT_CATALOG_REF=main
+#   DIRECTUS_BACKPORT_GITHUB_TOKEN=…   # private repos
+github: domdus/directus-backport
+ref: main

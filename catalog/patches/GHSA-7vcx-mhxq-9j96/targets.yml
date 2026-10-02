@@ -1,0 +1,23 @@
+- file: '@directus/api/dist/services/assets.js'
+  before_sha256: ed0bbcfcdc8fa3247a4e1d15665eb4d3989e41f231bc218a45713399df82478e
+  after_sha256: 6a641f90037397a6ba79083d193316a00359cfddf343b56eee8881eb4364b722
+  replace:
+  - from: "\t\t\tif (!width || !height || width > env[\"ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION\"\
+      ] || height > env[\"ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION\"]) {\n\t\t\t\tlogger.warn(`Image\
+      \ is too large to be transformed, or image size couldn't be determined.`);\n\
+      \t\t\t\tthrow new IllegalAssetTransformationError({ invalidTransformations:\
+      \ [\"width\", \"height\"] });\n\t\t\t}\n\t\t\tconst { queue, process } = sharp.counters();"
+    to: "\t\t\tif (!width || !height || width > env[\"ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION\"\
+      ] || height > env[\"ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION\"]) {\n\t\t\t\tlogger.warn(`Image\
+      \ is too large to be transformed, or image size couldn't be determined.`);\n\
+      \t\t\t\tthrow new IllegalAssetTransformationError({ invalidTransformations:\
+      \ [\"width\", \"height\"] });\n\t\t\t}\n\t\t\tconst maxOut = env[\"ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION\"\
+      ];\n\t\t\tfor (const step of transforms) {\n\t\t\t\tconst method = step[0];\n\
+      \t\t\t\tif (method !== \"resize\") continue;\n\t\t\t\tconst a = step[1];\n\t\
+      \t\t\tconst b = step[2];\n\t\t\t\tconst w = a && typeof a === \"object\" ? a.width\
+      \ : a;\n\t\t\t\tconst h = a && typeof a === \"object\" ? a.height : b;\n\t\t\
+      \t\tif (typeof w === \"number\" && w > maxOut || typeof h === \"number\" &&\
+      \ h > maxOut) {\n\t\t\t\t\tlogger.warn(`Requested transform output exceeds ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION.`);\n\
+      \t\t\t\t\tthrow new IllegalAssetTransformationError({ invalidTransformations:\
+      \ [\"width\", \"height\"] });\n\t\t\t\t}\n\t\t\t}\n\t\t\tconst { queue, process\
+      \ } = sharp.counters();"

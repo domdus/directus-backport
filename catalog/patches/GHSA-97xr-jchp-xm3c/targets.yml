@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/websocket/controllers/base.js"
+  before_sha256: "da0f18be6601100d6773af761c7aad8c8e1a15fdc53148520bdf51aadc62b360"
+  after_sha256: "7b475003f5f94760aeb9ff245d080478131d577c35f03fc5977d1fd216ac3fe1"
+  replace:
+    - from: "\t\t} catch (error) {\n\t\t\tlogger.trace(`WebSocket#${client.uid} failed authentication`);\n\t\t\temitter_default.emitAction(\"websocket.auth.failure\", { client });\n\t\t\tclient.accountability = null;\n\t\t\tclient.expires_at = null;"
+      to: "\t\t} catch (error) {\n\t\t\tlogger.trace(`WebSocket#${client.uid} failed authentication`);\n\t\t\temitter_default.emitAction(\"websocket.auth.failure\", { client });\n\t\t\tclient.accountability = createDefaultAccountability(accountabilityOverrides);\n\t\t\tclient.expires_at = null;"
+    - from: "\t\tclient.auth_timer = setTimeout(() => {\n\t\t\tclient.accountability = null;\n\t\t\tclient.expires_at = null;\n\t\t\thandleWebSocketError(client, new TokenExpiredError(), \"auth\");"
+      to: "\t\tclient.auth_timer = setTimeout(() => {\n\t\t\tclient.accountability = createDefaultAccountability({\n\t\t\t\tip: client.accountability?.ip ?? null,\n\t\t\t\tuserAgent: client.accountability?.userAgent,\n\t\t\t\torigin: client.accountability?.origin\n\t\t\t});\n\t\t\tclient.expires_at = null;\n\t\t\thandleWebSocketError(client, new TokenExpiredError(), \"auth\");"

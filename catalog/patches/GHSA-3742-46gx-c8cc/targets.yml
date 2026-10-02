@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/tus/data-store.js"
+  before_sha256: "a96538af66afb53f3d2176d2f0e96d963f0c6fc436f82c6ab41731a64cec5d0c"
+  after_sha256: "cf8c848de0aa3be355c0b5b90969cce2ee0cd723152f6b7a34e80d0025ff3ab5"
+  replace:
+    - from: "\t\tconst fileData = {\n\t\t\t...omit(upload.metadata, [\"id\", \"replace_id\"]),\n\t\t\ttus_id: upload.id,\n\t\t\ttus_data: upload,\n\t\t\tfilesize: upload.size,\n\t\t\tstorage: this.location\n\t\t};\n\t\tif (\"folder\" in fileData === false) {"
+      to: "\t\tconst fileData = {\n\t\t\t...omit(upload.metadata, [\"id\", \"replace_id\"]),\n\t\t\ttus_id: upload.id,\n\t\t\ttus_data: upload,\n\t\t\tfilesize: upload.size,\n\t\t\tstorage: this.location\n\t\t};\n\t\tif (fileData.filename_disk) {\n\t\t\tconst disk = String(fileData.filename_disk).replaceAll(\"\\\\\", \"/\");\n\t\t\tif (disk.includes(\"..\") || disk.startsWith(\"/\") || disk.includes(\"\\0\")) throw ERRORS.INVALID_METADATA;\n\t\t\tfileData.filename_disk = disk.split(\"/\").filter(Boolean).join(\"/\");\n\t\t}\n\t\tif (\"folder\" in fileData === false) {"

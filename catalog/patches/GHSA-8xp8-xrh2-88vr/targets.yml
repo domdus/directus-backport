@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/users.js"
+  before_sha256: "b52f89d0c43b9fe5d713ec1b76b2141ff23fd1f049109bdb932b624b803b4b62"
+  after_sha256: "9152510093c6337f8a0937b01c77f14ddffcb50f016dedcbf22416f290470e27"
+  replace:
+    - from: "\t\t\tconst mailService = new MailService(serviceOptions);\n\t\t\tconst payload = {\n\t\t\t\temail: input.email,\n\t\t\t\tscope: \"pending-registration\"\n\t\t\t};"
+      to: "\t\t\tconst mailService = new MailService(serviceOptions);\n\t\t\tconst verificationEmail = user?.email ?? input.email;\n\t\t\tconst payload = {\n\t\t\t\temail: verificationEmail,\n\t\t\t\tscope: \"pending-registration\"\n\t\t\t};"
+    - from: "\t\t\tmailService.send({\n\t\t\t\tto: input.email,\n\t\t\t\tsubject: \"Verify your email address\",\n\t\t\t\ttemplate: {\n\t\t\t\t\tname: \"user-registration\",\n\t\t\t\t\tdata: {\n\t\t\t\t\t\turl: verificationUrl,\n\t\t\t\t\t\temail: input.email,"
+      to: "\t\t\tmailService.send({\n\t\t\t\tto: verificationEmail,\n\t\t\t\tsubject: \"Verify your email address\",\n\t\t\t\ttemplate: {\n\t\t\t\t\tname: \"user-registration\",\n\t\t\t\t\tdata: {\n\t\t\t\t\t\turl: verificationUrl,\n\t\t\t\t\t\temail: verificationEmail,"

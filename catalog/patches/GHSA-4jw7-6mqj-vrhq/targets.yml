@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/ai/chat/lib/create-ui-stream.js"
+  before_sha256: "526b9d58c4c021d26fa785612de50c68915845a3033b19d3176922a6b47bf063"
+  after_sha256: "4016f8ea1f7bda4da75da14e1e5692681cf7817d4f77125e2d8f8ec74ac2e142"
+  replace:
+    - from: "import { ServiceUnavailableError } from \"@directus/errors\";\nimport { convertToModelMessages, stepCountIs, streamText, wrapLanguageModel } from \"ai\";"
+      to: "import { getAxios } from \"../../../request/index.js\";\nimport { ServiceUnavailableError } from \"@directus/errors\";\nimport { convertToModelMessages, stepCountIs, streamText, wrapLanguageModel } from \"ai\";"
+    - from: "\treturn streamText({\n\t\tsystem: baseSystemPrompt,\n\t\tmodel: languageModel,"
+      to: "\treturn streamText({\n\t\texperimental_download: async (requestedDownloads) => {\n\t\t\tconst axios = await getAxios();\n\t\t\treturn Promise.all(requestedDownloads.map(async ({ url, isUrlSupportedByModel }) => {\n\t\t\t\tif (isUrlSupportedByModel) return null;\n\t\t\t\tif (url.protocol !== \"http:\" && url.protocol !== \"https:\") throw new Error(`Unsupported URL protocol for asset download: \"${url.protocol}\"`);\n\t\t\t\tconst response = await axios.get(url.toString(), { responseType: \"arraybuffer\" });\n\t\t\t\tconst contentType = response.headers[\"content-type\"];\n\t\t\t\tconst mediaType = typeof contentType === \"string\" ? contentType.split(\";\")[0]?.trim() : void 0;\n\t\t\t\treturn {\n\t\t\t\t\tdata: new Uint8Array(response.data),\n\t\t\t\t\tmediaType\n\t\t\t\t};\n\t\t\t}));\n\t\t},\n\t\tsystem: baseSystemPrompt,\n\t\tmodel: languageModel,"

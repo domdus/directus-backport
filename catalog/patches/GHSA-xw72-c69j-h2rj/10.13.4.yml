@@ -1,0 +1,10 @@
+- file: "@directus/api/dist/controllers/utils.js"
+  before_sha256: "bb77a6ec9dd21ae2ee82e32eb337a7ad3973d70e0d86539395423a83ec33b359"
+  after_sha256: "1b70d37544f300024cd63bdbf5ab9cae1a6df5d4f66233e3b12bb68c7c2c3e57"
+  replace:
+    - from: "import { InvalidPayloadError, InvalidQueryError, UnsupportedMediaTypeError } from '@directus/errors';"
+      to: "import { ForbiddenError, InvalidPayloadError, InvalidQueryError, UnsupportedMediaTypeError } from '@directus/errors';"
+    - from: "router.post('/hash/generate', asyncHandler(async (req, res) => {\n    if (!req.body?.string) {\n        throw new InvalidPayloadError({ reason: `\"string\" is required` });\n    }"
+      to: "router.post('/hash/generate', asyncHandler(async (req, res) => {\n    if (!req.accountability?.user) {\n        throw new ForbiddenError();\n    }\n    if (!req.body?.string) {\n        throw new InvalidPayloadError({ reason: `\"string\" is required` });\n    }"
+    - from: "router.post('/hash/verify', asyncHandler(async (req, res) => {\n    if (!req.body?.string) {\n        throw new InvalidPayloadError({ reason: `\"string\" is required` });\n    }"
+      to: "router.post('/hash/verify', asyncHandler(async (req, res) => {\n    if (!req.accountability?.user) {\n        throw new ForbiddenError();\n    }\n    if (!req.body?.string) {\n        throw new InvalidPayloadError({ reason: `\"string\" is required` });\n    }"

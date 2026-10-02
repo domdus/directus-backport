@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/request/is-denied-ip.js"
+  before_sha256: "ae7ded6364a6c1022c8352371ec63540eed58fec2a01befd60801b30bf69e3ef"
+  after_sha256: "685c310940de265a3cc362e50158f60de18c327b68487cfc049e2a8fedd4b8e7"
+  replace:
+    - from: "\t\t\tif (blockNetwork === \"0.0.0.0\") {\n\t\t\t\tblockNetworkInterfaces = true;\n\t\t\t\tcontinue;\n\t\t\t}"
+      to: "\t\t\tif (blockNetwork === \"0.0.0.0\") {\n\t\t\t\tblockNetworkInterfaces = true;\n\t\t\t\tblockList.parseSubnet(\"0.0.0.0/8\");\n\t\t\t\tblockList.parseAddress(\"::\");\n\t\t\t\tcontinue;\n\t\t\t}"

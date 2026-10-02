@@ -1,0 +1,50 @@
+{
+  "name": "directus-backport",
+  "version": "0.1.0",
+  "description": "Catalog-driven CLI to apply reversible Directus 9.26.0 / 10.13.4 / 11.17.4 security backports. Not a Directus fork.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "directus-backport": "./dist/cli.js"
+  },
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "catalog",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "test": "tsx --test test/*.test.ts",
+    "build:extension": "npm run build --prefix directus-extension-backport",
+    "prepare": "npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "directus",
+    "security",
+    "backport",
+    "patch"
+  ],
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "commander": "^14.0.0",
+    "diff": "^8.0.2",
+    "picocolors": "^1.1.1",
+    "semver": "^7.7.2",
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/diff": "^7.0.2",
+    "@types/node": "^24.5.2",
+    "@types/semver": "^7.7.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

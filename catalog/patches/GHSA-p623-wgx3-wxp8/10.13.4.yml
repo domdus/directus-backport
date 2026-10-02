@@ -1,0 +1,10 @@
+- file: "@directus/api/dist/services/files.js"
+  before_sha256: "dd2ac5e1701d268d41fc28f33a57842585fa641504fc637002b93d220e26123e"
+  after_sha256: "27fdd150175a74c221a0ae28dafd8cbd819d9cdd6fcdcbf531c0f151caed01d2"
+  replace:
+    - from: "import { extractMetadata } from './files/lib/extract-metadata.js';\nimport { ItemsService } from './items.js';"
+      to: "import { extractMetadata } from './files/lib/extract-metadata.js';\nimport { AuthorizationService } from './authorization.js';\nimport { ItemsService } from './items.js';"
+    - from: "    async uploadOne(stream, data, primaryKey, opts) {\n        const storage = await getStorage();"
+      to: "    async uploadOne(stream, data, primaryKey, opts) {\n        if (this.accountability) {\n            const authorizationService = new AuthorizationService({\n                accountability: this.accountability,\n                knex: this.knex,\n                schema: this.schema,\n            });\n            if (primaryKey !== undefined) {\n                await authorizationService.checkAccess('update', 'directus_files', primaryKey);\n            }\n            else {\n                await authorizationService.checkAccess('create', 'directus_files');\n            }\n        }\n        const storage = await getStorage();"
+    - from: "    async createOne(data, opts) {\n        if (!data.type) {\n            throw new InvalidPayloadError({ reason: `\"type\" is required` });\n        }"
+      to: "    async createOne(data, opts) {\n        if (this.accountability) {\n            const authorizationService = new AuthorizationService({\n                accountability: this.accountability,\n                knex: this.knex,\n                schema: this.schema,\n            });\n            await authorizationService.checkAccess('create', 'directus_files');\n        }\n        if (!data.type) {\n            throw new InvalidPayloadError({ reason: `\"type\" is required` });\n        }"

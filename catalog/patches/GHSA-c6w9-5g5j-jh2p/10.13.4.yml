@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/utils/get-cache-key.js"
+  before_sha256: "e64d2a2b50e8f9f1a520894f753adf45237c18eb77c73370d3ab4434672d9f03"
+  after_sha256: "d326137f2fbdfe96f78ba531297a69abe234404b50a9184bef0e157f3fb3ac66"
+  replace:
+    - from: "    const info = {\n        version,\n        user: req.accountability?.user || null,\n        path,\n        query: isGraphQl ? getGraphqlQueryAndVariables(req) : req.sanitizedQuery,\n    };"
+      to: "    const info = {\n        version,\n        user: req.accountability?.user || null,\n        role: req.accountability?.role || null,\n        admin: req.accountability?.admin || false,\n        app: req.accountability?.app || false,\n        path,\n        query: isGraphQl ? getGraphqlQueryAndVariables(req) : req.sanitizedQuery,\n        ...req.accountability?.share && { share: req.accountability.share },\n    };"

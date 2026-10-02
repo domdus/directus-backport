@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/utils/get-cache-key.js"
+  before_sha256: "5c2396035d2541c9fd058c1bb3aa977365b989e9f33b5ec7b3c0476e688e36cc"
+  after_sha256: "53c6c165515a2e6d11ae3e463048ebe3465240ae8e5a6702cfa79ad860308c00"
+  replace:
+    - from: "\treturn hash({\n\t\tversion,\n\t\tuser: req.accountability?.user || null,\n\t\tpath,\n\t\tquery: isGraphQl ? getGraphqlQueryAndVariables(req) : req.sanitizedQuery,\n\t\t...flowTriggerQuery && { rawQuery: flowTriggerQuery },\n\t\t...includeIp && { ip: req.accountability.ip }\n\t});"
+      to: "\treturn hash({\n\t\tversion,\n\t\tuser: req.accountability?.user || null,\n\t\trole: req.accountability?.role || null,\n\t\tadmin: req.accountability?.admin || false,\n\t\tapp: req.accountability?.app || false,\n\t\tpath,\n\t\tquery: isGraphQl ? getGraphqlQueryAndVariables(req) : req.sanitizedQuery,\n\t\t...flowTriggerQuery && { rawQuery: flowTriggerQuery },\n\t\t...req.accountability?.share && { share: req.accountability.share },\n\t\t...includeIp && { ip: req.accountability.ip }\n\t});"

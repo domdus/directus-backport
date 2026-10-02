@@ -1,0 +1,16 @@
+- file: '@directus/api/dist/controllers/utils.js'
+  before_sha256: 5a65e41d05ba847f0f57d38b002e0362fe2d83a811f474b179a73588227d12b7
+  after_sha256: b20addceedebda8d0fcfd3c7c2a60bc5559e96ec7a2735a106bb71def580151f
+  replace:
+  - from: "router.post(\"/hash/generate\", async_handler_default(async (req, res)\
+      \ => {\n\tif (!req.body?.string) throw new InvalidPayloadError({ reason: `\"\
+      string\" is required` });"
+    to: "router.post(\"/hash/generate\", async_handler_default(async (req, res) =>\
+      \ {\n\tif (!req.accountability?.user) throw new ForbiddenError();\n\tif (!req.body?.string)\
+      \ throw new InvalidPayloadError({ reason: `\"string\" is required` });"
+  - from: "router.post(\"/hash/verify\", async_handler_default(async (req, res) =>\
+      \ {\n\tif (!req.body?.string) throw new InvalidPayloadError({ reason: `\"string\"\
+      \ is required` });"
+    to: "router.post(\"/hash/verify\", async_handler_default(async (req, res) => {\n\
+      \tif (!req.accountability?.user) throw new ForbiddenError();\n\tif (!req.body?.string)\
+      \ throw new InvalidPayloadError({ reason: `\"string\" is required` });"

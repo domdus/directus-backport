@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/websocket/controllers/graphql.js"
+  before_sha256: "52d5b9bff7c81cee65195b9c4ae1ffb46cbae5a960b8b8481c018bf60d7b8f34"
+  after_sha256: "e0f48d9a80f4229b2ea81ed50061d860ce883b52b26a5475b9889b3b76250c72"
+  replace:
+    - from: "import { CloseCode, MessageType, makeServer } from \"graphql-ws\";"
+      to: "import { CloseCode, MessageType, makeServer } from \"graphql-ws\";\nimport { GraphQLError, parse } from \"graphql\";\nimport { useEnv } from \"@directus/env\";"
+    - from: "\t\tthis.gql = makeServer({ schema: async (ctx) => {\n\t\t\tconst accountability = ctx.extra.client.accountability;\n\t\t\treturn new GraphQLService({\n\t\t\t\tschema: await getSchema(),\n\t\t\t\tscope: \"items\",\n\t\t\t\taccountability\n\t\t\t}).getSchema();\n\t\t} });"
+      to: "\t\tthis.gql = makeServer({\n\t\t\tschema: async (ctx) => {\n\t\t\t\tconst accountability = ctx.extra.client.accountability;\n\t\t\t\treturn new GraphQLService({\n\t\t\t\t\tschema: await getSchema(),\n\t\t\t\t\tscope: \"items\",\n\t\t\t\t\taccountability\n\t\t\t\t}).getSchema();\n\t\t\t},\n\t\t\tasync onSubscribe(_ctx, _id, payload) {\n\t\t\t\tconst env = useEnv();\n\t\t\t\ttry {\n\t\t\t\t\tparse(payload.query, { maxTokens: Number(env[\"GRAPHQL_QUERY_TOKEN_LIMIT\"]) });\n\t\t\t\t} catch {\n\t\t\t\t\treturn [new GraphQLError(\"Failed to parse GraphQL document.\")];\n\t\t\t\t}\n\t\t\t}\n\t\t});"

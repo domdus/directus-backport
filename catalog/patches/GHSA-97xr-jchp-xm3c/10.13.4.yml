@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/websocket/controllers/base.js"
+  before_sha256: "f5ab71de087f83b5139ebea7e76e96f70b43cf145ac1e8cc0eecba90d0e779a5"
+  after_sha256: "56114d4248ed35ed61cab2c9ffb6642c1c79c349771d5029ba4f2d5f9ffc8d32"
+  replace:
+    - from: "            logger.trace(`WebSocket#${client.uid} failed authentication`);\n            emitter.emitAction('websocket.auth.failure', { client });\n            client.accountability = null;\n            client.expires_at = null;"
+      to: "            logger.trace(`WebSocket#${client.uid} failed authentication`);\n            emitter.emitAction('websocket.auth.failure', { client });\n            client.accountability = {\n                user: null,\n                role: null,\n                admin: false,\n                app: false,\n                ip: client.accountability?.ip ?? null,\n                userAgent: client.accountability?.userAgent,\n                origin: client.accountability?.origin,\n            };\n            client.expires_at = null;"
+    - from: "        client.auth_timer = setTimeout(() => {\n            client.accountability = null;\n            client.expires_at = null;\n            handleWebSocketError(client, new TokenExpiredError(), 'auth');"
+      to: "        client.auth_timer = setTimeout(() => {\n            client.accountability = {\n                user: null,\n                role: null,\n                admin: false,\n                app: false,\n                ip: client.accountability?.ip ?? null,\n                userAgent: client.accountability?.userAgent,\n                origin: client.accountability?.origin,\n            };\n            client.expires_at = null;\n            handleWebSocketError(client, new TokenExpiredError(), 'auth');"

@@ -1,0 +1,12 @@
+- file: '@directus/api/dist/flows.js'
+  before_sha256: c4313f7e5ce2618c4a63d72862690a4a17a990ec8e4265257547e1d0b9a0c1f7
+  after_sha256: 54e10edf4b8cf63dc52970126207902fe8a6952e634ddb0af7528e3c8f1f24d8
+  replace:
+  - from: "\t\t\t\t\tconst accountability = context?.[\"accountability\"];\n\t\t\t\
+      \t\tif (!accountability) {\n\t\t\t\t\t\tlogger.warn(`Manual flows are only triggerable\
+      \ when authenticated`);\n\t\t\t\t\t\tthrow new ForbiddenError();\n\t\t\t\t\t\
+      }"
+    to: "\t\t\t\t\tconst accountability = context?.[\"accountability\"];\n\t\t\t\t\
+      \tif (!accountability?.user) {\n\t\t\t\t\t\tlogger.warn(`Manual flows are only\
+      \ triggerable when authenticated`);\n\t\t\t\t\t\tthrow new ForbiddenError();\n\
+      \t\t\t\t\t}"

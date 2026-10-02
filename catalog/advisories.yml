@@ -1,0 +1,348 @@
+# Registry of Directus advisories relevant to 9.26.0, 10.13.4, and 11.17.4.
+# This is not a fork. Patches are optional, per-GHSA, and reversible.
+# port.status:
+#   already-fixed  — this Directus line already contains the fix
+#   needs-port     — fixed only in 12.x; no backport in this catalog yet
+#   experimental   — backport exists; applied on at least one install
+#   stable         — backport applied in production without rollback
+#   wont-port      — depends on a 12.x refactor; use config/WAF or upgrade
+
+catalog_version: 1
+updated: "2026-10-02"
+notes: >
+  Directus is not backporting 12.x security fixes onto 9 / 10 / 11. This catalog
+  tracks what is still open on a given build and, when a backport exists, how risky
+  it is to apply. Checksum pins are exact versions (9.26.0, 10.13.4, 11.17.4), not
+  whole majors. Other builds need their own overlay. Studio loads on 10.13.4 and
+  11.17.4 only; 9.26.0 is CLI-only.
+
+advisories:
+  - id: GHSA-97xr-jchp-xm3c
+    title: Public WebSocket clients gain unrestricted item access after a failed auth message
+    severity: critical
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-97xr-jchp-xm3c
+    affects: "< 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Failed or expired WebSocket auth now resets to public accountability instead of null (null is treated as system). Restart required."
+
+  - id: GHSA-gwvv-rr68-cmv6
+    title: Unauthenticated persistent DoS via prototype pollution in the deep query parameter
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-gwvv-rr68-cmv6
+    affects: "< 12.2.0"
+    upstream_patched: "12.2.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. sanitizeDeep builds Object.create(null) so prototype pollution in `deep` cannot persist. Restart required."
+
+  - id: GHSA-7vcx-mhxq-9j96
+    title: DoS via image-transform endpoint accepting unvalidated target dimensions
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-7vcx-mhxq-9j96
+    affects: "< 12.2.0"
+    upstream_patched: "12.2.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: Checksum-pinned to Directus 10.13.4 and 11.17.4. Caps requested resize width/height at ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION. Restart required.
+
+  - id: GHSA-mww8-4gwh-rjfw
+    title: Missing Origin validation on WebSocket upgrades (CSWSH)
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-mww8-4gwh-rjfw
+    affects: ">= 10.10.5 < 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. WebSocket upgrades require Origin to match Host, PUBLIC_URL, or CORS_ORIGIN. Restart required."
+
+  - id: GHSA-chfm-g7r3-vv42
+    title: SQL injection via geometry field type in PostgreSQL/PostGIS collection creation
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-chfm-g7r3-vv42
+    affects: "< 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Geometry column types are allowlisted before interpolation into PostGIS DDL. Also pinned to 9.26.0. Restart required."
+
+  - id: GHSA-3742-46gx-c8cc
+    title: Improper path validation in TUS uploads allows writing to arbitrary storage paths
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-3742-46gx-c8cc
+    affects: ">= 10.13.0 < 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. TUS filename_disk rejects `..` and absolute paths. Restart required."
+
+  - id: GHSA-xjxq-pj7h-g676
+    title: TUS upload authorization bypass allows cross-user file overwrite
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-xjxq-pj7h-g676
+    affects: ">= 10.13.0 < 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. TUS replacements must be readable with the uploader's accountability; attacker-supplied ids no longer stick. Restart required."
+
+  - id: GHSA-4jw7-6mqj-vrhq
+    title: SSRF in AI chat file downloads bypasses the outbound IP deny-list
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-4jw7-6mqj-vrhq
+    affects: ">= 11.16.0 < 12.2.0"
+    upstream_patched: "12.2.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: "Pinned to Directus 11.17.4. AI chat file downloads go through getAxios (IMPORT_IP_DENY_LIST). Restart required."
+
+  - id: GHSA-g293-vf99-xv36
+    title: Unthrottled system GraphQL resolvers allow anonymous DoS via alias amplification
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-g293-vf99-xv36
+    affects: "< 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. System GraphQL mutations for register/password/invite/TFA cannot be alias-amplified. Also pinned to 9.26.0. Restart required."
+
+  - id: GHSA-xw72-c69j-h2rj
+    title: DoS through unauthenticated Argon2 hash utility endpoints
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-xw72-c69j-h2rj
+    affects: "< 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: low
+      notes: Checksum-pinned to Directus 10.13.4 and 11.17.4. Requires an authenticated user on POST /utils/hash/generate and /utils/hash/verify. Restart required.
+
+  - id: GHSA-j5h6-vqc3-phqh
+    title: SSRF protection bypass via 0.0.0.0 in file import
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-j5h6-vqc3-phqh
+    affects: "< 12.0.0"
+    upstream_patched: "12.0.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. IMPORT_IP_DENY_LIST=0.0.0.0 also blocks 0.0.0.0/8 and IPv6 unspecified. Restart required."
+
+  - id: GHSA-c6w9-5g5j-jh2p
+    title: Authorization-dependent response served from an unsegmented cache key
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-c6w9-5g5j-jh2p
+    affects: "< 12.0.0"
+    upstream_patched: "12.0.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Cache keys include role/admin/app/share so authorization-dependent responses are not reused. Also pinned to 9.26.0. Restart required."
+
+  - id: GHSA-fq27-7m2r-q6vm
+    title: Manual trigger Flows can be executed by unauthenticated users
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-fq27-7m2r-q6vm
+    affects: ">= 11.9.0 < 12.2.0"
+    upstream_patched: "12.2.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: Pinned to Directus 11.17.4. Rejects manual flow triggers unless accountability.user is set (public accountability is no longer enough). Restart required.
+
+  - id: GHSA-7h45-q5jx-7r87
+    title: Share update allows reassigning user_created and role
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-7h45-q5jx-7r87
+    affects: "< 12.2.0"
+    upstream_patched: "12.3.1"
+    port:
+      status: experimental
+      risk: medium
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Share updates cannot reassign user_created; non-admins cannot set role. Restart required."
+
+  - id: GHSA-8xp8-xrh2-88vr
+    title: Public registration sends the verification email to the submitted address instead of the matched account
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-8xp8-xrh2-88vr
+    affects: ">= 10.11.0 < 12.3.1"
+    upstream_patched: "12.3.1"
+    port:
+      status: experimental
+      risk: low
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Public registration verification mail goes to the stored account email, not the submitted address. Restart required."
+
+  - id: GHSA-788p-cvgf-q973
+    title: Stored XSS via unsanitized project color in the generated favicon
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-788p-cvgf-q973
+    affects: "< 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: low
+      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. project_color writes must be hex so the Studio favicon cannot interpolate markup. Restart required."
+
+  - id: GHSA-p623-wgx3-wxp8
+    title: Service overrides apply side effects before permission checks
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-p623-wgx3-wxp8
+    affects: "< 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Files create/update check access before filename/storage side effects. Restart required."
+
+  - id: GHSA-r9xq-xp38-j4j3
+    title: Sensitive directus_settings fields readable by minimal app_access users
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-r9xq-xp38-j4j3
+    affects: ">= 11.15.0 < 12.2.0"
+    upstream_patched: "12.2.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: "Pinned to Directus 11.17.4. Non-admin reads of directus_settings null out AI API keys. Restart required."
+
+  - id: GHSA-6hpw-rhhq-6xq3
+    title: Unauthenticated telemetry submission and settings write via pre-authorization side effects
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-6hpw-rhhq-6xq3
+    affects: ">= 11.13.0 < 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: "Pinned to Directus 11.17.4. Project-owner telemetry runs only after upsertSingleton (permission check). Restart required."
+
+  - id: GHSA-ff8w-8crv-9rcf
+    title: Resource exhaustion via unbounded GraphQL documents on the WebSocket endpoint
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-ff8w-8crv-9rcf
+    affects: "< 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. GraphQL WebSocket subscribe payloads are parsed with GRAPHQL_QUERY_TOKEN_LIMIT. Restart required."
+
+  - id: GHSA-5h38-6755-g83w
+    title: Path traversal in the Mail Service template engine allows host file disclosure
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-5h38-6755-g83w
+    affects: "< 12.1.0"
+    upstream_patched: "12.1.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Mail templates must resolve inside the configured templates directories. Restart required."
+
+  - id: GHSA-38hg-ww64-rrwc
+    title: Authenticated users can extract concealed fields via aggregate queries
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-38hg-ww64-rrwc
+    affects: "< 11.17.0"
+    upstream_patched: "11.17.0"
+    port:
+      status: already-fixed
+      risk: none
+      notes: Fixed in Directus 11.17.0. Stay on 11.17.4 or later 11.x.
+
+  - id: GHSA-ph52-67fq-75wj
+    title: GraphQL alias amplification DoS due to missing query cost limits
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-ph52-67fq-75wj
+    affects: "< 11.17.0"
+    upstream_patched: "11.17.0"
+    port:
+      status: already-fixed
+      risk: none
+      notes: Fixed in Directus 11.17.0.
+
+  - id: GHSA-6q22-g298-grjh
+    title: Unauthenticated DoS via GraphQL alias amplification of the health check resolver
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-6q22-g298-grjh
+    affects: "< 11.17.0"
+    upstream_patched: "11.17.0"
+    port:
+      status: already-fixed
+      risk: none
+      notes: Fixed in Directus 11.17.0.
+
+  - id: GHSA-mvv8-v4jj-g47j
+    title: Sensitive fields exposed in revision history
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-mvv8-v4jj-g47j
+    affects: "< 11.17.0"
+    upstream_patched: "11.17.0"
+    port:
+      status: already-fixed
+      risk: none
+      notes: Fixed in Directus 11.17.0.
+
+  - id: GHSA-wxwm-3fxv-mrvx
+    title: GraphQL schema SDL disclosure setting
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-wxwm-3fxv-mrvx
+    affects: "< 11.16.1"
+    upstream_patched: "11.16.1"
+    port:
+      status: already-fixed
+      risk: none
+      notes: Fixed in Directus 11.16.1.
+
+  - id: GHSA-qqmv-5p3g-px89
+    title: TUS upload authorization bypass allows arbitrary file overwrite
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-qqmv-5p3g-px89
+    affects: "< 11.16.1"
+    upstream_patched: "11.16.1"
+    port:
+      status: already-fixed
+      risk: none
+      notes: Fixed in Directus 11.16.1. Later TUS issues (12.1.0) are still open on 11.17.x.
+
+  - id: GHSA-q75c-4gmv-mg9x
+    title: Open redirect in admin 2FA setup page
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-q75c-4gmv-mg9x
+    affects: "< 11.16.1"
+    upstream_patched: "11.16.1"
+    port:
+      status: already-fixed
+      risk: none
+      notes: Fixed in Directus 11.16.1.
+
+  - id: GHSA-cf45-hxwj-4cfj
+    title: Open redirect via parser bypass in OAuth2/SAML authentication flow
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-cf45-hxwj-4cfj
+    affects: "< 11.16.1"
+    upstream_patched: "11.16.1"
+    port:
+      status: already-fixed
+      risk: none
+      notes: Fixed in Directus 11.16.1.
+
+  - id: GHSA-wv3h-5fx7-966h
+    title: SSRF protection bypass via IPv4-mapped IPv6 addresses in file import
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-wv3h-5fx7-966h
+    affects: "< 11.16.0"
+    upstream_patched: "11.16.0"
+    port:
+      status: already-fixed
+      risk: none
+      notes: Fixed in Directus 11.16.0.

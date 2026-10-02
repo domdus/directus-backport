@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/files.js"
+  before_sha256: "9ab6b06dd1b72791cb81e8a243106647fe60fffa279ed306e26ad19547c68e4b"
+  after_sha256: "955924ef563f0ba8e80c21b54d641a08e7b7f88e07076668ec59ea8d86ee44f3"
+  replace:
+    - from: "\tasync createOne(data, opts = {}) {\n\t\tif (!data.type) throw new InvalidPayloadError({ reason: `\"type\" is required` });"
+      to: "\tasync createOne(data, opts = {}) {\n\t\tif (this.accountability) await validateAccess({\n\t\t\taccountability: this.accountability,\n\t\t\taction: \"create\",\n\t\t\tcollection: \"directus_files\"\n\t\t}, {\n\t\t\tknex: this.knex,\n\t\t\tschema: this.schema\n\t\t});\n\t\tif (!data.type) throw new InvalidPayloadError({ reason: `\"type\" is required` });"
+    - from: "\tasync updateMany(keys, data, opts = {}) {\n\t\tif (keys.length === 1 && data.filename_disk) {"
+      to: "\tasync updateMany(keys, data, opts = {}) {\n\t\tif (this.accountability) await validateAccess({\n\t\t\taccountability: this.accountability,\n\t\t\taction: \"update\",\n\t\t\tcollection: \"directus_files\",\n\t\t\tprimaryKeys: keys\n\t\t}, {\n\t\t\tknex: this.knex,\n\t\t\tschema: this.schema\n\t\t});\n\t\tif (keys.length === 1 && data.filename_disk) {"

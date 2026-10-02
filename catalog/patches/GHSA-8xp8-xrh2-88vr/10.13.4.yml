@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/users.js"
+  before_sha256: "534b7be9914af6b7b03b249e8cea49fc45d7917d90c7ec8e1b65234fed2ab3e5"
+  after_sha256: "454428cc09d0279eb9aae4d7e1c1617250e1412d1c366a6cf592183fc70e558a"
+  replace:
+    - from: "            const mailService = new MailService(serviceOptions);\n            const payload = { email: input.email, scope: 'pending-registration' };"
+      to: "            const mailService = new MailService(serviceOptions);\n            const verificationEmail = user?.email ?? input.email;\n            const payload = { email: verificationEmail, scope: 'pending-registration' };"
+    - from: "                to: input.email,\n                subject: 'Verify your email address', // TODO: translate after theres support for internationalized emails\n                template: {\n                    name: 'user-registration',\n                    data: {\n                        url: verificationUrl,\n                        email: input.email,"
+      to: "                to: verificationEmail,\n                subject: 'Verify your email address', // TODO: translate after theres support for internationalized emails\n                template: {\n                    name: 'user-registration',\n                    data: {\n                        url: verificationUrl,\n                        email: verificationEmail,"

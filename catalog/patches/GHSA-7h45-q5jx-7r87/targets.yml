@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/shares.js"
+  before_sha256: "719256eddbb3cc19c4ea4378129552221c615f3a174211e7569ef3bfe7ae7d5b"
+  after_sha256: "bf54c9cf8edff0a4d0d772ff46197db0273901c9bee9ccc18aa9c5a525f8ac71"
+  replace:
+    - from: "import { ForbiddenError, InvalidCredentialsError } from \"@directus/errors\";"
+      to: "import { ForbiddenError, InvalidCredentialsError, InvalidPayloadError } from \"@directus/errors\";"
+    - from: "\tasync updateMany(keys, data, opts) {\n\t\tawait clearCache();\n\t\treturn super.updateMany(keys, data, opts);\n\t}"
+      to: "\tasync updateMany(keys, data, opts) {\n\t\tif (\"user_created\" in data) throw new InvalidPayloadError({ reason: `You can't change the \"user_created\" value manually` });\n\t\tif (\"role\" in data && this.accountability && this.accountability.admin !== true) throw new ForbiddenError();\n\t\tawait clearCache();\n\t\treturn super.updateMany(keys, data, opts);\n\t}"
