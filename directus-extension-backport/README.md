@@ -43,14 +43,11 @@ npm install && npm run build
 **Marketplace / zip:** `package.json`, `dist/`, **`cli.mjs`**, `rollback.mjs`
 (no `catalog/`). After install, use **Check for Updates** once.
 
-**Install zip (includes `cli.mjs`):**  
-[`directus-extension-backport.zip`](./directus-extension-backport.zip)
-
-Or rebuild from the repo root:
+Build an install zip from the repo root (includes `cli.mjs`):
 
 ```bash
 npm run zip:extension
-# → directus-extension-backport/directus-extension-backport.zip
+# → directus-extension-backport/directus-extension-backport.zip (local only; not on GitHub)
 
 INCLUDE_CATALOG=1 npm run zip:extension   # optional offline catalog
 ```

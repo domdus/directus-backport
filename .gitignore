@@ -10,3 +10,4 @@ directus-extension-backport/desired.json
 *.tsbuildinfo
 .DS_Store
 directus-extension-backport/bp.zip
+directus-extension-backport/*.zip
