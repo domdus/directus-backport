@@ -6,8 +6,6 @@
 	"license": "MIT",
 	"keywords": [
 		"directus",
-		"directus-extension",
-		"directus-extension-bundle",
 		"security",
 		"backport",
 		"patch"

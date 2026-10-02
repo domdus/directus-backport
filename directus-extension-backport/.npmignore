@@ -1,0 +1,16 @@
+# Source / build tooling (package.json "files" already whitelists dist + README)
+src
+docs
+catalog
+catalog-remote
+tsconfig.json
+package-lock.json
+*.zip
+cli.mjs
+rollback.mjs
+.gitignore
+.npmignore
+.env
+.env.*
+.DS_Store
+node_modules
