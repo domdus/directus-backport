@@ -5,9 +5,9 @@ pinned Directus builds: **9.26.0** (CLI), **10.13.4**, and **11.17.4**. It is no
 a Directus distro and not a fork.
 
 Directus 12.x is where [upstream security advisories](https://github.com/directus/directus/security)
-are patched. 9 / 10 / 11 lines do not get those backports. This repo tracks what
-is still open on a given build, and when someone ports a fix, lets you apply that
-**one** patch to `node_modules` with a snapshot you can undo.
+are patched. Upstream does not ship those fixes onto 9 / 10 / 11. This repo is the
+optional stopgap: it tracks what is still open on a pinned build, and when a port
+exists, lets you apply that **one** patch to `node_modules` with a snapshot you can undo.
 
 Patches are checksum-pinned to the exact compiled tree they were tested on.
 **10.13.4 is not “any 10.x”.** Another 10.13.x (or 11.16.x, 9.25.x, …) needs its

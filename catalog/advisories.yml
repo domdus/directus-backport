@@ -10,11 +10,11 @@
 catalog_version: 1
 updated: "2026-10-02"
 notes: >
-  Directus is not backporting 12.x security fixes onto 9 / 10 / 11. This catalog
-  tracks what is still open on a given build and, when a backport exists, how risky
-  it is to apply. Checksum pins are exact versions (9.26.0, 10.13.4, 11.17.4), not
-  whole majors. Other builds need their own overlay. Studio loads on 10.13.4 and
-  11.17.4 only; 9.26.0 is CLI-only.
+  Upstream Directus does not ship 12.x security fixes onto 9 / 10 / 11. This catalog
+  is the optional stopgap: it tracks what is still open on a pinned build and, when a
+  backport exists, how risky it is to apply. Checksum pins are exact versions
+  (9.26.0, 10.13.4, 11.17.4), not whole majors. Other builds need their own overlay.
+  Studio loads on 10.13.4 and 11.17.4 only; 9.26.0 is CLI-only.
 
 advisories:
   - id: GHSA-97xr-jchp-xm3c
