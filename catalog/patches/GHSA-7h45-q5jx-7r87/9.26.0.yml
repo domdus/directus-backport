@@ -1,8 +1,29 @@
 - file: "@directus/api/dist/services/shares.js"
-  before_sha256: "b28ceba3649133c2a1a4e6c1309ff6710d9ab6b91cc25487732e06564c6db620"
-  after_sha256: "038f947cccba4947e1de4779dddd3ca3229e33e2bff47bd45c6e2d67fcca1174"
+  before_sha256: b28ceba3649133c2a1a4e6c1309ff6710d9ab6b91cc25487732e06564c6db620
+  after_sha256: 7c51060c78e479f89b9bc21c365e2c43cebd34cd55fc81e1f87666e1cee403a8
   replace:
-    - from: "import { ForbiddenException, InvalidCredentialsException } from '../exceptions/index.js';"
-      to: "import { ForbiddenException, InvalidCredentialsException, InvalidPayloadException } from '../exceptions/index.js';"
-    - from: "        await this.authorizationService.checkAccess('share', data['collection'], data['item']);\n        return super.createOne(data, opts);\n    }\n    async login(payload) {"
-      to: "        await this.authorizationService.checkAccess('share', data['collection'], data['item']);\n        return super.createOne(data, opts);\n    }\n    async updateMany(keys, data, opts) {\n        if ('user_created' in data)\n            throw new InvalidPayloadException(`You can't change the \"user_created\" value manually`);\n        if ('role' in data && this.accountability && this.accountability.admin !== true)\n            throw new ForbiddenException();\n        return super.updateMany(keys, data, opts);\n    }\n    async login(payload) {"
+    - from: import { ForbiddenException, InvalidCredentialsException } from '../exceptions/index.js';
+      to: import { ForbiddenException, InvalidCredentialsException, InvalidPayloadException } from '../exceptions/index.js';
+    - from: |2-
+                await this.authorizationService.checkAccess('share', data['collection'], data['item']);
+                return super.createOne(data, opts);
+            }
+            async login(payload) {
+      to: |2-
+                await this.authorizationService.checkAccess('share', data['collection'], data['item']);
+                return super.createOne(data, opts);
+            }
+            async updateMany(keys, data, opts) {
+                if ('user_created' in data)
+                    throw new InvalidPayloadException(`You can't change the "user_created" value manually`);
+                if ('role' in data && this.accountability && this.accountability.admin !== true)
+                    throw new ForbiddenException();
+                if (('item' in data || 'collection' in data) && this.accountability) {
+                    const rows = 'item' in data && 'collection' in data ? [data] : await this.knex.select('collection', 'item').from('directus_shares').whereIn('id', keys);
+                    for (const row of rows) {
+                        await this.authorizationService.checkAccess('share', data['collection'] ?? row['collection'], data['item'] ?? row['item']);
+                    }
+                }
+                return super.updateMany(keys, data, opts);
+            }
+            async login(payload) {

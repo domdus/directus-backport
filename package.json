@@ -20,6 +20,8 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
     "test": "tsx --test test/*.test.ts",
+    "verify:catalog": "tsx scripts/verify-catalog.ts",
+    "sign:catalog": "node scripts/sign-catalog.mjs",
     "build:extension": "npm run build --prefix directus-extension-backport",
     "zip:extension": "node scripts/pack-extension.mjs",
     "prepare": "npm run build"

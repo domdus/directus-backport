@@ -1,22 +1,93 @@
 - file: "@directus/api/dist/services/files.js"
-  before_sha256: "9ab6b06dd1b72791cb81e8a243106647fe60fffa279ed306e26ad19547c68e4b"
-  after_sha256: "acfa3a460aea17b14e61b6f3c750949a406c915ecf4cc8030635e50e491bb89b"
+  before_sha256: 9ab6b06dd1b72791cb81e8a243106647fe60fffa279ed306e26ad19547c68e4b
+  after_sha256: 1ba5ccd3b6b758b9363082279617e7040ca6d15785dee2d9274136cd998b8123
   replace:
-    - from: "const env = useEnv();\nconst logger = useLogger();\nvar FilesService = class FilesService extends ItemsService {"
-      to: "const env = useEnv();\nconst logger = useLogger();\nfunction assertValidStoragePath(filepath, storage) {\n\tif (!filepath) return;\n\tconst location = storage || toArray(env[\"STORAGE_LOCATIONS\"])[0];\n\tif (!location) return;\n\tconst loc = String(location).toUpperCase();\n\tconst driver = env[\"STORAGE_\" + loc + \"_DRIVER\"];\n\tconst storageRoot = env[\"STORAGE_\" + loc + \"_ROOT\"] ?? \"\";\n\tconst sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? \"\"))).split(path.sep).join(\"/\");\n\tconst normalizedFilePath = sanitize(filepath);\n\tconst filePath = driver === \"local\" ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;\n\tconst extensionPath = sanitize(env[\"EXTENSIONS_PATH\"] ?? \"./extensions\");\n\tconst blocked = (base) => base && (filePath === base || filePath.startsWith(base + \"/\"));\n\tif (env[\"EXTENSIONS_LOCATION\"] && env[\"EXTENSIONS_LOCATION\"] === location && blocked(extensionPath)) throw new ForbiddenError();\n\tif (driver === \"local\") {\n\t\tconst tmpPath = sanitize(env[\"TEMP_PATH\"] ?? \"./temp\");\n\t\tif (blocked(extensionPath) || blocked(tmpPath)) throw new ForbiddenError();\n\t}\n}\nvar FilesService = class FilesService extends ItemsService {"
-    - from: "\t\t\tdata.filename_disk = this.generateFilenamePath(data.filename_disk);\n\t\t\ttry {\n\t\t\t\tawait this.checkUniqueFilename(data.filename_disk);"
-      to: "\t\t\tdata.filename_disk = this.generateFilenamePath(data.filename_disk);\n\t\t\tassertValidStoragePath(data.filename_disk, data.storage);\n\t\t\ttry {\n\t\t\t\tawait this.checkUniqueFilename(data.filename_disk);"
-    - from: "\t\t\tdata.filename_disk = this.generateFilenamePath(data.filename_disk);\n\t\t\ttry {\n\t\t\t\tawait this.checkUniqueFilename(data.filename_disk, keys[0]);"
-      to: "\t\t\tdata.filename_disk = this.generateFilenamePath(data.filename_disk);\n\t\t\tassertValidStoragePath(data.filename_disk, data.storage);\n\t\t\ttry {\n\t\t\t\tawait this.checkUniqueFilename(data.filename_disk, keys[0]);"
+    - from: |-
+        const env = useEnv();
+        const logger = useLogger();
+        var FilesService = class FilesService extends ItemsService {
+      to: |-
+        const env = useEnv();
+        const logger = useLogger();
+        function assertValidStoragePath(filepath, storage) {
+        	if (!filepath) return;
+        	const location = storage || toArray(env["STORAGE_LOCATIONS"])[0];
+        	if (!location) return;
+        	const loc = String(location).toUpperCase();
+        	const driver = env["STORAGE_" + loc + "_DRIVER"];
+        	const storageRoot = env["STORAGE_" + loc + "_ROOT"] ?? "";
+        	const sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? ""))).split(path.sep).join("/");
+        	const normalizedFilePath = sanitize(filepath);
+        	const filePath = driver === "local" ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;
+        	const extensionPath = sanitize(env["EXTENSIONS_PATH"] ?? "./extensions");
+        	const resolvedPath = path.resolve(String(storageRoot || "."), normalizedFilePath);
+            const inside = (base) => { const root = path.resolve(String(base)); return resolvedPath === root || resolvedPath.startsWith(root + path.sep); };
+            if (driver === "local" && (inside(env["EXTENSIONS_PATH"] ?? "./extensions") || inside(env["TEMP_PATH"] ?? "./temp"))) throw new ForbiddenError();
+            const blocked = (base) => base && (filePath === base || filePath.startsWith(base + "/"));
+        	if (env["EXTENSIONS_LOCATION"] && env["EXTENSIONS_LOCATION"] === location && blocked(extensionPath)) throw new ForbiddenError();
+        	if (driver === "local") {
+        		const tmpPath = sanitize(env["TEMP_PATH"] ?? "./temp");
+        		if (blocked(extensionPath) || blocked(tmpPath)) throw new ForbiddenError();
+        	}
+        }
+        var FilesService = class FilesService extends ItemsService {
+    - from: |-
+        			data.filename_disk = this.generateFilenamePath(data.filename_disk);
+        			try {
+        				await this.checkUniqueFilename(data.filename_disk);
+      to: |-
+        			data.filename_disk = this.generateFilenamePath(data.filename_disk);
+        			assertValidStoragePath(data.filename_disk, data.storage);
+        			try {
+        				await this.checkUniqueFilename(data.filename_disk);
+    - from: |-
+        			data.filename_disk = this.generateFilenamePath(data.filename_disk);
+        			try {
+        				await this.checkUniqueFilename(data.filename_disk, keys[0]);
+      to: |-
+        			data.filename_disk = this.generateFilenamePath(data.filename_disk);
+        			assertValidStoragePath(data.filename_disk, data.storage);
+        			try {
+        				await this.checkUniqueFilename(data.filename_disk, keys[0]);
     - from: "\t\tpayload.filename_disk ||= filenameDisk;"
-      to: "\t\tpayload.filename_disk ||= filenameDisk;\n\t\tassertValidStoragePath(payload.filename_disk, payload.storage);"
+      to: |-
+        		payload.filename_disk ||= filenameDisk;
+        		assertValidStoragePath(payload.filename_disk, payload.storage);
 - file: "@directus/api/dist/services/tus/data-store.js"
-  before_sha256: "a96538af66afb53f3d2176d2f0e96d963f0c6fc436f82c6ab41731a64cec5d0c"
-  after_sha256: "5787c8f85565ec9e87362d349552ced4300af43d4c76394e4643a0b6eed97402"
+  before_sha256: a96538af66afb53f3d2176d2f0e96d963f0c6fc436f82c6ab41731a64cec5d0c
+  after_sha256: 1c64b8507581a50065546296cebe1982bb5bc4d6241ff4c5635e088ed7c72989
   replace:
-    - from: "import { extname } from \"node:path\";"
-      to: "import path, { extname } from \"node:path\";\nimport { useEnv } from \"@directus/env\";\nimport { toArray } from \"@directus/utils\";"
-    - from: "var TusDataStore = class extends DataStore {"
-      to: "const env = useEnv();\nfunction assertValidStoragePath(filepath, storage) {\n\tif (!filepath) return;\n\tconst location = storage || toArray(env[\"STORAGE_LOCATIONS\"])[0];\n\tif (!location) return;\n\tconst loc = String(location).toUpperCase();\n\tconst driver = env[\"STORAGE_\" + loc + \"_DRIVER\"];\n\tconst storageRoot = env[\"STORAGE_\" + loc + \"_ROOT\"] ?? \"\";\n\tconst sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? \"\"))).split(path.sep).join(\"/\");\n\tconst normalizedFilePath = sanitize(filepath);\n\tconst filePath = driver === \"local\" ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;\n\tconst extensionPath = sanitize(env[\"EXTENSIONS_PATH\"] ?? \"./extensions\");\n\tconst blocked = (base) => base && (filePath === base || filePath.startsWith(base + \"/\"));\n\tif (env[\"EXTENSIONS_LOCATION\"] && env[\"EXTENSIONS_LOCATION\"] === location && blocked(extensionPath)) throw ERRORS.INVALID_METADATA;\n\tif (driver === \"local\") {\n\t\tconst tmpPath = sanitize(env[\"TEMP_PATH\"] ?? \"./temp\");\n\t\tif (blocked(extensionPath) || blocked(tmpPath)) throw ERRORS.INVALID_METADATA;\n\t}\n}\nvar TusDataStore = class extends DataStore {"
-    - from: "\t\tfileData.filename_disk ||= primaryKey + (fileExtension || \"\");"
-      to: "\t\tfileData.filename_disk ||= primaryKey + (fileExtension || \"\");\n\t\tassertValidStoragePath(fileData.filename_disk, this.location);"
+    - from: import { extname } from "node:path";
+      to: |-
+        import path, { extname } from "node:path";
+        import { useEnv } from "@directus/env";
+        import { toArray } from "@directus/utils";
+    - from: var TusDataStore = class extends DataStore {
+      to: |-
+        const env = useEnv();
+        function assertValidStoragePath(filepath, storage) {
+        	if (!filepath) return;
+        	const location = storage || toArray(env["STORAGE_LOCATIONS"])[0];
+        	if (!location) return;
+        	const loc = String(location).toUpperCase();
+        	const driver = env["STORAGE_" + loc + "_DRIVER"];
+        	const storageRoot = env["STORAGE_" + loc + "_ROOT"] ?? "";
+        	const sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? ""))).split(path.sep).join("/");
+        	const normalizedFilePath = sanitize(filepath);
+        	const filePath = driver === "local" ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;
+        	const extensionPath = sanitize(env["EXTENSIONS_PATH"] ?? "./extensions");
+        	const resolvedPath = path.resolve(String(storageRoot || "."), normalizedFilePath);
+            const inside = (base) => { const root = path.resolve(String(base)); return resolvedPath === root || resolvedPath.startsWith(root + path.sep); };
+            if (driver === "local" && (inside(env["EXTENSIONS_PATH"] ?? "./extensions") || inside(env["TEMP_PATH"] ?? "./temp"))) throw ERRORS.INVALID_METADATA;
+            const blocked = (base) => base && (filePath === base || filePath.startsWith(base + "/"));
+        	if (env["EXTENSIONS_LOCATION"] && env["EXTENSIONS_LOCATION"] === location && blocked(extensionPath)) throw ERRORS.INVALID_METADATA;
+        	if (driver === "local") {
+        		const tmpPath = sanitize(env["TEMP_PATH"] ?? "./temp");
+        		if (blocked(extensionPath) || blocked(tmpPath)) throw ERRORS.INVALID_METADATA;
+        	}
+        }
+        var TusDataStore = class extends DataStore {
+    - from: '		fileData.filename_disk ||= primaryKey + (fileExtension || "");'
+      to: |-
+        		fileData.filename_disk ||= primaryKey + (fileExtension || "");
+        		assertValidStoragePath(fileData.filename_disk, this.location);

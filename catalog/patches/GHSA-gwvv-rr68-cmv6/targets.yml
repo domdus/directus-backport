@@ -1,10 +1,26 @@
 - file: "@directus/api/dist/utils/sanitize-query.js"
-  before_sha256: "422460fef55a286403407c1e6ce24b58cb0dcd9c995231de2233632161f21e1f"
-  after_sha256: "fd40cf3568f796bd78a08beff9a3512619daaa1dff2c98f833d5a725c596843c"
+  before_sha256: 422460fef55a286403407c1e6ce24b58cb0dcd9c995231de2233632161f21e1f
+  after_sha256: 2777a1732bd5f01f12dd280d9cce7408c5644aba76bff523fc1c4163209ac44b
   replace:
-    - from: "\tconst result = {};\n\tif (typeof deep === \"string\") try {"
-      to: "\tconst result = Object.create(null);\n\tif (typeof deep === \"string\") try {"
-    - from: "\t\tconst subQuery = {};\n\t\tconst parsedLevel = {};"
-      to: "\t\tconst subQuery = Object.create(null);\n\t\tconst parsedLevel = Object.create(null);"
-    - from: "if (Object.keys(parsedLevel).length > 0) set(result, path, merge({}, get(result, path, {}), parsedLevel));"
-      to: "if (Object.keys(parsedLevel).length > 0) set(result, path, merge(Object.create(null), get(result, path, Object.create(null)), parsedLevel));"
+    - from: |-
+        	const result = {};
+        	if (typeof deep === "string") try {
+      to: |-
+        	const result = Object.create(null);
+        	if (typeof deep === "string") try {
+    - from: |-
+        		const subQuery = {};
+        		const parsedLevel = {};
+      to: |-
+        		const subQuery = Object.create(null);
+        		const parsedLevel = Object.create(null);
+    - from: if (Object.keys(parsedLevel).length > 0) set(result, path, merge({}, get(result, path, {}), parsedLevel));
+      to: |-
+        if (Object.keys(parsedLevel).length > 0) {
+        let node = result;
+        for (const segment of path) {
+        	if (!Object.hasOwn(node, segment) || typeof node[segment] !== "object" || node[segment] === null) node[segment] = Object.create(null);
+        	node = node[segment];
+        }
+        Object.assign(node, parsedLevel);
+        }

@@ -32,13 +32,10 @@ function parseGithub(value: string): string | null {
 
 function readSourceFile(): { github?: string; ref?: string } {
 	try {
-		const root = packageRoot();
-		for (const rel of ["catalog/source.yml", "catalog-remote/source.yml"]) {
-			const file = path.join(root, rel);
-			if (!fs.existsSync(file)) continue;
-			return (parseYaml(fs.readFileSync(file, "utf8")) as { github?: string; ref?: string }) ?? {};
-		}
-		return {};
+		// Only the shipped copy counts: a downloaded catalog must not choose its own origin.
+		const file = path.join(packageRoot(), "catalog", "source.yml");
+		if (!fs.existsSync(file)) return {};
+		return (parseYaml(fs.readFileSync(file, "utf8")) as { github?: string; ref?: string }) ?? {};
 	} catch {
 		return {};
 	}

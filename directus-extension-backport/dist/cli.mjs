@@ -1195,8 +1195,8 @@ var require_command = __commonJS({
   "../node_modules/commander/lib/command.js"(exports) {
     var EventEmitter = __require("node:events").EventEmitter;
     var childProcess = __require("node:child_process");
-    var path12 = __require("node:path");
-    var fs10 = __require("node:fs");
+    var path13 = __require("node:path");
+    var fs11 = __require("node:fs");
     var process2 = __require("node:process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
     var { CommanderError: CommanderError2 } = require_error();
@@ -2190,7 +2190,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} subcommandName
        */
       _checkForMissingExecutable(executableFile, executableDir, subcommandName) {
-        if (fs10.existsSync(executableFile)) return;
+        if (fs11.existsSync(executableFile)) return;
         const executableDirMessage = executableDir ? `searched for local subcommand relative to directory '${executableDir}'` : "no directory for search for local subcommand, use .executableDir() to supply a custom directory";
         const executableMissing = `'${executableFile}' does not exist
  - if '${subcommandName}' is not meant to be an executable command, remove description parameter from '.command()' and use '.description()' instead
@@ -2208,11 +2208,11 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path12.resolve(baseDir, baseName);
-          if (fs10.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path12.extname(baseName))) return void 0;
+          const localBin = path13.resolve(baseDir, baseName);
+          if (fs11.existsSync(localBin)) return localBin;
+          if (sourceExt.includes(path13.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
-            (ext) => fs10.existsSync(`${localBin}${ext}`)
+            (ext) => fs11.existsSync(`${localBin}${ext}`)
           );
           if (foundExt) return `${localBin}${foundExt}`;
           return void 0;
@@ -2224,21 +2224,21 @@ Expecting one of '${allowedValues.join("', '")}'`);
         if (this._scriptPath) {
           let resolvedScriptPath;
           try {
-            resolvedScriptPath = fs10.realpathSync(this._scriptPath);
+            resolvedScriptPath = fs11.realpathSync(this._scriptPath);
           } catch {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path12.resolve(
-            path12.dirname(resolvedScriptPath),
+          executableDir = path13.resolve(
+            path13.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path12.basename(
+            const legacyName = path13.basename(
               this._scriptPath,
-              path12.extname(this._scriptPath)
+              path13.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -2249,7 +2249,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path12.extname(executableFile));
+        launchWithNode = sourceExt.includes(path13.extname(executableFile));
         let proc;
         if (process2.platform !== "win32") {
           if (launchWithNode) {
@@ -3164,7 +3164,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path12.basename(filename, path12.extname(filename));
+        this._name = path13.basename(filename, path13.extname(filename));
         return this;
       }
       /**
@@ -3178,9 +3178,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path13) {
-        if (path13 === void 0) return this._executableDir;
-        this._executableDir = path13;
+      executableDir(path14) {
+        if (path14 === void 0) return this._executableDir;
+        this._executableDir = path14;
         return this;
       }
       /**
@@ -3535,17 +3535,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path12) {
-      const ctrl = callVisitor(key, node, visitor, path12);
+    function visit_(key, node, visitor, path13) {
+      const ctrl = callVisitor(key, node, visitor, path13);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path12, ctrl);
-        return visit_(key, ctrl, visitor, path12);
+        replaceNode(key, path13, ctrl);
+        return visit_(key, ctrl, visitor, path13);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path12 = Object.freeze(path12.concat(node));
+          path13 = Object.freeze(path13.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path12);
+            const ci = visit_(i, node.items[i], visitor, path13);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -3556,13 +3556,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path12 = Object.freeze(path12.concat(node));
-          const ck = visit_("key", node.key, visitor, path12);
+          path13 = Object.freeze(path13.concat(node));
+          const ck = visit_("key", node.key, visitor, path13);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path12);
+          const cv = visit_("value", node.value, visitor, path13);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3583,17 +3583,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path12) {
-      const ctrl = await callVisitor(key, node, visitor, path12);
+    async function visitAsync_(key, node, visitor, path13) {
+      const ctrl = await callVisitor(key, node, visitor, path13);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path12, ctrl);
-        return visitAsync_(key, ctrl, visitor, path12);
+        replaceNode(key, path13, ctrl);
+        return visitAsync_(key, ctrl, visitor, path13);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path12 = Object.freeze(path12.concat(node));
+          path13 = Object.freeze(path13.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path12);
+            const ci = await visitAsync_(i, node.items[i], visitor, path13);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -3604,13 +3604,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path12 = Object.freeze(path12.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path12);
+          path13 = Object.freeze(path13.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path13);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path12);
+          const cv = await visitAsync_("value", node.value, visitor, path13);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3637,23 +3637,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path12) {
+    function callVisitor(key, node, visitor, path13) {
       if (typeof visitor === "function")
-        return visitor(key, node, path12);
+        return visitor(key, node, path13);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path12);
+        return visitor.Map?.(key, node, path13);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path12);
+        return visitor.Seq?.(key, node, path13);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path12);
+        return visitor.Pair?.(key, node, path13);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path12);
+        return visitor.Scalar?.(key, node, path13);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path12);
+        return visitor.Alias?.(key, node, path13);
       return void 0;
     }
-    function replaceNode(key, path12, node) {
-      const parent = path12[path12.length - 1];
+    function replaceNode(key, path13, node) {
+      const parent = path13[path13.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -4265,10 +4265,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path12, value) {
+    function collectionFromPath(schema, path13, value) {
       let v2 = value;
-      for (let i = path12.length - 1; i >= 0; --i) {
-        const k3 = path12[i];
+      for (let i = path13.length - 1; i >= 0; --i) {
+        const k3 = path13[i];
         if (typeof k3 === "number" && Number.isInteger(k3) && k3 >= 0) {
           const a = [];
           a[k3] = v2;
@@ -4287,7 +4287,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path12) => path12 == null || typeof path12 === "object" && !!path12[Symbol.iterator]().next().done;
+    var isEmptyPath = (path13) => path13 == null || typeof path13 === "object" && !!path13[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -4317,11 +4317,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path12, value) {
-        if (isEmptyPath(path12))
+      addIn(path13, value) {
+        if (isEmptyPath(path13))
           this.add(value);
         else {
-          const [key, ...rest] = path12;
+          const [key, ...rest] = path13;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -4335,8 +4335,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path12) {
-        const [key, ...rest] = path12;
+      deleteIn(path13) {
+        const [key, ...rest] = path13;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -4350,8 +4350,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path12, keepScalar) {
-        const [key, ...rest] = path12;
+      getIn(path13, keepScalar) {
+        const [key, ...rest] = path13;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -4369,8 +4369,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path12) {
-        const [key, ...rest] = path12;
+      hasIn(path13) {
+        const [key, ...rest] = path13;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -4380,8 +4380,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path12, value) {
-        const [key, ...rest] = path12;
+      setIn(path13, value) {
+        const [key, ...rest] = path13;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -6896,9 +6896,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path12, value) {
+      addIn(path13, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path12, value);
+          this.contents.addIn(path13, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -6973,14 +6973,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path12) {
-        if (Collection.isEmptyPath(path12)) {
+      deleteIn(path13) {
+        if (Collection.isEmptyPath(path13)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path12) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path13) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -6995,10 +6995,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path12, keepScalar) {
-        if (Collection.isEmptyPath(path12))
+      getIn(path13, keepScalar) {
+        if (Collection.isEmptyPath(path13))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path12, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path13, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -7009,10 +7009,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path12) {
-        if (Collection.isEmptyPath(path12))
+      hasIn(path13) {
+        if (Collection.isEmptyPath(path13))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path12) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path13) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -7029,13 +7029,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path12, value) {
-        if (Collection.isEmptyPath(path12)) {
+      setIn(path13, value) {
+        if (Collection.isEmptyPath(path13)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path12), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path13), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path12, value);
+          this.contents.setIn(path13, value);
         }
       }
       /**
@@ -8996,9 +8996,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path12) => {
+    visit.itemAtPath = (cst, path13) => {
       let item = cst;
-      for (const [field, index] of path12) {
+      for (const [field, index] of path13) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -9007,23 +9007,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path12) => {
-      const parent = visit.itemAtPath(cst, path12.slice(0, -1));
-      const field = path12[path12.length - 1][0];
+    visit.parentCollection = (cst, path13) => {
+      const parent = visit.itemAtPath(cst, path13.slice(0, -1));
+      const field = path13[path13.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path12, item, visitor) {
-      let ctrl = visitor(item, path12);
+    function _visit(path13, item, visitor) {
+      let ctrl = visitor(item, path13);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path12.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path13.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -9034,10 +9034,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path12);
+            ctrl = ctrl(item, path13);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path12) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path13) : ctrl;
     }
     exports.visit = visit;
   }
@@ -10339,14 +10339,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs10 = this.flowScalar(this.type);
+              const fs11 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs10, sep: [] });
+                map.items.push({ start, key: fs11, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs10);
+                this.stack.push(fs11);
               } else {
-                Object.assign(it, { key: fs10, sep: [] });
+                Object.assign(it, { key: fs11, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -10474,13 +10474,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs10 = this.flowScalar(this.type);
+              const fs11 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs10, sep: [] });
+                fc.items.push({ start: [], key: fs11, sep: [] });
               else if (it.sep)
-                this.stack.push(fs10);
+                this.stack.push(fs11);
               else
-                Object.assign(it, { key: fs10, sep: [] });
+                Object.assign(it, { key: fs11, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -13058,8 +13058,16 @@ function detectInstall(start) {
   throw notFound(starts.join(", ") || process.cwd());
 }
 function resolveNodeFile(nodeModules, rel) {
+  const inside = (file) => {
+    const base = fs.realpathSync(nodeModules);
+    const real = fs.realpathSync(file);
+    if (real !== base && !real.startsWith(base + path.sep)) {
+      throw new Error(`Refusing patch path outside node_modules: ${rel}`);
+    }
+    return real;
+  };
   const direct = path.join(nodeModules, rel);
-  if (fs.existsSync(direct)) return fs.realpathSync(direct);
+  if (fs.existsSync(direct)) return inside(direct);
   const parts = rel.split(/[/\\]/);
   const scoped = parts[0]?.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
   if (!scoped) throw new Error(`Invalid patch path: ${rel}`);
@@ -13068,14 +13076,14 @@ function resolveNodeFile(nodeModules, rel) {
     const pkgRoot = fs.realpathSync(path.dirname(pkgJson));
     const rest = rel.slice(scoped.length).replace(/^[/\\]/, "");
     const file = path.join(pkgRoot, rest);
-    if (fs.existsSync(file)) return fs.realpathSync(file);
+    if (fs.existsSync(file)) return inside(file);
   }
   throw new Error(`Could not resolve ${rel} under ${nodeModules}`);
 }
 
 // ../src/engine.ts
-import fs7 from "node:fs";
-import path9 from "node:path";
+import fs8 from "node:fs";
+import path10 from "node:path";
 
 // ../src/catalog.ts
 var import_yaml2 = __toESM(require_dist(), 1);
@@ -13182,13 +13190,9 @@ function parseGithub(value) {
 }
 function readSourceFile() {
   try {
-    const root = packageRoot();
-    for (const rel of ["catalog/source.yml", "catalog-remote/source.yml"]) {
-      const file = path3.join(root, rel);
-      if (!fs3.existsSync(file)) continue;
-      return (0, import_yaml.parse)(fs3.readFileSync(file, "utf8")) ?? {};
-    }
-    return {};
+    const file = path3.join(packageRoot(), "catalog", "source.yml");
+    if (!fs3.existsSync(file)) return {};
+    return (0, import_yaml.parse)(fs3.readFileSync(file, "utf8")) ?? {};
   } catch {
     return {};
   }
@@ -13229,9 +13233,56 @@ function resolveCatalogDir() {
 }
 
 // ../src/catalog.ts
-function mapTargets(list, patchDir) {
+var SUPPORTED_CATALOG_VERSION = 1;
+var STATUSES = ["already-fixed", "needs-port", "experimental", "stable", "wont-port"];
+var RISKS = ["none", "low", "medium", "high"];
+var SEVERITIES = ["critical", "high", "medium", "low"];
+var GHSA = /^GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$/;
+var SHA256 = /^[0-9a-f]{64}$/;
+var TARGET_FILE = /^@directus\/[a-z0-9-]+\/dist\/[A-Za-z0-9_./-]+\.(js|cjs|mjs)$/;
+var DIFF_FILE = /^[A-Za-z0-9_.-]+\.patch$/;
+function invalid(where, why) {
+  return new Error(`Invalid catalog entry ${where}: ${why}`);
+}
+function validateTarget(id, target) {
+  const where = `${id} ${target?.file ?? "(no file)"}`;
+  if (typeof target?.file !== "string" || !TARGET_FILE.test(target.file) || target.file.split("/").includes("..")) {
+    throw invalid(where, "file must be a dist file of an @directus package");
+  }
+  if (typeof target.before_sha256 !== "string" || !SHA256.test(target.before_sha256)) {
+    throw invalid(where, "before_sha256 must be a sha256 hex digest");
+  }
+  if (target.after_sha256 !== void 0 && !SHA256.test(String(target.after_sha256))) {
+    throw invalid(where, "after_sha256 must be a sha256 hex digest");
+  }
+  if (target.diff_file !== void 0 && !DIFF_FILE.test(String(target.diff_file))) {
+    throw invalid(where, "diff_file must be a .patch file next to the overlay");
+  }
+  for (const op of target.replace ?? []) {
+    if (typeof op?.from !== "string" || !op.from || typeof op?.to !== "string") {
+      throw invalid(where, "replace entries need a non-empty from and a to");
+    }
+  }
+  if (!target.replace?.length && !target.diff && !target.diff_file) {
+    throw invalid(where, "a target needs replace, diff, or diff_file");
+  }
+}
+function validateAdvisory(raw) {
+  if (typeof raw?.id !== "string" || !GHSA.test(raw.id)) {
+    throw invalid(String(raw?.id), "id must be a GHSA id");
+  }
+  if (!SEVERITIES.includes(raw.severity)) throw invalid(raw.id, `unknown severity ${raw.severity}`);
+  if (!STATUSES.includes(raw.port?.status)) throw invalid(raw.id, `unknown status ${raw.port?.status}`);
+  if (!RISKS.includes(raw.port.risk)) throw invalid(raw.id, `unknown risk ${raw.port.risk}`);
+  for (const [pin, status] of Object.entries(raw.port.pins ?? {})) {
+    if (!STATUSES.includes(status)) throw invalid(raw.id, `unknown status ${status} for ${pin}`);
+  }
+  for (const target of raw.port.targets ?? []) validateTarget(raw.id, target);
+}
+function mapTargets(list, patchDir, id) {
   const targets = [];
   for (const t of list ?? []) {
+    validateTarget(id, t);
     let diff = t.diff;
     if (!diff && t.diff_file) {
       const file = path4.join(patchDir, t.diff_file);
@@ -13251,8 +13302,8 @@ function mapTargets(list, patchDir) {
 function withPin(targets, pin) {
   return targets.map((target) => ({ ...target, pin: target.pin || pin }));
 }
-function loadTargets(raw, patchDir) {
-  const targets = withPin(mapTargets(raw.targets, patchDir), "11.17.4");
+function loadTargets(raw, patchDir, id) {
+  const targets = withPin(mapTargets(raw.targets, patchDir, id), "11.17.4");
   const overlays = [
     ["targets.yml", "11.17.4"],
     ["10.13.4.yml", "10.13.4"],
@@ -13263,11 +13314,12 @@ function loadTargets(raw, patchDir) {
     if (!fs4.existsSync(overlay)) continue;
     const extra = (0, import_yaml2.parse)(fs4.readFileSync(overlay, "utf8"));
     const list = Array.isArray(extra) ? extra : extra.targets ?? [];
-    targets.push(...withPin(mapTargets(list, patchDir), pin));
+    targets.push(...withPin(mapTargets(list, patchDir, id), pin));
   }
   return targets;
 }
 function toAdvisory(raw, catalogRoot) {
+  validateAdvisory(raw);
   const patchDir = path4.join(catalogRoot, "patches", raw.id);
   return {
     id: raw.id,
@@ -13281,7 +13333,8 @@ function toAdvisory(raw, catalogRoot) {
       risk: raw.port.risk,
       notes: raw.port.notes,
       sourceCommit: raw.port.source_commit,
-      targets: fs4.existsSync(patchDir) ? loadTargets(raw.port, patchDir) : withPin((raw.port.targets ?? []).map((t) => ({
+      pins: raw.port.pins,
+      targets: fs4.existsSync(patchDir) ? loadTargets(raw.port, patchDir, raw.id) : withPin((raw.port.targets ?? []).map((t) => ({
         file: t.file,
         beforeSha256: t.before_sha256,
         afterSha256: t.after_sha256,
@@ -13299,6 +13352,11 @@ function loadCatalog(catalogRoot) {
     throw new Error(`Catalog not found: ${file}`);
   }
   const raw = (0, import_yaml2.parse)(fs4.readFileSync(file, "utf8"));
+  if (raw.catalog_version !== SUPPORTED_CATALOG_VERSION) {
+    throw new Error(
+      `Catalog version ${raw.catalog_version} is not supported (this build reads ${SUPPORTED_CATALOG_VERSION}). Update directus-backport.`
+    );
+  }
   return {
     catalogVersion: raw.catalog_version,
     updated: raw.updated,
@@ -13309,6 +13367,19 @@ function loadCatalog(catalogRoot) {
 }
 function targetsForVersion(advisory, version) {
   return advisory.port.targets.filter((target) => (target.pin || "11.17.4") === version);
+}
+function statusForVersion(advisory, version) {
+  const pinned = advisory.port.pins?.[version];
+  if (pinned) return pinned;
+  if (advisory.port.status === "already-fixed" && targetsForVersion(advisory, version).length > 0) {
+    return "experimental";
+  }
+  return advisory.port.status;
+}
+function targetsForFile(catalog, version, file) {
+  return catalog.advisories.flatMap(
+    (advisory) => targetsForVersion(advisory, version).filter((target) => target.file === file)
+  );
 }
 function isStillVulnerable(advisory, version) {
   return versionSatisfies(version, advisory.affects);
@@ -13322,8 +13393,12 @@ function advisoryApplies(advisory, version) {
 function hasApplyablePatch(advisory, version) {
   const targets = version ? targetsForVersion(advisory, version) : advisory.port.targets;
   if (targets.length === 0) return false;
+  if (version) {
+    const status = statusForVersion(advisory, version);
+    if (status === "needs-port" || status === "wont-port") return false;
+    return isStillVulnerable(advisory, version);
+  }
   if (advisory.port.status === "needs-port" || advisory.port.status === "wont-port") return false;
-  if (version) return isStillVulnerable(advisory, version);
   return advisory.port.status === "experimental" || advisory.port.status === "stable" || advisory.port.status === "already-fixed";
 }
 function partitionAdvisories(catalog, version) {
@@ -13667,97 +13742,142 @@ function applyStructuredPatch(source, patch, options = {}) {
 function sha256(contents) {
   return createHash("sha256").update(contents).digest("hex");
 }
-function replacementsReady(previous, target) {
-  return Boolean(target.replace?.length) && target.replace.every((op) => previous.includes(op.from));
+function opApplied(content, op) {
+  if (op.from === op.to) return content.includes(op.to);
+  if (op.to.includes(op.from)) return content.includes(op.to);
+  return content.includes(op.to) && !content.includes(op.from);
 }
-function alreadyApplied(previous, target) {
-  if (!target.replace?.length) return false;
-  return target.replace.every((op) => previous.includes(op.to) && (op.from === op.to || !previous.includes(op.from)));
+function opPending(content, op) {
+  return content.includes(op.from) && !opApplied(content, op);
 }
-function applyTarget(nodeModules, target) {
-  const file = resolveNodeFile(nodeModules, target.file);
-  const previous = fs5.readFileSync(file, "utf8");
-  const actual = sha256(previous);
-  const pinned = actual === target.beforeSha256;
-  if (!pinned) {
-    if (alreadyApplied(previous, target)) {
-      return { file, previous, rel: target.file, skipped: true };
-    }
-    if (!replacementsReady(previous, target)) {
-      throw new Error(
-        `Checksum mismatch for ${target.file}.
-Expected ${target.beforeSha256}
-Actual   ${actual}
-This patch is pinned to a specific Directus build \u2014 refusing to apply.`
-      );
-    }
+function targetState(content, target) {
+  if (!target.replace?.length) {
+    const actual = sha256(content);
+    if (target.afterSha256 && actual === target.afterSha256) return "applied";
+    return actual === target.beforeSha256 ? "pending" : "conflict";
   }
-  let next = previous;
-  if (target.replace?.length) {
-    for (const op of target.replace) {
-      if (!next.includes(op.from)) {
-        throw new Error(`Replacement did not match in ${target.file}: ${op.from.slice(0, 80)}`);
-      }
-      next = next.split(op.from).join(op.to);
+  if (target.replace.every((op) => opApplied(content, op))) return "applied";
+  if (target.replace.every((op) => opPending(content, op))) return "pending";
+  return "conflict";
+}
+function forward(content, target) {
+  let next = content;
+  for (const op of target.replace ?? []) {
+    if (!next.includes(op.from)) {
+      throw new Error(`Replacement did not match in ${target.file}: ${op.from.slice(0, 80)}`);
     }
+    next = next.split(op.from).join(op.to);
   }
   if (target.diff) {
     const patches = parsePatch(target.diff);
-    if (patches.length === 0) {
-      throw new Error(`Empty unified diff for ${target.file}`);
-    }
+    if (patches.length === 0) throw new Error(`Empty unified diff for ${target.file}`);
     const patched = applyPatch(next, patches[0]);
-    if (patched === false) {
-      throw new Error(`Unified diff did not apply to ${target.file}`);
-    }
+    if (patched === false) throw new Error(`Unified diff did not apply to ${target.file}`);
     next = patched;
   }
-  if (next === previous) {
-    if (alreadyApplied(previous, target)) {
-      return { file, previous, rel: target.file, skipped: true };
-    }
-    throw new Error(`Patch for ${target.file} made no changes`);
+  return next;
+}
+function backward(content, target) {
+  let next = content;
+  for (const op of [...target.replace ?? []].reverse()) {
+    next = next.split(op.to).join(op.from);
   }
-  if (pinned && target.afterSha256 && sha256(next) !== target.afterSha256) {
+  return next;
+}
+function peelPatches(content, siblings) {
+  let base = content;
+  const peeled = [];
+  const remaining = siblings.filter((target) => target.replace?.length && !target.diff);
+  for (let progress = true; progress; ) {
+    progress = false;
+    for (const target of [...remaining]) {
+      if (targetState(base, target) !== "applied") continue;
+      base = backward(base, target);
+      peeled.push(target);
+      remaining.splice(remaining.indexOf(target), 1);
+      progress = true;
+    }
+  }
+  return { base, peeled };
+}
+function checksumError(target, actual) {
+  return new Error(
+    `Checksum mismatch for ${target.file}.
+Expected ${target.beforeSha256}
+Actual   ${actual}
+This patch is pinned to a specific Directus build \u2014 refusing to apply.`
+  );
+}
+function planTarget(nodeModules, target, siblings = [target], content) {
+  const file = resolveNodeFile(nodeModules, target.file);
+  const previous = content ?? fs5.readFileSync(file, "utf8");
+  const { base: baseline, peeled } = peelPatches(previous, siblings);
+  if (peeled.includes(target) || targetState(previous, target) === "applied") {
+    return { file, previous, next: previous, rel: target.file, skipped: true };
+  }
+  const actual = sha256(baseline);
+  if (actual !== target.beforeSha256) throw checksumError(target, actual);
+  if (targetState(previous, target) !== "pending") {
+    throw new Error(`Patch for ${target.file} conflicts with another change to the same code.`);
+  }
+  const next = forward(previous, target);
+  if (next === previous) throw new Error(`Patch for ${target.file} made no changes`);
+  if (target.afterSha256 && sha256(forward(baseline, target)) !== target.afterSha256) {
     throw new Error(`After-checksum mismatch for ${target.file}`);
   }
-  fs5.writeFileSync(file, next, "utf8");
-  return { file, previous, rel: target.file };
+  return { file, previous, next, rel: target.file };
 }
-function revertTarget(nodeModules, target) {
+function planRevert(nodeModules, target, siblings = [target], content) {
   if (!target.replace?.length) {
     throw new Error(`Cannot revert ${target.file} without replacement operations`);
   }
   const file = resolveNodeFile(nodeModules, target.file);
-  const previous = fs5.readFileSync(file, "utf8");
-  if (!alreadyApplied(previous, target)) {
-    if (replacementsReady(previous, target)) {
-      return { file, previous, rel: target.file, skipped: true };
+  const previous = content ?? fs5.readFileSync(file, "utf8");
+  const { base, peeled } = peelPatches(previous, siblings);
+  if (sha256(base) !== target.beforeSha256) {
+    throw new Error(`Cannot revert ${target.file}: the file does not match the pinned build`);
+  }
+  if (!peeled.includes(target)) return null;
+  const next = [...peeled].reverse().filter((item) => item !== target).reduce((text, item) => forward(text, item), base);
+  return { file, previous, next, rel: target.file };
+}
+function writeFileAtomic(file, contents) {
+  const stat = fs5.statSync(file);
+  const tmp = path5.join(path5.dirname(file), `.${path5.basename(file)}.backport-${process.pid}.tmp`);
+  try {
+    fs5.writeFileSync(tmp, contents, { encoding: "utf8", mode: stat.mode });
+  } catch (err) {
+    const code = err.code;
+    if (code !== "EACCES" && code !== "EPERM" && code !== "EROFS") throw err;
+    fs5.writeFileSync(file, contents, "utf8");
+    return;
+  }
+  try {
+    try {
+      fs5.chownSync(tmp, stat.uid, stat.gid);
+    } catch {
     }
-    throw new Error(`Cannot revert ${target.file}: patched bytes were not found`);
+    fs5.renameSync(tmp, file);
+  } catch (err) {
+    fs5.rmSync(tmp, { force: true });
+    throw err;
   }
-  let next = previous;
-  for (const op of [...target.replace].reverse()) {
-    if (!next.includes(op.to)) {
-      throw new Error(`Revert did not match in ${target.file}: ${op.to.slice(0, 80)}`);
-    }
-    next = next.split(op.to).join(op.from);
-  }
-  if (next === previous) {
-    return { file, previous, rel: target.file, skipped: true };
-  }
-  fs5.writeFileSync(file, next, "utf8");
-  return { file, previous, rel: target.file };
+}
+function commitPlan(plans) {
+  for (const plan of plans) writeFileAtomic(plan.file, plan.next);
 }
 function restoreMemory(files) {
   for (const item of [...files].reverse()) {
-    fs5.writeFileSync(item.file, item.previous, "utf8");
+    writeFileAtomic(item.file, item.previous);
   }
 }
 function writeSnapshot(snapshotDir, files) {
   fs5.mkdirSync(snapshotDir, { recursive: true });
   const manifest = { files: [] };
+  const seen = /* @__PURE__ */ new Set();
   for (const item of files) {
+    if (seen.has(item.rel)) continue;
+    seen.add(item.rel);
     const dest = path5.join(snapshotDir, "files", item.rel);
     fs5.mkdirSync(path5.dirname(dest), { recursive: true });
     fs5.writeFileSync(dest, item.previous, "utf8");
@@ -13766,7 +13886,7 @@ function writeSnapshot(snapshotDir, files) {
   fs5.writeFileSync(path5.join(snapshotDir, "manifest.json"), `${JSON.stringify(manifest, null, 2)}
 `, "utf8");
 }
-function restoreSnapshot(snapshotDir, onlyRels) {
+function restoreSnapshot(snapshotDir, nodeModules, onlyRels) {
   const manifestFile = path5.join(snapshotDir, "manifest.json");
   if (!fs5.existsSync(manifestFile)) {
     throw new Error(`Snapshot missing: ${snapshotDir}`);
@@ -13778,8 +13898,9 @@ function restoreSnapshot(snapshotDir, onlyRels) {
     if (allow && !allow.has(item.rel)) continue;
     const snap = path5.join(snapshotDir, "files", item.rel);
     if (!fs5.existsSync(snap)) throw new Error(`Snapshot file missing: ${item.rel}`);
-    fs5.copyFileSync(snap, item.original);
-    restored.push(item.original);
+    const target = resolveNodeFile(nodeModules, item.rel);
+    writeFileAtomic(target, fs5.readFileSync(snap, "utf8"));
+    restored.push(target);
   }
   return restored;
 }
@@ -13815,13 +13936,55 @@ async function ping(url, timeoutMs = 4e3) {
 async function runCommand(command) {
   await exec(command, { timeout: 12e4 });
 }
-async function waitForHealth(url, timeoutMs) {
+async function waitForHealth(url, timeoutMs, required = 2) {
   const deadline = Date.now() + timeoutMs;
+  let hits = 0;
   while (Date.now() < deadline) {
-    if (await ping(url)) return true;
-    await new Promise((r2) => setTimeout(r2, 1500));
+    hits = await ping(url) ? hits + 1 : 0;
+    if (hits >= required) return true;
+    await new Promise((r2) => setTimeout(r2, hits ? 500 : 1500));
   }
   return false;
+}
+
+// ../src/preflight.ts
+import { execFile } from "node:child_process";
+import { pathToFileURL } from "node:url";
+import { promisify as promisify2 } from "node:util";
+var run = promisify2(execFile);
+var IMPORT_TIMEOUT_MS = 9e4;
+var LOADER = `
+for (const url of JSON.parse(process.env.DIRECTUS_BACKPORT_PREFLIGHT)) await import(url);
+process.exit(0);
+`;
+function failure(err) {
+  const { stderr, message } = err;
+  const detail = String(stderr || message || err).trim();
+  return detail.split("\n").slice(0, 6).join("\n");
+}
+async function preflightFiles(root, files) {
+  for (const file of files) {
+    try {
+      await run(process.execPath, ["--check", file], { timeout: 3e4 });
+    } catch (err) {
+      throw new Error(`Patched file does not parse: ${file}
+${failure(err)}`);
+    }
+  }
+  try {
+    await run(process.execPath, ["--input-type=module", "--eval", LOADER], {
+      cwd: root,
+      timeout: IMPORT_TIMEOUT_MS,
+      maxBuffer: 16 * 1024 * 1024,
+      env: {
+        ...process.env,
+        DIRECTUS_BACKPORT_PREFLIGHT: JSON.stringify(files.map((file) => pathToFileURL(file).href))
+      }
+    });
+  } catch (err) {
+    throw new Error(`Patched modules did not load:
+${failure(err)}`);
+  }
 }
 
 // ../src/writable.ts
@@ -13939,23 +14102,175 @@ function removeDesiredIds(ids, catalogRoot, file) {
   );
 }
 
+// ../src/trust.ts
+import { createHash as createHash2, createPublicKey, verify } from "node:crypto";
+import fs7 from "node:fs";
+import path9 from "node:path";
+var MANIFEST_FILE = "manifest.json";
+var SIGNATURE_FILE = "manifest.sig";
+var SIGNABLE = /\.(yml|yaml|md|patch|txt)$/i;
+var TRUSTED_KEYS = ["MCowBQYDK2VwAyEAkAnAGLVNWp9fENhj6PRaJ+8R8K2JeZAo71x2j0pQptk="];
+function isSignableCatalogFile(rel) {
+  return SIGNABLE.test(rel) && rel !== "source.yml";
+}
+function trustedKeys() {
+  const extra = (process.env.DIRECTUS_BACKPORT_TRUSTED_KEY || "").trim();
+  return extra ? [...TRUSTED_KEYS, extra] : TRUSTED_KEYS;
+}
+function keyId(key) {
+  return createHash2("sha256").update(key).digest("hex").slice(0, 16);
+}
+function walk(dir, prefix = "") {
+  const out = [];
+  for (const entry of fs7.readdirSync(dir, { withFileTypes: true })) {
+    const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) out.push(...walk(path9.join(dir, entry.name), rel));
+    else out.push(rel);
+  }
+  return out;
+}
+function catalogFiles(dir) {
+  return walk(dir).filter(isSignableCatalogFile).sort();
+}
+function verifyCatalogDir(dir) {
+  const manifestPath = path9.join(dir, MANIFEST_FILE);
+  const signaturePath = path9.join(dir, SIGNATURE_FILE);
+  if (!fs7.existsSync(manifestPath) || !fs7.existsSync(signaturePath)) {
+    throw new Error("Catalog is not signed. Refusing to use it.");
+  }
+  const manifestBytes = fs7.readFileSync(manifestPath);
+  const signature = Buffer.from(fs7.readFileSync(signaturePath, "utf8").trim(), "base64");
+  const key = trustedKeys().find((candidate) => {
+    try {
+      const publicKey = createPublicKey({
+        key: Buffer.from(candidate, "base64"),
+        format: "der",
+        type: "spki"
+      });
+      return verify(null, manifestBytes, publicKey, signature);
+    } catch {
+      return false;
+    }
+  });
+  if (!key) throw new Error("Catalog signature does not match a trusted key. Refusing to use it.");
+  const manifest = JSON.parse(manifestBytes.toString("utf8"));
+  const listed = Object.keys(manifest.files ?? {}).sort();
+  const present = catalogFiles(dir);
+  if (listed.join("\n") !== present.join("\n")) {
+    throw new Error("Catalog files do not match its signed manifest. Refusing to use it.");
+  }
+  for (const rel of listed) {
+    const actual = createHash2("sha256").update(fs7.readFileSync(path9.join(dir, rel))).digest("hex");
+    if (actual !== manifest.files[rel]) {
+      throw new Error(`Catalog file changed after signing: ${rel}. Refusing to use it.`);
+    }
+  }
+  if (!Number.isSafeInteger(manifest.sequence) || manifest.sequence < 1) {
+    throw new Error("Catalog manifest has no valid sequence. Refusing to use it.");
+  }
+  return { sequence: manifest.sequence, key: keyId(key) };
+}
+function cachedSequence(dir) {
+  try {
+    const manifest = JSON.parse(fs7.readFileSync(path9.join(dir, MANIFEST_FILE), "utf8"));
+    return Number.isSafeInteger(manifest.sequence) ? manifest.sequence : 0;
+  } catch {
+    return 0;
+  }
+}
+
 // ../src/engine.ts
 function snapshotId() {
   return (/* @__PURE__ */ new Date()).toISOString().replaceAll(":", "-").replaceAll(".", "-");
 }
 function resolveOptionalCatalogRoot(catalogRoot) {
-  if (catalogRoot) return path9.resolve(catalogRoot);
+  if (catalogRoot) return path10.resolve(catalogRoot);
   if (hasLocalCatalog()) return resolveCatalogDir();
   return null;
 }
+function tryLoadCatalog(catalogRoot) {
+  try {
+    return loadCatalog(catalogRoot);
+  } catch {
+    return null;
+  }
+}
+function assertCatalogTrusted(catalogRoot) {
+  let remote;
+  try {
+    remote = remoteCatalogDir();
+  } catch {
+    return;
+  }
+  if (path10.resolve(catalogRoot) === path10.resolve(remote)) verifyCatalogDir(catalogRoot);
+}
+function readTarget(nodeModules, file) {
+  try {
+    return fs8.readFileSync(resolveNodeFile(nodeModules, file), "utf8");
+  } catch {
+    return null;
+  }
+}
+function reconcileState(install, catalog, state) {
+  const byId = new Map(catalog.advisories.map((advisory) => [advisory.id, advisory]));
+  const analysed = /* @__PURE__ */ new Map();
+  const analyse = (file) => {
+    if (!analysed.has(file)) {
+      const content = readTarget(install.nodeModules, file);
+      analysed.set(file, content === null ? null : peelPatches(content, targetsForFile(catalog, install.version, file)));
+    }
+    return analysed.get(file) ?? null;
+  };
+  const states = (advisory) => targetsForVersion(advisory, install.version).map((target) => {
+    const found = analyse(target.file);
+    if (!found) return "pending";
+    if (found.peeled.includes(target)) return "applied";
+    return sha256(found.base) === target.beforeSha256 ? "pending" : "conflict";
+  });
+  const drift = { missing: [], untracked: [], unverified: [] };
+  const kept = [];
+  for (const row of state.applied) {
+    const advisory = byId.get(row.id);
+    const replaced = Boolean(state.installVersion) && state.installVersion !== install.version;
+    const found = advisory ? states(advisory) : [];
+    if (replaced || found.length > 0 && found.every((item) => item === "pending")) {
+      drift.missing.push(row.id);
+      continue;
+    }
+    if (found.includes("conflict") && !found.every((item) => item === "applied")) {
+      drift.unverified.push(row.id);
+    }
+    kept.push(row);
+  }
+  const known = new Set(kept.map((row) => row.id));
+  for (const advisory of catalog.advisories) {
+    if (known.has(advisory.id) || drift.missing.includes(advisory.id)) continue;
+    const found = states(advisory);
+    if (found.length === 0 || !found.every((item) => item === "applied")) continue;
+    drift.untracked.push(advisory.id);
+    kept.push({
+      id: advisory.id,
+      at: (/* @__PURE__ */ new Date()).toISOString(),
+      snapshot: "",
+      files: targetsForVersion(advisory, install.version).map((target) => target.file)
+    });
+  }
+  return { state: { ...state, applied: kept, installVersion: install.version }, drift };
+}
+function reconcileAndSave(install, catalog) {
+  const state = loadState(install.nodeModules);
+  if (!catalog) return state;
+  const { state: next, drift } = reconcileState(install, catalog, state);
+  if (drift.missing.length || drift.untracked.length) saveState(install.nodeModules, next);
+  return next;
+}
 function statusReport(install, catalogRoot) {
   const root = resolveOptionalCatalogRoot(catalogRoot);
-  const state = loadState(install.nodeModules);
+  const recorded = loadState(install.nodeModules);
   const write = probeWriteAccess(install);
-  const appliedIds = new Set(state.applied.map((a) => a.id));
-  const lastApplied = state.applied.at(-1);
-  const lastApplyIds = lastApplied ? [lastApplied.id] : [];
   if (!root) {
+    const appliedIds2 = recorded.applied.map((a) => a.id);
+    const last = recorded.applied.at(-1);
     return {
       install,
       write,
@@ -13967,26 +14282,34 @@ function statusReport(install, catalogRoot) {
         ready: 0,
         waiting: 0,
         alreadyFixed: 0,
-        applied: state.applied.length
+        applied: recorded.applied.length
       },
       open: [],
       ready: [],
       waiting: [],
       alreadyFixed: [],
-      applied: state.applied,
+      applied: recorded.applied,
       appliedCatalog: [],
-      lastApplyIds,
-      last: state.last,
-      appliedIds: [...appliedIds],
-      desired: loadDesired(void 0, state.desiredFile),
-      desiredFile: state.desiredFile || desiredPath()
+      lastApplyIds: last ? [last.id] : [],
+      last: recorded.last,
+      appliedIds: appliedIds2,
+      drift: { missing: [], untracked: [], unverified: [] },
+      unprotected: [],
+      lastReapply: recorded.lastReapply,
+      pendingBoot: recorded.pendingBoot,
+      desired: loadDesired(void 0, recorded.desiredFile),
+      desiredFile: recorded.desiredFile || desiredPath()
     };
   }
   const catalog = loadCatalog(root);
+  const { state, drift } = reconcileState(install, catalog, recorded);
   const parts = partitionAdvisories(catalog, install.version);
+  const appliedIds = new Set(state.applied.map((a) => a.id));
+  const lastApplied = state.applied.at(-1);
   const pending = parts.ready.filter((a) => !appliedIds.has(a.id));
   const catalogById = new Map(catalog.advisories.map((a) => [a.id, a]));
   const appliedCatalog = state.applied.map((row) => catalogById.get(row.id)).filter((a) => Boolean(a));
+  const desired = loadDesired(root, state.desiredFile);
   return {
     install,
     write,
@@ -14006,10 +14329,15 @@ function statusReport(install, catalogRoot) {
     alreadyFixed: parts.alreadyFixed,
     applied: state.applied,
     appliedCatalog,
-    lastApplyIds,
+    lastApplyIds: lastApplied ? [lastApplied.id] : [],
     last: state.last,
     appliedIds: [...appliedIds],
-    desired: loadDesired(root, state.desiredFile),
+    drift,
+    /** Fixes the operator asked to keep that are not in the files right now. */
+    unprotected: desired.ids.filter((id) => !appliedIds.has(id) || drift.unverified.includes(id)),
+    lastReapply: state.lastReapply,
+    pendingBoot: state.pendingBoot,
+    desired,
     desiredFile: state.desiredFile || desiredPath(root)
   };
 }
@@ -14030,13 +14358,12 @@ function pickAdvisories(install, ids, catalogRoot) {
   }
   return selected;
 }
-function sortByCatalog(selected, catalogRoot) {
-  const catalog = loadCatalog(catalogRoot ? path9.join(catalogRoot) : void 0);
+function sortByCatalog(selected, catalog) {
   const rank = new Map(catalog.advisories.map((advisory, index) => [advisory.id, index]));
   return [...selected].sort((a, b3) => (rank.get(a.id) ?? 0) - (rank.get(b3.id) ?? 0));
 }
 function snapshotDirFor(nodeModules, snapId) {
-  return path9.join(dataDir(nodeModules), "snapshots", snapId);
+  return path10.join(dataDir(nodeModules), "snapshots", snapId);
 }
 function restoreAppliedSnapshots(install, rows) {
   const files = [];
@@ -14044,12 +14371,28 @@ function restoreAppliedSnapshots(install, rows) {
   for (const row of [...rows].reverse()) {
     if (seen.has(row.snapshot)) continue;
     seen.add(row.snapshot);
-    files.push(...restoreSnapshot(snapshotDirFor(install.nodeModules, row.snapshot)));
+    files.push(...restoreSnapshot(snapshotDirFor(install.nodeModules, row.snapshot), install.nodeModules));
   }
   return files;
 }
+function planAdvisory(install, advisory, catalog) {
+  const plans = [];
+  const contents = /* @__PURE__ */ new Map();
+  for (const target of targetsForVersion(advisory, install.version)) {
+    const siblings = targetsForFile(catalog, install.version, target.file);
+    const plan = planTarget(install.nodeModules, target, siblings, contents.get(target.file));
+    if (plan.skipped) continue;
+    plans.push(plan);
+    contents.set(target.file, plan.next);
+  }
+  return plans;
+}
 async function applyPatches2(install, options, catalogRoot) {
-  const selected = sortByCatalog(pickAdvisories(install, options.ids, catalogRoot), catalogRoot);
+  const root = catalogRoot ? path10.resolve(catalogRoot) : resolveCatalogDir();
+  assertCatalogTrusted(root);
+  const catalog = loadCatalog(root);
+  reconcileAndSave(install, catalog);
+  const selected = sortByCatalog(pickAdvisories(install, options.ids, root), catalog);
   const write = probeWriteAccess(install);
   if (!write.writable) {
     return {
@@ -14070,16 +14413,17 @@ async function applyPatches2(install, options, catalogRoot) {
       const snapId2 = `${batchStamp}-${advisory.id}`;
       const snapshotDir = snapshotDirFor(install.nodeModules, snapId2);
       ensureDir(snapshotDir);
-      const these = [];
-      for (const target of targetsForVersion(advisory, install.version)) {
-        const snap = applyTarget(install.nodeModules, target);
-        if (snap.skipped) continue;
-        these.push(snap);
-        changed.push(snap);
+      const plans = planAdvisory(install, advisory, catalog);
+      writeSnapshot(snapshotDir, plans);
+      for (const plan of plans) {
+        commitPlan([plan]);
+        changed.push(plan);
       }
-      writeSnapshot(snapshotDir, these);
-      files.push(...these.map((item) => item.file));
+      files.push(...plans.map((item) => item.file));
       perAdvisory.push({ advisory, snapId: snapId2 });
+    }
+    if (options.preflight && files.length) {
+      await preflightFiles(install.root, [...new Set(files)]);
     }
   } catch (err) {
     restoreMemory(changed);
@@ -14117,13 +14461,20 @@ async function applyPatches2(install, options, catalogRoot) {
     });
   }
   const snapId = perAdvisory.at(-1)?.snapId ?? batchStamp;
-  let health = options.healthUrl || options.restartCmd ? "pending" : "pending";
+  let health = "pending";
   state.last = { action: "apply", at, snapshot: snapId, ids: appliedIds, health };
   state.installVersion = install.version;
-  state.desiredFile = state.desiredFile || desiredPath(catalogRoot);
+  state.desiredFile = state.desiredFile || desiredPath(root);
+  if (options.guardBoot) {
+    state.pendingBoot = {
+      ids: [.../* @__PURE__ */ new Set([...state.pendingBoot?.ids ?? [], ...appliedIds])],
+      at,
+      boots: 0
+    };
+  }
   saveState(install.nodeModules, state);
   if (options.persistDesired !== false) {
-    addDesiredIds(appliedIds, install.version, catalogRoot, state.desiredFile);
+    addDesiredIds(appliedIds, install.version, root, state.desiredFile);
   }
   if (options.restartCmd) {
     try {
@@ -14132,24 +14483,24 @@ async function applyPatches2(install, options, catalogRoot) {
       const error = `Restart command failed: ${err instanceof Error ? err.message : String(err)}`;
       if (options.rollbackOnFail !== false) {
         restoreMemory(changed);
-        return finalizeRollback(install, appliedIds, snapId, files, error, catalogRoot);
+        return finalizeRollback(install, appliedIds, snapId, files, error, root);
       }
+      state.last = { ...state.last, health: "failed", error };
+      saveState(install.nodeModules, state);
       return { ok: false, applied: appliedIds, snapshot: snapId, health: "failed", rolledBack: false, error, files };
     }
   }
-  if (options.healthUrl) {
+  if (options.healthUrl && options.restartCmd) {
     const ok = await waitForHealth(options.healthUrl, options.healthTimeoutMs ?? 9e4);
     if (!ok) {
       const error = `Directus did not become healthy at ${options.healthUrl}`;
       if (options.rollbackOnFail !== false) {
         restoreMemory(changed);
-        if (options.restartCmd) {
-          try {
-            await runCommand(options.restartCmd);
-          } catch {
-          }
+        try {
+          await runCommand(options.restartCmd);
+        } catch {
         }
-        return finalizeRollback(install, appliedIds, snapId, files, error, catalogRoot);
+        return finalizeRollback(install, appliedIds, snapId, files, error, root);
       }
       state.last = { ...state.last, health: "failed", error };
       saveState(install.nodeModules, state);
@@ -14157,6 +14508,7 @@ async function applyPatches2(install, options, catalogRoot) {
     }
     health = "ok";
     state.last = { ...state.last, health: "ok" };
+    delete state.pendingBoot;
     saveState(install.nodeModules, state);
   }
   return {
@@ -14171,6 +14523,7 @@ async function applyPatches2(install, options, catalogRoot) {
 function finalizeRollback(install, ids, snapId, files, error, catalogRoot) {
   const state = loadState(install.nodeModules);
   state.applied = state.applied.filter((a) => !ids.includes(a.id));
+  delete state.pendingBoot;
   state.last = {
     action: "rollback",
     at: (/* @__PURE__ */ new Date()).toISOString(),
@@ -14192,18 +14545,19 @@ function finalizeRollback(install, ids, snapId, files, error, catalogRoot) {
   };
 }
 function rollbackLast(install, catalogRoot) {
-  const state = loadState(install.nodeModules);
+  const state = reconcileAndSave(install, tryLoadCatalog(catalogRoot));
   const last = state.applied.at(-1);
   if (!last) throw new Error("Nothing to rollback.");
   return rollbackOne(install, last.id, catalogRoot);
 }
 function rollbackAll(install, catalogRoot) {
-  const state = loadState(install.nodeModules);
+  const state = reconcileAndSave(install, tryLoadCatalog(catalogRoot));
   const ids = state.applied.map((row) => row.id);
   if (ids.length === 0) throw new Error("Nothing to rollback.");
   return rollbackIds(install, ids, catalogRoot);
 }
 function rollbackAdvisory(install, id, catalogRoot) {
+  reconcileAndSave(install, tryLoadCatalog(catalogRoot));
   return rollbackIds(install, [id], catalogRoot);
 }
 function rollbackIds(install, ids, catalogRoot) {
@@ -14212,10 +14566,25 @@ function rollbackIds(install, ids, catalogRoot) {
     return rollbackOne(install, unique[0], catalogRoot);
   }
   const state = loadState(install.nodeModules);
-  const rows = unique.map((id) => state.applied.find((row) => row.id === id)).filter((row) => Boolean(row));
+  const rows = state.applied.filter((row) => unique.includes(row.id));
   if (rows.length === 0) throw new Error("Nothing to rollback.");
+  const everything = rows.length === state.applied.length;
+  if (!everything || rows.some((row) => !row.snapshot)) {
+    const files2 = /* @__PURE__ */ new Set();
+    let snapshot = "";
+    for (const row of [...rows].reverse()) {
+      const result = rollbackOne(install, row.id, catalogRoot);
+      result.files.forEach((file) => files2.add(file));
+      snapshot = result.snapshot || snapshot;
+    }
+    return { snapshot, files: [...files2] };
+  }
   const files = restoreAppliedSnapshots(install, rows);
   state.applied = state.applied.filter((row) => !unique.includes(row.id));
+  if (state.pendingBoot) {
+    state.pendingBoot.ids = state.pendingBoot.ids.filter((id) => !unique.includes(id));
+    if (!state.pendingBoot.ids.length) delete state.pendingBoot;
+  }
   const snapId = rows.at(-1)?.snapshot ?? state.last?.snapshot ?? "";
   state.last = {
     action: "rollback",
@@ -14228,6 +14597,33 @@ function rollbackIds(install, ids, catalogRoot) {
   removeDesiredIds(unique, catalogRoot, state.desiredFile);
   return { snapshot: snapId, files };
 }
+function planRollback(install, catalog, advisory, files) {
+  const targets = targetsForVersion(advisory, install.version).filter((target) => files.has(target.file));
+  const covered = new Set(targets.map((target) => target.file));
+  if ([...files].some((file) => !covered.has(file))) {
+    throw new Error(`${advisory.id} changed since it was applied`);
+  }
+  const plans = [];
+  const contents = /* @__PURE__ */ new Map();
+  for (const target of targets) {
+    const siblings = targetsForFile(catalog, install.version, target.file);
+    const plan = planRevert(install.nodeModules, target, siblings, contents.get(target.file));
+    if (!plan) continue;
+    plans.push(plan);
+    contents.set(target.file, plan.next);
+  }
+  return plans;
+}
+function assertReverted(install, catalog, advisory, files) {
+  for (const target of targetsForVersion(advisory, install.version)) {
+    if (!files.has(target.file)) continue;
+    const content = fs8.readFileSync(resolveNodeFile(install.nodeModules, target.file), "utf8");
+    const { base, peeled } = peelPatches(content, targetsForFile(catalog, install.version, target.file));
+    if (peeled.includes(target) || sha256(base) !== target.beforeSha256) {
+      throw new Error(`Rollback of ${advisory.id} left ${target.file} different from the pinned build.`);
+    }
+  }
+}
 function rollbackOne(install, id, catalogRoot) {
   const state = loadState(install.nodeModules);
   const row = state.applied.find((item) => item.id === id);
@@ -14235,44 +14631,46 @@ function rollbackOne(install, id, catalogRoot) {
   const files = new Set(row.files);
   const remaining = state.applied.filter((item) => item.id !== id);
   const others = remaining.filter((item) => item.files.some((file) => files.has(file)));
-  const catalog = loadCatalog(catalogRoot ? path9.join(catalogRoot) : void 0);
-  const advisory = catalog.advisories.find((item) => item.id === id);
-  const reverted = [];
-  let usedRevert = false;
-  if (advisory) {
+  const catalog = tryLoadCatalog(catalogRoot);
+  const advisory = catalog?.advisories.find((item) => item.id === id);
+  let reverted = false;
+  if (catalog && advisory) {
     try {
-      for (const target of targetsForVersion(advisory, install.version)) {
-        if (!files.has(target.file)) continue;
-        const snap = revertTarget(install.nodeModules, target);
-        if (!snap.skipped) reverted.push(snap);
-      }
-      usedRevert = true;
+      commitPlan(planRollback(install, catalog, advisory, files));
+      reverted = true;
     } catch {
-      restoreMemory(reverted);
+      reverted = false;
     }
   }
-  if (!usedRevert) {
+  if (!reverted) {
     if (others.length === 0) {
-      restoreSnapshot(snapshotDirFor(install.nodeModules, row.snapshot), files);
+      if (!row.snapshot) throw new Error(`${id} has no snapshot, and the catalog cannot undo it.`);
+      restoreSnapshot(snapshotDirFor(install.nodeModules, row.snapshot), install.nodeModules, files);
     } else {
-      const touching = state.applied.filter((item) => item.files.some((file) => files.has(file)));
+      const touching = state.applied.filter((item) => item.snapshot && item.files.some((file) => files.has(file)));
       const origin = touching[0];
       if (!origin) throw new Error(`${id} has no snapshot to restore.`);
-      restoreSnapshot(snapshotDirFor(install.nodeModules, origin.snapshot), files);
+      if (!catalog) throw new Error(`${id} shares files with other backports. Restoring it needs the catalog.`);
+      restoreSnapshot(snapshotDirFor(install.nodeModules, origin.snapshot), install.nodeModules, files);
       const byId = new Map(catalog.advisories.map((item) => [item.id, item]));
       for (const sibling of others) {
         const next = byId.get(sibling.id);
         if (!next) {
           throw new Error(`${sibling.id} is applied but missing from the catalog; cannot keep its patch.`);
         }
-        for (const target of targetsForVersion(next, install.version)) {
-          if (!files.has(target.file)) continue;
-          applyTarget(install.nodeModules, target);
-        }
+        const plans = planAdvisory(install, next, catalog).filter((plan) => files.has(plan.rel));
+        commitPlan(plans);
       }
     }
   }
+  if (catalog && advisory) {
+    assertReverted(install, catalog, advisory, files);
+  }
   state.applied = remaining;
+  if (state.pendingBoot) {
+    state.pendingBoot.ids = state.pendingBoot.ids.filter((item) => item !== id);
+    if (!state.pendingBoot.ids.length) delete state.pendingBoot;
+  }
   state.last = {
     action: "rollback",
     at: (/* @__PURE__ */ new Date()).toISOString(),
@@ -14286,23 +14684,108 @@ function rollbackOne(install, id, catalogRoot) {
 }
 function rollbackSnapshot(install, snapId, catalogRoot) {
   const snapshotDir = snapshotDirFor(install.nodeModules, snapId);
-  if (!fs7.existsSync(snapshotDir)) {
+  if (!fs8.existsSync(snapshotDir)) {
     throw new Error(`Snapshot ${snapId} not found at ${snapshotDir}`);
   }
-  const files = restoreSnapshot(snapshotDir);
-  const state = loadState(install.nodeModules);
-  const removedIds = state.applied.filter((a) => a.snapshot === snapId).map((a) => a.id);
-  state.applied = state.applied.filter((a) => a.snapshot !== snapId);
+  const state = reconcileAndSave(install, tryLoadCatalog(catalogRoot));
+  const rows = state.applied.filter((row) => row.snapshot === snapId);
+  if (rows.length) {
+    return { ...rollbackIds(install, rows.map((row) => row.id), catalogRoot), snapshot: snapId };
+  }
+  const manifest = JSON.parse(fs8.readFileSync(path10.join(snapshotDir, "manifest.json"), "utf8"));
+  const rels = new Set(manifest.files.map((item) => item.rel));
+  const blocking = state.applied.filter((row) => row.files.some((file) => rels.has(file)));
+  if (blocking.length) {
+    throw new Error(
+      `Snapshot ${snapId} would remove ${blocking.map((row) => row.id).join(", ")}. Roll those back first.`
+    );
+  }
+  const files = restoreSnapshot(snapshotDir, install.nodeModules);
   state.last = {
     action: "rollback",
     at: (/* @__PURE__ */ new Date()).toISOString(),
     snapshot: snapId,
-    ids: removedIds.length ? removedIds : state.last?.ids ?? [],
+    ids: state.last?.ids ?? [],
     health: "rolled-back"
   };
   saveState(install.nodeModules, state);
-  removeDesiredIds(removedIds, catalogRoot, state.desiredFile);
   return { snapshot: snapId, files };
+}
+async function ensureDesiredApplied(install, catalogRoot, options = {}) {
+  const root = catalogRoot ? path10.resolve(catalogRoot) : resolveCatalogDir();
+  const state = reconcileAndSave(install, tryLoadCatalog(root));
+  const desired = loadDesired(root, state.desiredFile);
+  if (desired.ids.length === 0) {
+    return { wrote: false, applied: [], failed: [], skipped: true };
+  }
+  if (desired.version && desired.version !== install.version) {
+    return {
+      wrote: false,
+      applied: [],
+      failed: [],
+      skipped: true,
+      error: `desired.json is pinned to Directus ${desired.version}, this install is ${install.version}`
+    };
+  }
+  const report = statusReport(install, root);
+  const wanted = new Set(desired.ids);
+  const ready = report.ready.filter((a) => wanted.has(a.id)).map((a) => a.id);
+  const failed = report.unprotected.filter((id) => !ready.includes(id)).map((id) => ({
+    id,
+    error: report.drift.unverified.includes(id) ? "The patched file changed, so this fix cannot be confirmed" : `No backport for Directus ${install.version} in the current catalog`
+  }));
+  if (ready.length === 0 && failed.length === 0) {
+    return { wrote: false, applied: [], failed, skipped: true };
+  }
+  const applyEach = async (ids, preflight) => {
+    const done = [];
+    for (const id of ids) {
+      try {
+        const result = await applyPatches2(
+          install,
+          { ids: [id], rollbackOnFail: false, persistDesired: false, guardBoot: options.guardBoot, preflight },
+          root
+        );
+        if (result.ok) done.push(id);
+        else failed.push({ id, error: result.error || "Apply failed" });
+      } catch (err) {
+        failed.push({ id, error: err instanceof Error ? err.message : String(err) });
+      }
+    }
+    return done;
+  };
+  let applied = await applyEach(ready, false);
+  if (options.preflight && applied.length) {
+    const changed = [...new Set(applied.flatMap((id) => {
+      const advisory = report.ready.find((item) => item.id === id);
+      return advisory ? targetsForVersion(advisory, install.version).map((t) => resolveNodeFile(install.nodeModules, t.file)) : [];
+    }))];
+    try {
+      await preflightFiles(install.root, changed);
+    } catch {
+      for (const id of [...applied].reverse()) rollbackForRetry(install, id, root);
+      applied = await applyEach(applied, true);
+    }
+  }
+  const after = loadState(install.nodeModules);
+  const reapply = { at: (/* @__PURE__ */ new Date()).toISOString(), applied, failed };
+  after.lastReapply = reapply;
+  saveState(install.nodeModules, after);
+  return {
+    wrote: applied.length > 0,
+    applied,
+    failed,
+    skipped: false,
+    ok: failed.length === 0,
+    error: failed.length ? failed.map((item) => `${item.id}: ${item.error.split("\n")[0]}`).join("; ") : void 0
+  };
+}
+function rollbackForRetry(install, id, catalogRoot) {
+  const desired = loadDesired(catalogRoot, loadState(install.nodeModules).desiredFile);
+  rollbackOne(install, id, catalogRoot);
+  if (desired.ids.includes(id)) {
+    addDesiredIds([id], desired.version, catalogRoot, loadState(install.nodeModules).desiredFile);
+  }
 }
 async function verifyInstall(install, healthUrl, timeoutMs = 3e4) {
   const ok = await waitForHealth(healthUrl, timeoutMs);
@@ -14310,21 +14793,21 @@ async function verifyInstall(install, healthUrl, timeoutMs = 3e4) {
   if (state.last) {
     state.last.health = ok ? "ok" : "failed";
     if (!ok) state.last.error = `Health check failed: ${healthUrl}`;
+    if (ok) delete state.pendingBoot;
     saveState(install.nodeModules, state);
   }
   return { ok, last: state.last };
 }
 
 // ../src/catalog-fetch.ts
-import fs9 from "node:fs";
+import fs10 from "node:fs";
 import os from "node:os";
-import path11 from "node:path";
+import path12 from "node:path";
 
 // ../src/tar-catalog.ts
-import fs8 from "node:fs";
-import path10 from "node:path";
+import fs9 from "node:fs";
+import path11 from "node:path";
 import { gunzipSync } from "node:zlib";
-var ALLOWED = /\.(yml|yaml|md|patch|txt)$/i;
 var MAX_FILE = 2 * 1024 * 1024;
 var MAX_TOTAL = 20 * 1024 * 1024;
 function octal(buf, start, length) {
@@ -14343,11 +14826,11 @@ function catalogRelFromTarPath(entry) {
   const rest = parts.slice(idx + 1);
   if (rest.length === 0) return null;
   const file = rest.join("/");
-  if (!ALLOWED.test(file)) return null;
-  return file;
+  if (file === MANIFEST_FILE || file === SIGNATURE_FILE) return file;
+  return isSignableCatalogFile(file) ? file : null;
 }
 function extractCatalogTarGz(archive, dest) {
-  const unzipped = gunzipSync(archive);
+  const unzipped = gunzipSync(archive, { maxOutputLength: MAX_TOTAL * 4 });
   const files = [];
   let offset = 0;
   let total = 0;
@@ -14379,9 +14862,9 @@ function extractCatalogTarGz(archive, dest) {
     if (total > MAX_TOTAL) throw new Error("Catalog archive is larger than 20MB");
     const rel = catalogRelFromTarPath(name);
     if (!rel) continue;
-    const out = path10.join(dest, rel);
-    fs8.mkdirSync(path10.dirname(out), { recursive: true });
-    fs8.writeFileSync(out, payload);
+    const out = path11.join(dest, rel);
+    fs9.mkdirSync(path11.dirname(out), { recursive: true });
+    fs9.writeFileSync(out, payload);
     files.push(rel);
   }
   if (!files.includes("advisories.yml")) {
@@ -14402,7 +14885,7 @@ function authHeaders() {
 }
 function readFetchedAt() {
   try {
-    const meta = JSON.parse(fs9.readFileSync(remoteMetaPath(), "utf8"));
+    const meta = JSON.parse(fs10.readFileSync(remoteMetaPath(), "utf8"));
     return meta.fetchedAt || null;
   } catch {
     return null;
@@ -14412,10 +14895,18 @@ function catalogRemoteStatus() {
   const source = loadCatalogSource();
   let using = "none";
   let advisories = null;
+  let signature = null;
   if (hasLocalCatalog()) {
     const dir = resolveCatalogDir();
     using = dir === remoteCatalogDir() ? "remote" : "bundled";
-    advisories = path11.join(dir, "advisories.yml");
+    advisories = path12.join(dir, "advisories.yml");
+    if (using === "remote") {
+      try {
+        signature = { verified: true, ...verifyCatalogDir(dir) };
+      } catch (err) {
+        signature = { verified: false, error: err instanceof Error ? err.message : String(err) };
+      }
+    }
   }
   return {
     configured: Boolean(source.github),
@@ -14425,7 +14916,8 @@ function catalogRemoteStatus() {
     using,
     cacheDir: remoteCatalogDir(),
     fetchedAt: readFetchedAt(),
-    advisories
+    advisories,
+    signature
   };
 }
 async function download(source) {
@@ -14443,31 +14935,44 @@ async function download(source) {
 async function refreshRemoteCatalog() {
   const source = loadCatalogSource();
   const archive = await download(source);
-  const tmp = fs9.mkdtempSync(path11.join(os.tmpdir(), "directus-backport-catalog-"));
+  const tmp = fs10.mkdtempSync(path12.join(os.tmpdir(), "directus-backport-catalog-"));
   try {
     const { files } = extractCatalogTarGz(archive, tmp);
+    const trust = verifyCatalogDir(tmp);
     loadCatalog(tmp);
     const dest = remoteCatalogDir();
-    fs9.rmSync(dest, { recursive: true, force: true });
-    fs9.mkdirSync(path11.dirname(dest), { recursive: true });
-    fs9.cpSync(tmp, dest, { recursive: true });
+    const current = cachedSequence(dest);
+    if (trust.sequence < current) {
+      throw new Error(`Refusing an older catalog (sequence ${trust.sequence}, this host has ${current}).`);
+    }
     const fetchedAt = (/* @__PURE__ */ new Date()).toISOString();
-    writeJson(remoteMetaPath(), {
+    writeJson(path12.join(tmp, ".fetched.json"), {
       github: source.github,
       ref: source.ref,
       fetchedAt,
-      files: files.length
+      files: files.length,
+      sequence: trust.sequence
     });
+    const staged = `${dest}.new-${process.pid}`;
+    const retired = `${dest}.old-${process.pid}`;
+    fs10.mkdirSync(path12.dirname(dest), { recursive: true });
+    fs10.rmSync(staged, { recursive: true, force: true });
+    fs10.cpSync(tmp, staged, { recursive: true });
+    if (fs10.existsSync(dest)) fs10.renameSync(dest, retired);
+    fs10.renameSync(staged, dest);
+    fs10.rmSync(retired, { recursive: true, force: true });
     return {
       ok: true,
       github: source.github,
       ref: source.ref,
       files: files.length,
       fetchedAt,
-      cacheDir: dest
+      cacheDir: dest,
+      sequence: trust.sequence,
+      key: trust.key
     };
   } finally {
-    fs9.rmSync(tmp, { recursive: true, force: true });
+    fs10.rmSync(tmp, { recursive: true, force: true });
   }
 }
 
@@ -15129,16 +15634,44 @@ function statusLabel(advisory, version) {
   if (version && isFixedOnThisVersion(advisory, version)) {
     return import_picocolors3.default.green(`already in ${advisory.upstreamPatched}+`);
   }
-  if (version && isStillVulnerable(advisory, version)) {
-    if (hasApplyablePatch(advisory, version)) return import_picocolors3.default.yellow("experimental");
+  if (version && isStillVulnerable(advisory, version) && targetsForVersion(advisory, version).length === 0) {
     return import_picocolors3.default.dim("needs-port");
   }
-  const s = advisory.port.status;
+  const s = version ? statusForVersion(advisory, version) : advisory.port.status;
   if (s === "stable") return import_picocolors3.default.green("stable");
   if (s === "experimental") return import_picocolors3.default.yellow("experimental");
   if (s === "needs-port") return import_picocolors3.default.dim("needs-port");
   if (s === "already-fixed") return import_picocolors3.default.green(`already in ${advisory.upstreamPatched}+`);
   return import_picocolors3.default.dim(s);
+}
+function formatChanges(advisory, version) {
+  const out = [`${advisory.id}  ${advisory.title}`];
+  for (const target of targetsForVersion(advisory, version)) {
+    out.push(import_picocolors3.default.bold(target.file));
+    for (const op of target.replace ?? []) {
+      out.push(...op.from.split("\n").map((line) => import_picocolors3.default.red(`- ${line}`)));
+      out.push(...op.to.split("\n").map((line) => import_picocolors3.default.green(`+ ${line}`)));
+    }
+    if (target.diff) out.push(target.diff);
+  }
+  return out.join("\n");
+}
+function warnDrift(report) {
+  if (report.drift.missing.length) {
+    M2.error(`Recorded as applied but NOT in the files: ${report.drift.missing.join(", ")}. node_modules was probably replaced.`);
+  }
+  if (report.drift.untracked.length) {
+    M2.warn(`In the files without a record: ${report.drift.untracked.join(", ")}. Rollback uses the catalog for these.`);
+  }
+  if (report.drift.unverified.length) {
+    M2.error(`Files changed, so these cannot be confirmed: ${report.drift.unverified.join(", ")}.`);
+  }
+  if (report.unprotected.length) {
+    M2.error(`Kept in desired.json but NOT applied: ${report.unprotected.join(", ")}. Run: directus-backport apply --yes --desired`);
+  }
+  for (const item of report.lastReapply?.failed ?? []) {
+    M2.error(`Boot re-apply failed for ${item.id}: ${item.error.split("\n")[0]}`);
+  }
 }
 function formatStatusCounts(counts) {
   const parts = [`${import_picocolors3.default.bold(String(counts.applied))} applied`, `${import_picocolors3.default.bold(String(counts.ready))} ready to apply`];
@@ -15161,6 +15694,7 @@ ${import_picocolors3.default.dim(install.nodeModules)}`);
     Se(`No catalog yet. Opt in: ${import_picocolors3.default.bold("directus-backport catalog --refresh")} (or Studio Check for Updates).`);
     return;
   }
+  warnDrift(report);
   if (report.last?.health === "failed") {
     M2.error(`Last apply failed health check. Run ${import_picocolors3.default.bold("directus-backport rollback")} if Studio is down.`);
   }
@@ -15192,6 +15726,11 @@ ${import_picocolors3.default.dim(install.nodeModules)}`);
 ${a.port.notes ?? a.title}`).join("\n\n"),
     "Will snapshot these files first"
   );
+  const review = await ye({ message: "Show the code changes first?", initialValue: true });
+  cancelIf(review);
+  if (review) {
+    for (const advisory of chosen) M2.message(formatChanges(advisory, install.version));
+  }
   const go = await ye({
     message: `Snapshot node_modules and apply ${chosen.length} patch(es)?`,
     initialValue: true
@@ -15206,25 +15745,29 @@ ${a.port.notes ?? a.title}`).join("\n\n"),
     initialValue: true
   });
   cancelIf(rollbackOnFail);
-  const healthUrl = await he({
-    message: "Health URL (empty to skip boot check)",
-    placeholder: opts.healthUrl ?? "http://127.0.0.1:8055/server/ping",
-    defaultValue: opts.healthUrl ?? ""
-  });
-  cancelIf(healthUrl);
   const restartCmd = await he({
     message: "Restart command (empty to skip \u2014 you restart yourself)",
     placeholder: opts.restartCmd ?? "docker compose restart directus",
     defaultValue: opts.restartCmd ?? ""
   });
   cancelIf(restartCmd);
+  let healthUrl = "";
+  if (restartCmd.trim()) {
+    healthUrl = await he({
+      message: "Health URL (empty to skip boot check)",
+      placeholder: opts.healthUrl ?? "http://127.0.0.1:8055/server/ping",
+      defaultValue: opts.healthUrl ?? ""
+    });
+    cancelIf(healthUrl);
+  }
   const spin = Y2();
   spin.start("Applying patches\u2026");
   const result = await applyPatches2(install, {
     ids: chosen.map((a) => a.id),
     healthUrl: healthUrl.trim() || void 0,
     restartCmd: restartCmd.trim() || void 0,
-    rollbackOnFail: Boolean(rollbackOnFail)
+    rollbackOnFail: Boolean(rollbackOnFail),
+    preflight: true
   });
   spin.stop(result.ok ? "Done" : "Failed");
   if (result.rolledBack) {
@@ -15274,6 +15817,7 @@ ${install.nodeModules}`);
       Se(`No catalog yet. Opt in: ${import_picocolors3.default.bold("directus-backport catalog --refresh")}.`);
       return;
     }
+    warnDrift(report);
     if (report.last) {
       M2.message(`Last ${report.last.action}  health=${report.last.health}  snapshot=${report.last.snapshot}`);
     }
@@ -15367,6 +15911,20 @@ ${import_picocolors3.default.dim(install.nodeModules)}`);
       report.counts.ready ? `Run ${import_picocolors3.default.bold("directus-backport apply --all --yes")} to apply the ready set.` : report.counts.applied ? "This install is up to date with the catalog it is using." : "Nothing to do for this version."
     );
   });
+  program2.command("diff").description("Show the exact code a backport changes (does not apply it)").argument("<id>", "GHSA id").action(async (id) => {
+    const opts = program2.opts();
+    const install = resolveInstall(opts.root);
+    const advisory = loadCatalog().advisories.find((item) => item.id === id);
+    if (!advisory || targetsForVersion(advisory, install.version).length === 0) {
+      process.stderr.write(`${id} has no backport for Directus ${install.version}
+`);
+      process.exitCode = 1;
+      return;
+    }
+    if (opts.json) printJson(targetsForVersion(advisory, install.version));
+    else process.stdout.write(`${formatChanges(advisory, install.version)}
+`);
+  });
   program2.command("apply").description("Apply one or more GHSA backports (non-interactive with --yes)").argument("[ids...]", "GHSA ids").option("-y, --yes", "Do not prompt", false).option("--all", "Apply every ready backport for this version", false).option("--desired", "Use GHSA ids from desired.json (next to the catalog, or DIRECTUS_BACKPORT_DESIRED)", false).option("--health-url <url>", "GET this URL after apply until it returns 2xx").option("--restart-cmd <cmd>", "Shell command to restart Directus after apply").option("--no-rollback-on-fail", "Do not restore the snapshot if health/restart fails").option("--health-timeout <ms>", "Health wait timeout", "90000").action(async (ids, cmdOpts) => {
     const opts = program2.opts();
     const install = resolveInstall(opts.root);
@@ -15375,7 +15933,7 @@ ${import_picocolors3.default.dim(install.nodeModules)}`);
       process.exitCode = 1;
       return;
     }
-    if (!cmdOpts.yes && !cmdOpts.all) {
+    if (!cmdOpts.yes) {
       await interactive(install, { healthUrl: cmdOpts.healthUrl, restartCmd: cmdOpts.restartCmd });
       return;
     }
@@ -15391,11 +15949,15 @@ ${import_picocolors3.default.dim(install.nodeModules)}`);
         return;
       }
     } else if (!ids.length && cmdOpts.desired) {
-      ids = loadDesired().ids;
-      if (!ids.length) {
-        process.stdout.write("desired.json has no ids\n");
-        return;
-      }
+      const result2 = await ensureDesiredApplied(install, void 0, { preflight: true });
+      if (opts.json) printJson(result2);
+      else if (result2.error) process.stderr.write(`${result2.error}
+`);
+      else if (result2.applied.length) process.stdout.write(`applied ${result2.applied.join(", ")}
+`);
+      else process.stdout.write("Everything in desired.json is already applied\n");
+      if (result2.error) process.exitCode = 1;
+      return;
     }
     if (!ids.length) {
       process.stderr.write("Pass GHSA ids, --all, --desired, or run without --yes for the prompt UI.\n");
@@ -15408,19 +15970,24 @@ ${import_picocolors3.default.dim(install.nodeModules)}`);
       healthUrl: cmdOpts.healthUrl,
       restartCmd: cmdOpts.restartCmd,
       rollbackOnFail: cmdOpts.rollbackOnFail,
-      healthTimeoutMs: Number(cmdOpts.healthTimeout)
+      healthTimeoutMs: Number(cmdOpts.healthTimeout),
+      preflight: true
     });
     if (opts.json) printJson(result);
-    else if (result.ok) process.stdout.write(`applied ${result.applied.join(", ")}
+    else if (result.ok) {
+      process.stdout.write(`applied ${result.applied.join(", ")}
 `);
-    else process.stderr.write(`${result.error}
+      if (cmdOpts.healthUrl && !cmdOpts.restartCmd) {
+        process.stderr.write("Health not checked: Directus was not restarted, so the old code would answer. Restart it, then run verify.\n");
+      }
+    } else process.stderr.write(`${result.error}
 `);
     if (!result.ok) process.exitCode = 1;
   });
   program2.command("rollback").description("Restore the most recently applied backport (works even if Directus is down)").option("--snapshot <id>", "Specific snapshot id").option("--id <ghsa>", "Rollback one advisory").option("--all", "Rollback every applied backport").action(async (cmdOpts) => {
     const opts = program2.opts();
     const install = resolveInstall(opts.root);
-    const catalogDir = resolveCatalogDir();
+    const catalogDir = hasLocalCatalog() ? resolveCatalogDir() : void 0;
     const result = cmdOpts.all ? rollbackAll(install, catalogDir) : cmdOpts.id ? rollbackAdvisory(install, cmdOpts.id, catalogDir) : cmdOpts.snapshot ? rollbackSnapshot(install, cmdOpts.snapshot, catalogDir) : rollbackLast(install, catalogDir);
     if (opts.json) printJson(result);
     else process.stdout.write(`restored snapshot ${result.snapshot} (${result.files.length} files)
@@ -15461,6 +16028,10 @@ ${import_picocolors3.default.dim(install.nodeModules)}`);
     M2.info(`Open ${report.counts.open} \xB7 ready ${report.counts.ready} \xB7 applied ${report.counts.applied}`);
     if (report.catalogMissing) {
       M2.warn("No catalog yet. Opt in with catalog --refresh (or Studio Check for Updates).");
+    }
+    if (!report.catalogMissing) warnDrift(report);
+    if (catalog.signature && !catalog.signature.verified) {
+      M2.error(catalog.signature.error ?? "Catalog signature is not valid.");
     }
     if (!report.write.writable) {
       M2.warn(report.write.reason || "This process cannot write node_modules.");

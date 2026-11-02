@@ -1,20 +1,86 @@
 - file: "@directus/api/dist/services/files.js"
-  before_sha256: "dd2ac5e1701d268d41fc28f33a57842585fa641504fc637002b93d220e26123e"
-  after_sha256: "48ab5b2119b4dc9665e46e17482ce69982aad9d28ea596952288df2cb0cf9117"
+  before_sha256: dd2ac5e1701d268d41fc28f33a57842585fa641504fc637002b93d220e26123e
+  after_sha256: ea4b2909162af9a72f596dc95c45fb2e0322ed6b4e81fd942f72d6b6edfaa373
   replace:
-    - from: "const env = useEnv();\nconst logger = useLogger();\nexport class FilesService extends ItemsService {"
-      to: "const env = useEnv();\nconst logger = useLogger();\nfunction assertValidStoragePath(filepath, storage) {\n    if (!filepath) return;\n    const location = storage || toArray(env['STORAGE_LOCATIONS'])[0];\n    if (!location) return;\n    const loc = String(location).toUpperCase();\n    const driver = env['STORAGE_' + loc + '_DRIVER'];\n    const storageRoot = env['STORAGE_' + loc + '_ROOT'] ?? '';\n    const sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? ''))).split(path.sep).join('/');\n    const normalizedFilePath = sanitize(filepath);\n    const filePath = driver === 'local' ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;\n    const extensionPath = sanitize(env['EXTENSIONS_PATH'] ?? './extensions');\n    const blocked = (base) => base && (filePath === base || filePath.startsWith(base + '/'));\n    if (env['EXTENSIONS_LOCATION'] && env['EXTENSIONS_LOCATION'] === location && blocked(extensionPath)) throw new ForbiddenError();\n    if (driver === 'local') {\n        const tmpPath = sanitize(env['TEMP_PATH'] ?? './temp');\n        if (blocked(extensionPath) || blocked(tmpPath)) throw new ForbiddenError();\n    }\n}\nexport class FilesService extends ItemsService {"
-    - from: "        if (!data.type) {\n            throw new InvalidPayloadError({ reason: `\"type\" is required` });\n        }\n        const key = await super.createOne(data, opts);"
-      to: "        if (!data.type) {\n            throw new InvalidPayloadError({ reason: `\"type\" is required` });\n        }\n        assertValidStoragePath(data.filename_disk, data.storage);\n        const key = await super.createOne(data, opts);"
+    - from: |-
+        const env = useEnv();
+        const logger = useLogger();
+        export class FilesService extends ItemsService {
+      to: |-
+        const env = useEnv();
+        const logger = useLogger();
+        function assertValidStoragePath(filepath, storage) {
+            if (!filepath) return;
+            const location = storage || toArray(env['STORAGE_LOCATIONS'])[0];
+            if (!location) return;
+            const loc = String(location).toUpperCase();
+            const driver = env['STORAGE_' + loc + '_DRIVER'];
+            const storageRoot = env['STORAGE_' + loc + '_ROOT'] ?? '';
+            const sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? ''))).split(path.sep).join('/');
+            const normalizedFilePath = sanitize(filepath);
+            const filePath = driver === 'local' ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;
+            const extensionPath = sanitize(env['EXTENSIONS_PATH'] ?? './extensions');
+            const resolvedPath = path.resolve(String(storageRoot || '.'), normalizedFilePath);
+            const inside = (base) => { const root = path.resolve(String(base)); return resolvedPath === root || resolvedPath.startsWith(root + path.sep); };
+            if (driver === 'local' && (inside(env['EXTENSIONS_PATH'] ?? './extensions') || inside(env['TEMP_PATH'] ?? './temp'))) throw new ForbiddenError();
+            const blocked = (base) => base && (filePath === base || filePath.startsWith(base + '/'));
+            if (env['EXTENSIONS_LOCATION'] && env['EXTENSIONS_LOCATION'] === location && blocked(extensionPath)) throw new ForbiddenError();
+            if (driver === 'local') {
+                const tmpPath = sanitize(env['TEMP_PATH'] ?? './temp');
+                if (blocked(extensionPath) || blocked(tmpPath)) throw new ForbiddenError();
+            }
+        }
+        export class FilesService extends ItemsService {
+    - from: |2-
+                if (!data.type) {
+                    throw new InvalidPayloadError({ reason: `"type" is required` });
+                }
+                const key = await super.createOne(data, opts);
+      to: |2-
+                if (!data.type) {
+                    throw new InvalidPayloadError({ reason: `"type" is required` });
+                }
+                assertValidStoragePath(data.filename_disk, data.storage);
+                const key = await super.createOne(data, opts);
     - from: "        payload.filename_disk ||= primaryKey + (fileExtension || '');"
-      to: "        payload.filename_disk ||= primaryKey + (fileExtension || '');\n        assertValidStoragePath(payload.filename_disk, payload.storage);"
+      to: |2-
+                payload.filename_disk ||= primaryKey + (fileExtension || '');
+                assertValidStoragePath(payload.filename_disk, payload.storage);
 - file: "@directus/api/dist/services/tus/data-store.js"
-  before_sha256: "564db23c41cda2e1d7fb4930ca36fdd283e1e0ec5795595b4f96759f6a827375"
-  after_sha256: "457a96466e82b73402587c842a05bd69c13f0f3f65273a9995244a1c861835ff"
+  before_sha256: 564db23c41cda2e1d7fb4930ca36fdd283e1e0ec5795595b4f96759f6a827375
+  after_sha256: c7295ada8fc62b9385714fce52cb31e23d1b4fb26e2683bb2d97377f730d0dd1
   replace:
-    - from: "import { extname } from 'node:path';"
-      to: "import path, { extname } from 'node:path';\nimport { useEnv } from '@directus/env';\nimport { toArray } from '@directus/utils';"
-    - from: "export class TusDataStore extends DataStore {"
-      to: "const env = useEnv();\nfunction assertValidStoragePath(filepath, storage) {\n    if (!filepath) return;\n    const location = storage || toArray(env['STORAGE_LOCATIONS'])[0];\n    if (!location) return;\n    const loc = String(location).toUpperCase();\n    const driver = env['STORAGE_' + loc + '_DRIVER'];\n    const storageRoot = env['STORAGE_' + loc + '_ROOT'] ?? '';\n    const sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? ''))).split(path.sep).join('/');\n    const normalizedFilePath = sanitize(filepath);\n    const filePath = driver === 'local' ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;\n    const extensionPath = sanitize(env['EXTENSIONS_PATH'] ?? './extensions');\n    const blocked = (base) => base && (filePath === base || filePath.startsWith(base + '/'));\n    if (env['EXTENSIONS_LOCATION'] && env['EXTENSIONS_LOCATION'] === location && blocked(extensionPath)) throw ERRORS.INVALID_METADATA;\n    if (driver === 'local') {\n        const tmpPath = sanitize(env['TEMP_PATH'] ?? './temp');\n        if (blocked(extensionPath) || blocked(tmpPath)) throw ERRORS.INVALID_METADATA;\n    }\n}\nexport class TusDataStore extends DataStore {"
+    - from: import { extname } from 'node:path';
+      to: |-
+        import path, { extname } from 'node:path';
+        import { useEnv } from '@directus/env';
+        import { toArray } from '@directus/utils';
+    - from: export class TusDataStore extends DataStore {
+      to: |-
+        const env = useEnv();
+        function assertValidStoragePath(filepath, storage) {
+            if (!filepath) return;
+            const location = storage || toArray(env['STORAGE_LOCATIONS'])[0];
+            if (!location) return;
+            const loc = String(location).toUpperCase();
+            const driver = env['STORAGE_' + loc + '_DRIVER'];
+            const storageRoot = env['STORAGE_' + loc + '_ROOT'] ?? '';
+            const sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? ''))).split(path.sep).join('/');
+            const normalizedFilePath = sanitize(filepath);
+            const filePath = driver === 'local' ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;
+            const extensionPath = sanitize(env['EXTENSIONS_PATH'] ?? './extensions');
+            const resolvedPath = path.resolve(String(storageRoot || '.'), normalizedFilePath);
+            const inside = (base) => { const root = path.resolve(String(base)); return resolvedPath === root || resolvedPath.startsWith(root + path.sep); };
+            if (driver === 'local' && (inside(env['EXTENSIONS_PATH'] ?? './extensions') || inside(env['TEMP_PATH'] ?? './temp'))) throw ERRORS.INVALID_METADATA;
+            const blocked = (base) => base && (filePath === base || filePath.startsWith(base + '/'));
+            if (env['EXTENSIONS_LOCATION'] && env['EXTENSIONS_LOCATION'] === location && blocked(extensionPath)) throw ERRORS.INVALID_METADATA;
+            if (driver === 'local') {
+                const tmpPath = sanitize(env['TEMP_PATH'] ?? './temp');
+                if (blocked(extensionPath) || blocked(tmpPath)) throw ERRORS.INVALID_METADATA;
+            }
+        }
+        export class TusDataStore extends DataStore {
     - from: "        fileData.filename_disk ||= primaryKey + (fileExtension || '');"
-      to: "        fileData.filename_disk ||= primaryKey + (fileExtension || '');\n        assertValidStoragePath(fileData.filename_disk, this.location);"
+      to: |2-
+                fileData.filename_disk ||= primaryKey + (fileExtension || '');
+                assertValidStoragePath(fileData.filename_disk, this.location);

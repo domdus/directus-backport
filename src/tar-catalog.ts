@@ -2,7 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { gunzipSync } from "node:zlib";
 
-const ALLOWED = /\.(yml|yaml|md|patch|txt)$/i;
+import { isSignableCatalogFile, MANIFEST_FILE, SIGNATURE_FILE } from "./trust.js";
+
 const MAX_FILE = 2 * 1024 * 1024;
 const MAX_TOTAL = 20 * 1024 * 1024;
 
@@ -25,15 +26,15 @@ export function catalogRelFromTarPath(entry: string): string | null {
 	const rest = parts.slice(idx + 1);
 	if (rest.length === 0) return null;
 	const file = rest.join("/");
-	if (!ALLOWED.test(file)) return null;
-	return file;
+	if (file === MANIFEST_FILE || file === SIGNATURE_FILE) return file;
+	return isSignableCatalogFile(file) ? file : null;
 }
 
 /**
  * Extract `catalog/**` from a GitHub-style gzip tarball into dest (the catalog root).
  */
 export function extractCatalogTarGz(archive: Buffer, dest: string): { files: string[] } {
-	const unzipped = gunzipSync(archive);
+	const unzipped = gunzipSync(archive, { maxOutputLength: MAX_TOTAL * 4 });
 	const files: string[] = [];
 	let offset = 0;
 	let total = 0;

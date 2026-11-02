@@ -157,8 +157,17 @@ export function detectInstall(start?: string): DirectusInstall {
  * Resolve a catalog path like `@directus/api/dist/foo.js` through pnpm symlinks.
  */
 export function resolveNodeFile(nodeModules: string, rel: string): string {
+	const inside = (file: string): string => {
+		const base = fs.realpathSync(nodeModules);
+		const real = fs.realpathSync(file);
+		if (real !== base && !real.startsWith(base + path.sep)) {
+			throw new Error(`Refusing patch path outside node_modules: ${rel}`);
+		}
+		return real;
+	};
+
 	const direct = path.join(nodeModules, rel);
-	if (fs.existsSync(direct)) return fs.realpathSync(direct);
+	if (fs.existsSync(direct)) return inside(direct);
 
 	const parts = rel.split(/[/\\]/);
 	const scoped = parts[0]?.startsWith("@") ? `${parts[0]}/${parts[1]}` : parts[0];
@@ -169,7 +178,7 @@ export function resolveNodeFile(nodeModules: string, rel: string): string {
 		const pkgRoot = fs.realpathSync(path.dirname(pkgJson));
 		const rest = rel.slice(scoped.length).replace(/^[/\\]/, "");
 		const file = path.join(pkgRoot, rest);
-		if (fs.existsSync(file)) return fs.realpathSync(file);
+		if (fs.existsSync(file)) return inside(file);
 	}
 
 	throw new Error(`Could not resolve ${rel} under ${nodeModules}`);

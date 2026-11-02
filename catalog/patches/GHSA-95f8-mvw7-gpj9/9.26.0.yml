@@ -1,8 +1,42 @@
 - file: "@directus/api/dist/services/files.js"
-  before_sha256: "f382bafbdc5c174ca2a420fef0e1dcacbb1653861384890faf3604e43e880eb5"
-  after_sha256: "4cd935fc7b55d709e62123c87c256fba7948f4c2376ebb2ac43bf24c3a77a9b7"
+  before_sha256: f382bafbdc5c174ca2a420fef0e1dcacbb1653861384890faf3604e43e880eb5
+  after_sha256: 3a18ceb76fa225d4b3611f89a82581cc74cdb9442c75fc632ef543d4ff018b1e
   replace:
-    - from: "import { ItemsService } from './items.js';\nexport class FilesService extends ItemsService {"
-      to: "import { ItemsService } from './items.js';\nfunction assertValidStoragePath(filepath, storage) {\n    if (!filepath) return;\n    const location = storage || toArray(env['STORAGE_LOCATIONS'])[0];\n    if (!location) return;\n    const loc = String(location).toUpperCase();\n    const driver = env['STORAGE_' + loc + '_DRIVER'];\n    const storageRoot = env['STORAGE_' + loc + '_ROOT'] ?? '';\n    const sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? ''))).split(path.sep).join('/');\n    const normalizedFilePath = sanitize(filepath);\n    const filePath = driver === 'local' ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;\n    const extensionPath = sanitize(env['EXTENSIONS_PATH'] ?? './extensions');\n    const blocked = (base) => base && (filePath === base || filePath.startsWith(base + '/'));\n    if (env['EXTENSIONS_LOCATION'] && env['EXTENSIONS_LOCATION'] === location && blocked(extensionPath)) throw new ForbiddenException();\n    if (driver === 'local') {\n        const tmpPath = sanitize(env['TEMP_PATH'] ?? './temp');\n        if (blocked(extensionPath) || blocked(tmpPath)) throw new ForbiddenException();\n    }\n}\nexport class FilesService extends ItemsService {"
-    - from: "        if (!data.type) {\n            throw new InvalidPayloadException(`\"type\" is required`);\n        }\n        const key = await super.createOne(data, opts);"
-      to: "        if (!data.type) {\n            throw new InvalidPayloadException(`\"type\" is required`);\n        }\n        assertValidStoragePath(data.filename_disk, data.storage);\n        const key = await super.createOne(data, opts);"
+    - from: |-
+        import { ItemsService } from './items.js';
+        export class FilesService extends ItemsService {
+      to: |-
+        import { ItemsService } from './items.js';
+        function assertValidStoragePath(filepath, storage) {
+            if (!filepath) return;
+            const location = storage || toArray(env['STORAGE_LOCATIONS'])[0];
+            if (!location) return;
+            const loc = String(location).toUpperCase();
+            const driver = env['STORAGE_' + loc + '_DRIVER'];
+            const storageRoot = env['STORAGE_' + loc + '_ROOT'] ?? '';
+            const sanitize = (p) => path.relative(path.sep, path.resolve(path.sep, String(p ?? ''))).split(path.sep).join('/');
+            const normalizedFilePath = sanitize(filepath);
+            const filePath = driver === 'local' ? sanitize(path.join(String(storageRoot), normalizedFilePath)) : normalizedFilePath;
+            const extensionPath = sanitize(env['EXTENSIONS_PATH'] ?? './extensions');
+            const resolvedPath = path.resolve(String(storageRoot || '.'), normalizedFilePath);
+            const inside = (base) => { const root = path.resolve(String(base)); return resolvedPath === root || resolvedPath.startsWith(root + path.sep); };
+            if (driver === 'local' && (inside(env['EXTENSIONS_PATH'] ?? './extensions') || inside(env['TEMP_PATH'] ?? './temp'))) throw new ForbiddenException();
+            const blocked = (base) => base && (filePath === base || filePath.startsWith(base + '/'));
+            if (env['EXTENSIONS_LOCATION'] && env['EXTENSIONS_LOCATION'] === location && blocked(extensionPath)) throw new ForbiddenException();
+            if (driver === 'local') {
+                const tmpPath = sanitize(env['TEMP_PATH'] ?? './temp');
+                if (blocked(extensionPath) || blocked(tmpPath)) throw new ForbiddenException();
+            }
+        }
+        export class FilesService extends ItemsService {
+    - from: |2-
+                if (!data.type) {
+                    throw new InvalidPayloadException(`"type" is required`);
+                }
+                const key = await super.createOne(data, opts);
+      to: |2-
+                if (!data.type) {
+                    throw new InvalidPayloadException(`"type" is required`);
+                }
+                assertValidStoragePath(data.filename_disk, data.storage);
+                const key = await super.createOne(data, opts);

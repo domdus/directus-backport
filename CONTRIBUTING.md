@@ -19,10 +19,19 @@ the advisory `already-fixed` and delete the overlay.
 1. One GHSA per folder: `catalog/patches/GHSA-xxxx-xxxx-xxxx/`
 2. Pin `before_sha256` / `after_sha256` to the exact Directus version tested
    (`targets.yml` for 11.17.4, `10.13.4.yml` for 10.13.4, `9.26.0.yml` for 9.26.0).
-3. New overlays start as `experimental`. Promote to `stable` only after a real
-   install survived restart + smoke login.
+   Both are measured against the untouched published file, even when several
+   advisories patch the same file. `after_sha256` is that file plus this patch only.
+3. New overlays start as `experimental`. Promote to `stable` per pin, with
+   `port.pins: { "11.17.4": stable }` in `advisories.yml`, only when the issue
+   reproduced on the stock pin, the same attempt is blocked once patched, and
+   legitimate use of that feature matches stock. Record it in
+   [catalog/VERIFICATION.md](catalog/VERIFICATION.md).
 4. Security stopgaps only — no license-enforcement changes.
-5. No exploits or PoC payloads. Link the GitHub advisory.
+5. No exploits or PoC payloads in this repo. Link the GitHub advisory. Keep any
+   proof scripts outside the repo and record only the result.
+6. Read the whole advisory and test its actual attack path. A port that fits the
+   patch's own logic can still miss it, and a patch that loads can still fail at
+   runtime on a version with different dependencies.
 
 ## When a new 12.x advisory lands
 
@@ -52,13 +61,27 @@ port:
           to: "ported snippet"
 ```
 
-5. Flip that GHSA to `experimental`. Run `npm test`. Verify apply + restart +
-   rollback on the playground. Push `catalog/` to GitHub so hosts can refresh.
+5. Flip that GHSA to `experimental`. Run `npm test` and `npm run verify:catalog`.
+   Verify apply + restart + rollback on the playground, and compare before and
+   after with `node scripts/smoke.mjs <url> <admin-email> <admin-password>`. A patch
+   can parse, load, and answer `/server/ping` while breaking a feature.
+6. Sign on a trusted machine, then push `catalog/` to GitHub so hosts can refresh:
 
-`replace` is preferred for tiny ports. Use `diff_file: change.patch` for larger ones.
+```bash
+DIRECTUS_BACKPORT_SIGNING_KEY=~/.config/directus-backport/catalog-signing.pem npm run sign:catalog
+```
+
+The private key never goes to GitHub, not even as a CI secret. Otherwise a stolen
+GitHub account could ship code to every host. Without a new signature, hosts refuse
+the catalog and CI fails. To rotate the key, add the new public key to
+`TRUSTED_KEYS` in `src/trust.ts`, release, and remove the old one a release later.
+
+`replace` is required for anything that shares a file with another advisory, and
+for rollback without a snapshot. `diff_file: change.patch` only applies to the exact
+pinned file. Targets must be `dist` files of an `@directus/*` package.
 
 ## Why checksums refuse to apply
 
-If the file bytes are not exactly the tree we tested, the CLI rolls back and
-does nothing. That keeps this from becoming a silent distro of “whatever version
+The CLI takes known catalog patches out of the file in memory and hashes what is
+left. If that is not exactly the tree we tested, it refuses and writes nothing. That keeps this from becoming a silent distro of “whatever version
 you happen to have”.

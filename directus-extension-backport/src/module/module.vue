@@ -135,6 +135,35 @@
 					Last apply failed its health check. Rollback now if Studio is flaky.
 				</v-notice>
 
+				<v-notice v-if="report.last?.error" type="danger" class="notice">
+					Last {{ report.last.action }}: {{ report.last.error }}
+				</v-notice>
+
+				<v-notice v-if="report.catalogRemote?.signature && !report.catalogRemote.signature.verified" type="danger" class="notice">
+					The downloaded catalog failed its signature check, so nothing can be applied from it.
+					{{ report.catalogRemote.signature.error }} Use Check for Updates to fetch a signed copy.
+				</v-notice>
+
+				<v-notice v-if="report.unprotected?.length" type="danger" class="notice">
+					Not protected: {{ report.unprotected.join(', ') }} {{ report.unprotected.length === 1 ? 'is' : 'are' }}
+					kept in <code>desired.json</code> but not in the files Directus is running.
+				</v-notice>
+
+				<v-notice v-for="item in report.lastReapply?.failed ?? []" :key="item.id" type="danger" class="notice">
+					Boot re-apply failed for {{ item.id }}: {{ item.error }}
+				</v-notice>
+
+				<v-notice v-if="report.drift?.untracked?.length" type="warning" class="notice">
+					Found in the files without a record: {{ report.drift.untracked.join(', ') }}. They show as applied.
+					There is no snapshot for them, so rollback undoes them from the catalog.
+				</v-notice>
+
+				<v-notice v-if="(report.workers ?? 1) > 1" type="warning" class="notice">
+					This process is one of {{ report.workers }} workers. Apply restarts only this one, so restart the others
+					too. Replicas each have their own <code>node_modules</code>: they pick fixes up from
+					<code>desired.json</code> on their next boot if they share the extensions folder.
+				</v-notice>
+
 				<v-notice v-if="!canWrite" type="warning" class="notice">
 					This process cannot write <code>node_modules</code>
 					<template v-if="report.write?.reason"> — {{ report.write.reason }}</template>.
@@ -320,6 +349,7 @@ type Advisory = {
 	affects: string;
 	upstreamPatched: string;
 	port: { status: string; risk: string; notes?: string };
+	changes?: { file: string; replace: { from: string; to: string }[] }[];
 };
 
 type AppliedAdvisory = Advisory & {
@@ -331,7 +361,7 @@ type Report = {
 	install: { version: string; root: string; nodeModules: string };
 	catalogMissing?: boolean;
 	counts: { open: number; ready: number; waiting: number; alreadyFixed: number; applied: number };
-	last?: { action: string; health: string };
+	last?: { action: string; health: string; error?: string };
 	applied: { id: string }[];
 	appliedCatalog?: AppliedAdvisory[];
 	lastApplyIds?: string[];
@@ -344,6 +374,10 @@ type Report = {
 	write?: { writable: boolean; snapshotWritable: boolean; nodeModulesWritable: boolean; reason?: string };
 	desired?: { version: string; ids: string[]; updated: string };
 	desiredFile?: string;
+	drift?: { missing: string[]; untracked: string[]; unverified: string[] };
+	unprotected?: string[];
+	lastReapply?: { failed: { id: string; error: string }[] };
+	workers?: number;
 	catalogRemote?: {
 		configured: boolean;
 		github: string | null;
@@ -351,6 +385,7 @@ type Report = {
 		using: string;
 		fetchedAt: string | null;
 		advisories: string | null;
+		signature?: { verified: boolean; key?: string; error?: string } | null;
 	};
 };
 
@@ -371,6 +406,9 @@ const confirmApply = ref(false);
 const confirmRollback = ref(false);
 const pendingRollbackAll = ref(false);
 const rollbackHint = ref('directus-backport rollback');
+const pendingApplyItems = computed(() =>
+	(report.value?.ready ?? []).filter((item) => pendingApplyIds.value.includes(item.id)),
+);
 const canWrite = computed(() => report.value?.write?.writable !== false);
 const appliedList = computed(() => report.value?.appliedCatalog ?? []);
 const lastApplyId = computed(() => report.value?.lastApplyIds?.[0] || '');
@@ -391,7 +429,8 @@ const catalogLine = computed(() => {
 	if (!remote) return '';
 	const origin = remote.configured ? `${remote.github}@${remote.ref}` : 'GitHub';
 	if (remote.using === 'remote' && remote.fetchedAt) {
-		return `Using GitHub ${origin} (fetched ${remote.fetchedAt}).`;
+		const signed = remote.signature?.verified ? `signature verified, key ${remote.signature.key}` : 'signature NOT valid';
+		return `Using GitHub ${origin} (fetched ${remote.fetchedAt}, ${signed}).`;
 	}
 	if (remote.using === 'bundled') {
 		return `Using a catalog bundled with this install. Check for Updates pulls GitHub ${origin}.`;
@@ -426,8 +465,8 @@ const restartDetail = computed(() => {
 	switch (restartPhase.value) {
 		case 'applying':
 			return restartKind.value === 'rollback'
-				? 'Copying the pre-patch files back, then exiting the Node process.'
-				: 'Writing the snapshot and patched files, then exiting the Node process.';
+				? 'Copying the pre-patch files back, then shutting down the Node process.'
+				: 'Writing the snapshot and patched files, test-loading them, then shutting down the Node process.';
 		case 'waiting':
 			return 'This Node process is exiting so the patched files can load. Start Directus again if nothing is supervising it. This page reloads when /server/ping returns pong.';
 		case 'reloading':
@@ -509,7 +548,7 @@ async function refreshCatalog() {
 		const { data } = await api.post('/backport/catalog/refresh');
 		notice.value = {
 			type: 'success',
-			text: `Catalog updated from ${data.data.github}@${data.data.ref} (${data.data.files} files). Nothing was applied.`,
+			text: `Catalog updated from ${data.data.github}@${data.data.ref} (${data.data.files} files, signature verified). Nothing was applied.`,
 		};
 		await load();
 	} catch (err: any) {
@@ -905,5 +944,39 @@ onUnmounted(() => {
 .dialog-actions :deep(button) {
 	width: 100%;
 	justify-content: center;
+}
+
+.review {
+	margin-top: 12px;
+}
+
+.review summary {
+	cursor: pointer;
+	font-weight: 600;
+}
+
+.review-item {
+	margin-top: 12px;
+}
+
+.review-diff {
+	max-height: 240px;
+	margin: 4px 0;
+	padding: 8px;
+	overflow: auto;
+	font-family: var(--theme--fonts--monospace--font-family);
+	font-size: 12px;
+	white-space: pre;
+	border-radius: var(--theme--border-radius);
+}
+
+.review-from {
+	color: var(--theme--danger);
+	background: var(--theme--danger-background);
+}
+
+.review-to {
+	color: var(--theme--success);
+	background: var(--theme--success-background);
 }
 </style>

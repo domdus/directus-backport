@@ -1,6 +1,39 @@
 - file: "@directus/api/dist/services/graphql/index.js"
-  before_sha256: "34cd783f5072751b29a9097b60c4a585e21d77601d98a0f828f71b90f377e204"
-  after_sha256: "746f9a042266bfe680e0161ff556bc96a418e9632f6bd3dc12631f801b5ba0ca"
+  before_sha256: 34cd783f5072751b29a9097b60c4a585e21d77601d98a0f828f71b90f377e204
+  after_sha256: 02fd6b57b6e4af69b94fc2b13f15fc6b94ae1cc2a9d8d786e975989cea75bb72
   replace:
-    - from: "const validationRules = Array.from(specifiedRules);\nif (env['GRAPHQL_INTROSPECTION'] === false) {\n    validationRules.push(NoSchemaIntrospectionCustomRule);\n}"
-      to: "const validationRules = Array.from(specifiedRules);\nif (env['GRAPHQL_INTROSPECTION'] === false) {\n    validationRules.push(NoSchemaIntrospectionCustomRule);\n}\nconst sensitiveMutations = new Set(['users_register', 'users_invite', 'auth_login', 'auth_password_request', 'auth_password_reset', 'users_me_tfa_enable', 'users_me_tfa_disable', 'users_me_tfa_generate']);\nvalidationRules.push((context) => {\n    const counts = new Map();\n    return {\n        Field(node) {\n            if (context.getOperation()?.operation !== 'mutation')\n                return;\n            const name = node.name.value;\n            if (!sensitiveMutations.has(name) && !name.includes('users_register') && !name.includes('password') && !name.includes('invite') && !name.includes('tfa'))\n                return;\n            const n = (counts.get(name) ?? 0) + 1;\n            counts.set(name, n);\n            if (n > 1)\n                context.reportError(new GraphQLError(`\"${name}\" can only be used once per request`));\n        },\n    };\n});"
+    - from: |-
+        const validationRules = Array.from(specifiedRules);
+        if (env['GRAPHQL_INTROSPECTION'] === false) {
+            validationRules.push(NoSchemaIntrospectionCustomRule);
+        }
+      to: |-
+        const validationRules = Array.from(specifiedRules);
+        if (env['GRAPHQL_INTROSPECTION'] === false) {
+            validationRules.push(NoSchemaIntrospectionCustomRule);
+        }
+        const sensitiveMutations = new Set(['users_register', 'users_invite', 'users_register_verify_email', 'auth_login', 'auth_password_request', 'auth_password_reset', 'users_me_tfa_enable', 'users_me_tfa_disable', 'users_me_tfa_generate']);
+        validationRules.push((context) => {
+            const counts = new Map();
+            const onMutationRoot = () => {
+                const mutationType = context.getSchema().getMutationType();
+                return Boolean(mutationType) && context.getParentType() === mutationType;
+            };
+            const count = (key, label) => {
+                const n = (counts.get(key) ?? 0) + 1;
+                counts.set(key, n);
+                if (n > 1) context.reportError(new GraphQLError(`"${label}" can only be used once per request`));
+            };
+            return {
+                Field(node) {
+                    if (!onMutationRoot()) return;
+                    const name = node.name.value;
+                    if (!sensitiveMutations.has(name) && !name.includes('users_register') && !name.includes('password') && !name.includes('invite') && !name.includes('tfa')) return;
+                    count(name, name);
+                },
+                // A repeated fragment would multiply its fields without visiting them twice.
+                FragmentSpread(node) {
+                    if (onMutationRoot()) count(`...${node.name.value}`, `...${node.name.value}`);
+                },
+            };
+        });

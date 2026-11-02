@@ -1,10 +1,80 @@
 - file: "@directus/api/dist/services/files.js"
-  before_sha256: "f382bafbdc5c174ca2a420fef0e1dcacbb1653861384890faf3604e43e880eb5"
-  after_sha256: "3b4e24442616a391cfaa57cfc3303d9422e866f9ad3b4484ce0c113382c16202"
+  before_sha256: f382bafbdc5c174ca2a420fef0e1dcacbb1653861384890faf3604e43e880eb5
+  after_sha256: 3b4e24442616a391cfaa57cfc3303d9422e866f9ad3b4484ce0c113382c16202
   replace:
-    - from: "import { ItemsService } from './items.js';"
-      to: "import { AuthorizationService } from './authorization.js';\nimport { ItemsService } from './items.js';"
-    - from: "    async uploadOne(stream, data, primaryKey, opts) {\n        const storage = await getStorage();"
-      to: "    async uploadOne(stream, data, primaryKey, opts) {\n        if (this.accountability && this.accountability.admin !== true) {\n            if (primaryKey !== undefined) {\n                const authorizationService = new AuthorizationService({\n                    accountability: this.accountability,\n                    knex: this.knex,\n                    schema: this.schema,\n                });\n                await authorizationService.checkAccess('update', 'directus_files', primaryKey);\n            }\n            else {\n                const fileCreatePermissions = this.accountability?.permissions?.find((permission) => permission.collection === 'directus_files' && permission.action === 'create');\n                if (!fileCreatePermissions)\n                    throw new ForbiddenException();\n            }\n        }\n        const storage = await getStorage();"
-    - from: "    async createOne(data, opts) {\n        if (!data.type) {\n            throw new InvalidPayloadException(`\"type\" is required`);\n        }"
-      to: "    async createOne(data, opts) {\n        if (this.accountability && this.accountability.admin !== true) {\n            const fileCreatePermissions = this.accountability?.permissions?.find((permission) => permission.collection === 'directus_files' && permission.action === 'create');\n            if (!fileCreatePermissions)\n                throw new ForbiddenException();\n        }\n        if (!data.type) {\n            throw new InvalidPayloadException(`\"type\" is required`);\n        }"
+    - from: import { ItemsService } from './items.js';
+      to: |-
+        import { AuthorizationService } from './authorization.js';
+        import { ItemsService } from './items.js';
+    - from: |2-
+            async uploadOne(stream, data, primaryKey, opts) {
+                const storage = await getStorage();
+      to: |2-
+            async uploadOne(stream, data, primaryKey, opts) {
+                if (this.accountability && this.accountability.admin !== true) {
+                    if (primaryKey !== undefined) {
+                        const authorizationService = new AuthorizationService({
+                            accountability: this.accountability,
+                            knex: this.knex,
+                            schema: this.schema,
+                        });
+                        await authorizationService.checkAccess('update', 'directus_files', primaryKey);
+                    }
+                    else {
+                        const fileCreatePermissions = this.accountability?.permissions?.find((permission) => permission.collection === 'directus_files' && permission.action === 'create');
+                        if (!fileCreatePermissions)
+                            throw new ForbiddenException();
+                    }
+                }
+                const storage = await getStorage();
+    - from: |2-
+            async createOne(data, opts) {
+                if (!data.type) {
+                    throw new InvalidPayloadException(`"type" is required`);
+                }
+      to: |2-
+            async createOne(data, opts) {
+                if (this.accountability && this.accountability.admin !== true) {
+                    const fileCreatePermissions = this.accountability?.permissions?.find((permission) => permission.collection === 'directus_files' && permission.action === 'create');
+                    if (!fileCreatePermissions)
+                        throw new ForbiddenException();
+                }
+                if (!data.type) {
+                    throw new InvalidPayloadException(`"type" is required`);
+                }
+- file: "@directus/api/dist/services/flows.js"
+  before_sha256: d7ee7a86c3d69b689593813e2b9b0efd45a44844fd646530b3c2b033f13b8a1b
+  after_sha256: af69b35a13ae94cf895dace8bcea2beeb1fe2efdfb2b659f40ea0f95769cb4cb
+  replace:
+    - from: import { ItemsService } from './items.js';
+      to: |-
+        import { AuthorizationService } from './authorization.js';
+        import { ItemsService } from './items.js';
+    - from: |2-
+            async deleteMany(keys, opts) {
+                const flowManager = getFlowManager();
+      to: |2-
+            async deleteMany(keys, opts) {
+                if (this.accountability) {
+                    await new AuthorizationService({ accountability: this.accountability, knex: this.knex, schema: this.schema }).checkAccess('delete', 'directus_flows', keys);
+                }
+                const flowManager = getFlowManager();
+- file: "@directus/api/dist/services/users.js"
+  before_sha256: d4629f762f979062842c99f41b16834548309d7bd2d9a1047f37ddbd692893b8
+  after_sha256: 3bb7a760f5c600a981b0dab05527eb5121cdb348631551628f29d9ff7de66ae5
+  replace:
+    - from: import { ItemsService } from './items.js';
+      to: |-
+        import { AuthorizationService } from './authorization.js';
+        import { ItemsService } from './items.js';
+    - from: |2-
+            async deleteMany(keys, opts) {
+                try {
+                    await this.checkRemainingAdminExistence(keys);
+      to: |2-
+            async deleteMany(keys, opts) {
+                if (this.accountability) {
+                    await new AuthorizationService({ accountability: this.accountability, knex: this.knex, schema: this.schema }).checkAccess('delete', 'directus_users', keys);
+                }
+                try {
+                    await this.checkRemainingAdminExistence(keys);

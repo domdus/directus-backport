@@ -1,6 +1,26 @@
 - file: "@directus/api/dist/services/tus/data-store.js"
-  before_sha256: "564db23c41cda2e1d7fb4930ca36fdd283e1e0ec5795595b4f96759f6a827375"
-  after_sha256: "5879d35e2484ea2a335f0da61970a5a5564496c38f7ea2d227197fdf99c0adb3"
+  before_sha256: 564db23c41cda2e1d7fb4930ca36fdd283e1e0ec5795595b4f96759f6a827375
+  after_sha256: 7d687dc3b25cb43e587d48bf4d1b721fd7472950a90ac755e7f6632cf995d134
   replace:
-    - from: "        // If this is a new file upload, we need to generate a new primary key and DB record\n        const primaryKey = await itemsService.createOne(fileData, { emitEvents: false });\n        // Set the file id, so it is available to be sent as a header on upload creation / resume\n        if (!upload.metadata['id']) {\n            upload.metadata['id'] = primaryKey;\n        }"
-      to: "        if (existingFile && upload.metadata['id']) {\n            await itemsService.readOne(upload.metadata['id']);\n        }\n        // If this is a new file upload, we need to generate a new primary key and DB record\n        const primaryKey = await itemsService.createOne(fileData, { emitEvents: false });\n        // Set the file id, so it is available to be sent as a header on upload creation / resume\n        if (!existingFile) {\n            upload.metadata['id'] = primaryKey;\n        }"
+    - from: |2-
+                // If this is a new file upload, we need to generate a new primary key and DB record
+                const primaryKey = await itemsService.createOne(fileData, { emitEvents: false });
+                // Set the file id, so it is available to be sent as a header on upload creation / resume
+                if (!upload.metadata['id']) {
+                    upload.metadata['id'] = primaryKey;
+                }
+      to: |2-
+                if (existingFile && upload.metadata['id']) {
+                    await itemsService.readOne(upload.metadata['id']);
+                }
+                // If this is a new file upload, we need to generate a new primary key and DB record
+                const primaryKey = await itemsService.createOne(fileData, { emitEvents: false });
+                // Set the file id, so it is available to be sent as a header on upload creation / resume
+                if (!existingFile) {
+                    upload.metadata['id'] = primaryKey;
+                }
+    - from: |2
+                let existingFile = null;
+      to: |2
+                delete upload.metadata['replace_id'];
+                let existingFile = null;

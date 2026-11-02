@@ -5,7 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import { describe, it } from "node:test";
 import { stringify as stringifyYaml } from "yaml";
-import { loadCatalog, partitionAdvisories } from "../src/catalog.js";
+import { loadCatalog, partitionAdvisories, statusForVersion } from "../src/catalog.js";
 import { detectInstall } from "../src/detect.js";
 import { applyPatches, ensureDesiredApplied, rollbackAdvisory, rollbackAll, rollbackLast, statusReport } from "../src/engine.js";
 import { probeWriteAccess } from "../src/writable.js";
@@ -138,6 +138,20 @@ describe("bundled catalog", () => {
 	});
 });
 
+describe("verified status", () => {
+	it("marks a port stable only where it was proven", () => {
+		const catalog = loadCatalog(path.join(findPackageRoot(), "catalog"));
+		const stable = (version: string) =>
+			partitionAdvisories(catalog, version).ready.filter((a) => statusForVersion(a, version) === "stable").length;
+		assert.equal(stable("11.17.4"), 26);
+		assert.equal(stable("10.13.4"), 18);
+		assert.equal(stable("9.26.0"), 19);
+		const item = catalog.advisories.find((a) => a.id === "GHSA-97xr-jchp-xm3c")!;
+		assert.equal(statusForVersion(item, "11.17.4"), "stable");
+		assert.equal(statusForVersion(item, "10.13.4"), "experimental");
+	});
+});
+
 describe("apply / rollback", () => {
 	it("detects a fake Directus install", () => {
 		const { root, target } = makeInstall();
@@ -236,6 +250,7 @@ describe("apply / rollback", () => {
 			{
 				ids: ["GHSA-test-0000-0000"],
 				healthUrl: "http://127.0.0.1:1/server/ping",
+				restartCmd: "true",
 				healthTimeoutMs: 200,
 				rollbackOnFail: true,
 			},
@@ -260,6 +275,7 @@ describe("apply / rollback", () => {
 				{
 					ids: ["GHSA-test-0000-0000"],
 					healthUrl: server.url,
+					restartCmd: "true",
 					healthTimeoutMs: 5000,
 					rollbackOnFail: true,
 				},
@@ -395,7 +411,7 @@ describe("apply / rollback", () => {
 							targets: [
 								{
 									file: "@directus/api/dist/demo.js",
-									before_sha256: sha256("ALPHA bravo charlie\n"),
+									before_sha256: sha256(vanilla),
 									replace: [{ from: "bravo", to: "BRAVO" }],
 								},
 							],
@@ -458,7 +474,7 @@ describe("apply / rollback", () => {
 							targets: [
 								{
 									file: "@directus/api/dist/demo.js",
-									before_sha256: sha256("ALPHA bravo charlie\n"),
+									before_sha256: sha256(vanilla),
 									replace: [{ from: "bravo", to: "BRAVO" }],
 								},
 							],

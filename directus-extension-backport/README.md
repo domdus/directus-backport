@@ -18,11 +18,19 @@ that install.
 
 Applied GHSAs are stored in `desired.json` next to this extension. After
 `node_modules` is reset, a boot hook re-applies them and exits once so the
-process can reload. Rollback clears that list. `DIRECTUS_BACKPORT_AUTO=0`
-disables the hook.
+process can reload. Each one is applied on its own, and any that fail are shown
+in the module. Rollback clears that list. `DIRECTUS_BACKPORT_AUTO=0` disables the
+re-apply.
 
-Apply and rollback exit the Node process. A process supervisor (or you) starts
-Directus again.
+Catalog downloads must carry a valid signature. The Apply dialog shows the exact
+code before anything changes. Apply test-loads the patched files first and undoes
+the change if they fail. If Directus then loads extensions but cannot reach server
+start after three boots, the patch is rolled back automatically.
+
+Apply and rollback shut Directus down gracefully. A process supervisor (or you)
+starts it again. Apply reaches one process: with several workers or replicas,
+restart the others too. Replicas need to share the extensions folder to pick fixes
+up from `desired.json`.
 
 ## Usage
 

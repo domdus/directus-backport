@@ -1,10 +1,84 @@
 - file: "@directus/api/dist/services/files.js"
-  before_sha256: "dd2ac5e1701d268d41fc28f33a57842585fa641504fc637002b93d220e26123e"
-  after_sha256: "27fdd150175a74c221a0ae28dafd8cbd819d9cdd6fcdcbf531c0f151caed01d2"
+  before_sha256: dd2ac5e1701d268d41fc28f33a57842585fa641504fc637002b93d220e26123e
+  after_sha256: 27fdd150175a74c221a0ae28dafd8cbd819d9cdd6fcdcbf531c0f151caed01d2
   replace:
-    - from: "import { extractMetadata } from './files/lib/extract-metadata.js';\nimport { ItemsService } from './items.js';"
-      to: "import { extractMetadata } from './files/lib/extract-metadata.js';\nimport { AuthorizationService } from './authorization.js';\nimport { ItemsService } from './items.js';"
-    - from: "    async uploadOne(stream, data, primaryKey, opts) {\n        const storage = await getStorage();"
-      to: "    async uploadOne(stream, data, primaryKey, opts) {\n        if (this.accountability) {\n            const authorizationService = new AuthorizationService({\n                accountability: this.accountability,\n                knex: this.knex,\n                schema: this.schema,\n            });\n            if (primaryKey !== undefined) {\n                await authorizationService.checkAccess('update', 'directus_files', primaryKey);\n            }\n            else {\n                await authorizationService.checkAccess('create', 'directus_files');\n            }\n        }\n        const storage = await getStorage();"
-    - from: "    async createOne(data, opts) {\n        if (!data.type) {\n            throw new InvalidPayloadError({ reason: `\"type\" is required` });\n        }"
-      to: "    async createOne(data, opts) {\n        if (this.accountability) {\n            const authorizationService = new AuthorizationService({\n                accountability: this.accountability,\n                knex: this.knex,\n                schema: this.schema,\n            });\n            await authorizationService.checkAccess('create', 'directus_files');\n        }\n        if (!data.type) {\n            throw new InvalidPayloadError({ reason: `\"type\" is required` });\n        }"
+    - from: |-
+        import { extractMetadata } from './files/lib/extract-metadata.js';
+        import { ItemsService } from './items.js';
+      to: |-
+        import { extractMetadata } from './files/lib/extract-metadata.js';
+        import { AuthorizationService } from './authorization.js';
+        import { ItemsService } from './items.js';
+    - from: |2-
+            async uploadOne(stream, data, primaryKey, opts) {
+                const storage = await getStorage();
+      to: |2-
+            async uploadOne(stream, data, primaryKey, opts) {
+                if (this.accountability) {
+                    const authorizationService = new AuthorizationService({
+                        accountability: this.accountability,
+                        knex: this.knex,
+                        schema: this.schema,
+                    });
+                    if (primaryKey !== undefined) {
+                        await authorizationService.checkAccess('update', 'directus_files', primaryKey);
+                    }
+                    else {
+                        await authorizationService.checkAccess('create', 'directus_files');
+                    }
+                }
+                const storage = await getStorage();
+    - from: |2-
+            async createOne(data, opts) {
+                if (!data.type) {
+                    throw new InvalidPayloadError({ reason: `"type" is required` });
+                }
+      to: |2-
+            async createOne(data, opts) {
+                if (this.accountability) {
+                    const authorizationService = new AuthorizationService({
+                        accountability: this.accountability,
+                        knex: this.knex,
+                        schema: this.schema,
+                    });
+                    await authorizationService.checkAccess('create', 'directus_files');
+                }
+                if (!data.type) {
+                    throw new InvalidPayloadError({ reason: `"type" is required` });
+                }
+- file: "@directus/api/dist/services/flows.js"
+  before_sha256: bf24eceebc008256cc33facb2f283bb4419e655dff50e6b90a9527adbd299ba5
+  after_sha256: bd35c61806f94e95f9c9fce38da033b4fc25832390b971248604324f1e10f075
+  replace:
+    - from: import { ItemsService } from './items.js';
+      to: |-
+        import { AuthorizationService } from './authorization.js';
+        import { ItemsService } from './items.js';
+    - from: |2-
+            async deleteMany(keys, opts) {
+                // this is to prevent foreign key
+      to: |2-
+            async deleteMany(keys, opts) {
+                if (this.accountability) {
+                    await new AuthorizationService({ accountability: this.accountability, knex: this.knex, schema: this.schema }).checkAccess('delete', 'directus_flows', keys);
+                }
+                // this is to prevent foreign key
+- file: "@directus/api/dist/services/users.js"
+  before_sha256: 534b7be9914af6b7b03b249e8cea49fc45d7917d90c7ec8e1b65234fed2ab3e5
+  after_sha256: a1cba669359f5a5b12feb181eec9ccfa331a0c4687ed569c97e21131fa87960d
+  replace:
+    - from: import { ItemsService } from './items.js';
+      to: |-
+        import { AuthorizationService } from './authorization.js';
+        import { ItemsService } from './items.js';
+    - from: |2-
+            async deleteMany(keys, opts) {
+                try {
+                    await this.checkRemainingAdminExistence(keys);
+      to: |2-
+            async deleteMany(keys, opts) {
+                if (this.accountability) {
+                    await new AuthorizationService({ accountability: this.accountability, knex: this.knex, schema: this.schema }).checkAccess('delete', 'directus_users', keys);
+                }
+                try {
+                    await this.checkRemainingAdminExistence(keys);

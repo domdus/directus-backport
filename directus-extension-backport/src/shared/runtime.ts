@@ -114,3 +114,30 @@ export function autoReapplyEnabled(): boolean {
 	const value = (process.env.DIRECTUS_BACKPORT_AUTO || "1").trim().toLowerCase();
 	return value !== "0" && value !== "false" && value !== "off";
 }
+
+let restartRequested = false;
+
+/**
+ * Restart through Directus's own SIGTERM shutdown so in-flight requests can finish.
+ * finishRestart then ends the process non-zero, so `restart: on-failure` style
+ * supervisors start it again. A process that dies from SIGTERM reports a clean stop.
+ */
+export function restartProcess(delayMs = 250): void {
+	restartRequested = true;
+	const graceMs = Number(process.env.SERVER_SHUTDOWN_TIMEOUT || 1000) + 5000;
+	setTimeout(() => {
+		setTimeout(() => process.exit(1), graceMs);
+		process.kill(process.pid, "SIGTERM");
+	}, delayMs);
+}
+
+/** Runs from `server.stop`, once Directus has finished shutting down. */
+export function finishRestart(): void {
+	if (restartRequested) process.exit(1);
+}
+
+/** Workers that share node_modules but keep their old code until they restart. */
+export function workerCount(): number {
+	const count = Number(process.env.PM2_INSTANCES || 1);
+	return Number.isFinite(count) && count > 1 ? count : 1;
+}

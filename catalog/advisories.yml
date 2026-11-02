@@ -3,9 +3,10 @@
 # port.status:
 #   already-fixed  — this Directus line already contains the fix
 #   needs-port     — fixed only in 12.x; no backport in this catalog yet
-#   experimental   — backport exists; applied on at least one install
-#   stable         — backport applied in production without rollback
+#   experimental   — backport exists; not proven against this version
+#   stable         — reproduced on the stock pin, blocked once patched, legitimate use unchanged
 #   wont-port      — depends on a 12.x refactor; use config/WAF or upgrade
+# port.pins optionally overrides the status per version: { "11.17.4": stable }
 
 catalog_version: 1
 updated: "2026-11-02"
@@ -26,6 +27,7 @@ advisories:
     port:
       status: experimental
       risk: high
+      pins: { "11.17.4": stable, "10.13.4": experimental, "9.26.0": stable }
       notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. CSV import builds rows with a null-prototype setter that never follows inherited properties. Restart required."
 
   - id: GHSA-95f8-mvw7-gpj9
@@ -37,7 +39,8 @@ advisories:
     port:
       status: experimental
       risk: high
-      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. filename_disk is rejected when it resolves inside EXTENSIONS_PATH or TEMP_PATH, including TUS on 10.13.4 and 11.17.4. Restart required."
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": experimental }
+      notes: "filename_disk is rejected when it resolves inside EXTENSIONS_PATH or TEMP_PATH, compared as resolved paths, including TUS on 10.13.4 and 11.17.4. Restart required."
 
   - id: GHSA-jvxj-w2qp-5vmx
     title: IP-restricted policies bypassed via GraphQL WebSocket subscriptions
@@ -48,6 +51,7 @@ advisories:
     port:
       status: experimental
       risk: medium
+      pins: { "11.17.4": stable }
       notes: "Checksum-pinned to Directus 11.17.4. GraphQL handshake keeps request IP/userAgent/origin; global-access cache keys include accountability.ip. Restart required."
 
   - id: GHSA-2xcm-7h22-3m66
@@ -59,6 +63,7 @@ advisories:
     port:
       status: experimental
       risk: high
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. getKeysByQuery uses this.readByQuery so filters honor the caller's accountability. Restart required."
 
   - id: GHSA-xf86-hfpm-92xr
@@ -70,6 +75,7 @@ advisories:
     port:
       status: experimental
       risk: low
+      pins: { "11.17.4": stable }
       notes: "Checksum-pinned to Directus 11.17.4. Chat tool lookup rejects admin tools unless accountability.admin is true. Restart required."
 
   - id: GHSA-97xr-jchp-xm3c
@@ -81,6 +87,7 @@ advisories:
     port:
       status: experimental
       risk: high
+      pins: { "11.17.4": stable, "10.13.4": experimental }
       notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Failed or expired WebSocket auth now resets to public accountability instead of null (null is treated as system). Restart required."
 
   - id: GHSA-gwvv-rr68-cmv6
@@ -92,7 +99,8 @@ advisories:
     port:
       status: experimental
       risk: high
-      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. sanitizeDeep builds Object.create(null) so prototype pollution in `deep` cannot persist. Restart required."
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
+      notes: "sanitizeDeep builds null-prototype objects and never walks inherited keys, so built-in names at any depth become plain keys. Restart required."
 
   - id: GHSA-7vcx-mhxq-9j96
     title: DoS via image-transform endpoint accepting unvalidated target dimensions
@@ -103,6 +111,7 @@ advisories:
     port:
       status: experimental
       risk: medium
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Caps requested resize width/height at ASSETS_TRANSFORM_IMAGE_MAX_DIMENSION. Restart required.
 
   - id: GHSA-mww8-4gwh-rjfw
@@ -114,6 +123,7 @@ advisories:
     port:
       status: experimental
       risk: medium
+      pins: { "11.17.4": stable, "10.13.4": stable }
       notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. WebSocket upgrades require Origin to match Host, PUBLIC_URL, or CORS_ORIGIN. Restart required."
 
   - id: GHSA-chfm-g7r3-vv42
@@ -125,6 +135,7 @@ advisories:
     port:
       status: experimental
       risk: high
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Geometry column types are allowlisted before interpolation into PostGIS DDL. Also pinned to 9.26.0. Restart required."
 
   - id: GHSA-3742-46gx-c8cc
@@ -136,7 +147,8 @@ advisories:
     port:
       status: experimental
       risk: high
-      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. TUS filename_disk rejects `..` and absolute paths. Restart required."
+      pins: { "11.17.4": stable, "10.13.4": stable }
+      notes: "TUS filename_disk rejects `..` and absolute paths, and cannot point at another file's stored bytes. Restart required."
 
   - id: GHSA-xjxq-pj7h-g676
     title: TUS upload authorization bypass allows cross-user file overwrite
@@ -147,7 +159,8 @@ advisories:
     port:
       status: experimental
       risk: high
-      notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. TUS replacements must be readable with the uploader's accountability; attacker-supplied ids no longer stick. Restart required."
+      pins: { "11.17.4": stable, "10.13.4": stable }
+      notes: "TUS replacements must be readable with the uploader's accountability. Client-supplied replace_id is dropped, and attacker-supplied ids no longer stick. Restart required."
 
   - id: GHSA-4jw7-6mqj-vrhq
     title: SSRF in AI chat file downloads bypasses the outbound IP deny-list
@@ -158,6 +171,7 @@ advisories:
     port:
       status: experimental
       risk: medium
+      pins: { "11.17.4": stable }
       notes: "Pinned to Directus 11.17.4. AI chat file downloads go through getAxios (IMPORT_IP_DENY_LIST). Restart required."
 
   - id: GHSA-g293-vf99-xv36
@@ -169,6 +183,7 @@ advisories:
     port:
       status: experimental
       risk: medium
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. System GraphQL mutations for register/password/invite/TFA cannot be alias-amplified. Also pinned to 9.26.0. Restart required."
 
   - id: GHSA-xw72-c69j-h2rj
@@ -180,6 +195,7 @@ advisories:
     port:
       status: experimental
       risk: low
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Requires an authenticated user on POST /utils/hash/generate and /utils/hash/verify. Restart required.
 
   - id: GHSA-j5h6-vqc3-phqh
@@ -191,6 +207,7 @@ advisories:
     port:
       status: experimental
       risk: medium
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. IMPORT_IP_DENY_LIST=0.0.0.0 also blocks 0.0.0.0/8 and IPv6 unspecified. Restart required."
 
   - id: GHSA-c6w9-5g5j-jh2p
@@ -202,6 +219,7 @@ advisories:
     port:
       status: experimental
       risk: high
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Cache keys include role/admin/app/share so authorization-dependent responses are not reused. Also pinned to 9.26.0. Restart required."
 
   - id: GHSA-fq27-7m2r-q6vm
@@ -213,6 +231,7 @@ advisories:
     port:
       status: experimental
       risk: medium
+      pins: { "11.17.4": stable }
       notes: Pinned to Directus 11.17.4. Rejects manual flow triggers unless accountability.user is set (public accountability is no longer enough). Restart required.
 
   - id: GHSA-7h45-q5jx-7r87
@@ -224,7 +243,8 @@ advisories:
     port:
       status: experimental
       risk: medium
-      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Share updates cannot reassign user_created; non-admins cannot set role. Restart required."
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
+      notes: "Share updates cannot reassign user_created, non-admins cannot set role, and a new item or collection needs share permission on the target. Restart required."
 
   - id: GHSA-8xp8-xrh2-88vr
     title: Public registration sends the verification email to the submitted address instead of the matched account
@@ -235,6 +255,7 @@ advisories:
     port:
       status: experimental
       risk: low
+      pins: { "11.17.4": stable, "10.13.4": stable }
       notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. Public registration verification mail goes to the stored account email, not the submitted address. Restart required."
 
   - id: GHSA-788p-cvgf-q973
@@ -246,6 +267,7 @@ advisories:
     port:
       status: experimental
       risk: low
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. project_color writes must be hex so the Studio favicon cannot interpolate markup. Restart required."
 
   - id: GHSA-p623-wgx3-wxp8
@@ -257,7 +279,8 @@ advisories:
     port:
       status: experimental
       risk: high
-      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Files create/update check access before filename/storage side effects. Restart required."
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
+      notes: "Files, flow and user deletes check access before any side effect. On 11.17.4 share deletes do too; share updates are covered by GHSA-7h45-q5jx-7r87. Restart required."
 
   - id: GHSA-r9xq-xp38-j4j3
     title: Sensitive directus_settings fields readable by minimal app_access users
@@ -268,7 +291,8 @@ advisories:
     port:
       status: experimental
       risk: medium
-      notes: "Pinned to Directus 11.17.4. Non-admin reads of directus_settings null out AI API keys. Restart required."
+      pins: { "11.17.4": stable }
+      notes: "Non-admin reads of directus_settings null AI keys, the OpenAI-compatible headers and base URL, and the AI and MCP system prompts. Restart required."
 
   - id: GHSA-6hpw-rhhq-6xq3
     title: Unauthenticated telemetry submission and settings write via pre-authorization side effects
@@ -279,6 +303,7 @@ advisories:
     port:
       status: experimental
       risk: medium
+      pins: { "11.17.4": stable }
       notes: "Pinned to Directus 11.17.4. Project-owner telemetry runs only after upsertSingleton (permission check). Restart required."
 
   - id: GHSA-ff8w-8crv-9rcf
@@ -290,6 +315,7 @@ advisories:
     port:
       status: experimental
       risk: medium
+      pins: { "11.17.4": stable, "10.13.4": stable }
       notes: "Checksum-pinned to Directus 10.13.4 and 11.17.4. GraphQL WebSocket subscribe payloads are parsed with GRAPHQL_QUERY_TOKEN_LIMIT. Restart required."
 
   - id: GHSA-5h38-6755-g83w
@@ -301,6 +327,7 @@ advisories:
     port:
       status: experimental
       risk: high
+      pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. Mail templates must resolve inside the configured templates directories. Restart required."
 
   - id: GHSA-38hg-ww64-rrwc
@@ -312,6 +339,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
+      pins: { "9.26.0": stable }
       notes: "Fixed in Directus 11.17.0. Checksum-pinned overlay for 9.26.0 redacts concealed fields in min/max aggregates. Stay on 11.17.4 or later 11.x."
 
   - id: GHSA-ph52-67fq-75wj
@@ -323,6 +351,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
+      pins: { "9.26.0": stable }
       notes: Fixed in Directus 11.17.0. Checksum-pinned overlay for 9.26.0 caps GraphQL aliases at 50 per request.
 
   - id: GHSA-6q22-g298-grjh
@@ -334,6 +363,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
+      pins: { "9.26.0": stable }
       notes: Fixed in Directus 11.17.0. Checksum-pinned overlay for 9.26.0 dedupes server_health within a GraphQL request.
 
   - id: GHSA-mvv8-v4jj-g47j
@@ -345,6 +375,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
+      pins: { "9.26.0": experimental }
       notes: Fixed in Directus 11.17.0. Checksum-pinned overlay for 9.26.0 runs update snapshots through prepareDelta.
 
   - id: GHSA-wxwm-3fxv-mrvx
@@ -356,6 +387,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
+      pins: { "9.26.0": stable }
       notes: Fixed in Directus 11.16.1. Checksum-pinned overlay for 9.26.0 hides server_specs_graphql and /server/specs/graphql when GRAPHQL_INTROSPECTION=false.
 
   - id: GHSA-qqmv-5p3g-px89
@@ -389,6 +421,7 @@ advisories:
     port:
       status: already-fixed
       risk: none
+      pins: { "9.26.0": stable }
       notes: Fixed in Directus 11.16.1. Checksum-pinned overlay for 9.26.0 requires OAuth2/OpenID/SAML redirects to match PUBLIC_URL.
 
   - id: GHSA-wv3h-5fx7-966h
@@ -400,4 +433,5 @@ advisories:
     port:
       status: already-fixed
       risk: none
+      pins: { "9.26.0": stable }
       notes: Fixed in Directus 11.16.0. Checksum-pinned overlay for 9.26.0 unwraps IPv4-mapped IPv6 before IMPORT_IP_DENY_LIST.

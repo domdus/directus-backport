@@ -75,14 +75,35 @@ const stateFile = stateFileAt(root);
 
 const state = JSON.parse(fs.readFileSync(stateFile, "utf8"));
 
+function fileFor(item) {
+	// Absolute paths differ between a container and the host it is mounted from.
+	const local = path.join(root, "node_modules", item.rel);
+	return fs.existsSync(local) ? local : item.original;
+}
+
+function manifestOf(id) {
+	const manifestFile = path.join(dataDir, "snapshots", id, "manifest.json");
+	if (!id || !fs.existsSync(manifestFile)) return null;
+	return JSON.parse(fs.readFileSync(manifestFile, "utf8"));
+}
+
+/** Check everything first: stopping halfway would leave files and state.json disagreeing. */
+function requireSnapshots(rows) {
+	const missing = rows.filter((row) => !manifestOf(row.snapshot));
+	if (!missing.length) return;
+	console.error(
+		`No snapshot for ${missing.map((row) => row.id).join(", ")}. Use cli.mjs rollback, which can undo these from the catalog.`,
+	);
+	process.exit(1);
+}
+
 function restoreSnap(id) {
 	const snapshotDir = path.join(dataDir, "snapshots", id);
-	const manifestFile = path.join(snapshotDir, "manifest.json");
-	if (!fs.existsSync(manifestFile)) {
+	const manifest = manifestOf(id);
+	if (!manifest) {
 		console.error(`Snapshot missing: ${snapshotDir}`);
 		process.exit(1);
 	}
-	const manifest = JSON.parse(fs.readFileSync(manifestFile, "utf8"));
 	let n = 0;
 	for (const item of manifest.files || []) {
 		const snap = path.join(snapshotDir, "files", item.rel);
@@ -90,7 +111,11 @@ function restoreSnap(id) {
 			console.error(`Missing snapshot copy: ${item.rel}`);
 			process.exit(1);
 		}
-		fs.copyFileSync(snap, item.original);
+		const dest = fileFor(item);
+		const tmp = `${dest}.backport-${process.pid}.tmp`;
+		fs.copyFileSync(snap, tmp);
+		fs.chmodSync(tmp, fs.statSync(dest).mode);
+		fs.renameSync(tmp, dest);
 		n += 1;
 	}
 	return n;
@@ -102,6 +127,7 @@ let restoredId = snapId;
 
 if (wantAll) {
 	const rows = [...(state.applied || [])];
+	requireSnapshots(rows);
 	removedIds = rows.map((row) => row.id);
 	const seen = new Set();
 	for (const row of rows.reverse()) {
@@ -112,21 +138,39 @@ if (wantAll) {
 	}
 	state.applied = [];
 } else if (snapId) {
+	// A snapshot also predates every later patch on its files, so those go with it.
+	const rows = state.applied || [];
+	const start = rows.findIndex((row) => row.snapshot === snapId);
+	const chain = start < 0 ? [] : rows.slice(start).filter((row) => row.snapshot === snapId);
+	if (start >= 0) {
+		const files = new Set(chain.flatMap((row) => row.files || []));
+		for (const row of rows.slice(start)) {
+			if (chain.includes(row) || !(row.files || []).some((file) => files.has(file))) continue;
+			chain.push(row);
+			(row.files || []).forEach((file) => files.add(file));
+		}
+	}
+	requireSnapshots(chain);
 	restoredId = snapId;
-	count = restoreSnap(snapId);
-	removedIds = (state.applied || []).filter((a) => a.snapshot === snapId).map((a) => a.id);
-	state.applied = (state.applied || []).filter((a) => a.snapshot !== snapId);
+	const order = chain.length ? chain.map((row) => row.snapshot) : [snapId];
+	for (const id of [...new Set(order)].reverse()) count += restoreSnap(id);
+	removedIds = chain.map((row) => row.id);
+	state.applied = rows.filter((row) => !chain.includes(row));
+	const extra = removedIds.filter((id, index) => chain[index].snapshot !== snapId);
+	if (extra.length) console.log(`also removed, they shared files: ${extra.join(", ")}`);
 } else {
 	const last = (state.applied || []).at(-1);
 	if (!last) {
 		console.error("Nothing to rollback.");
 		process.exit(1);
 	}
+	requireSnapshots([last]);
 	restoredId = last.snapshot;
 	count = restoreSnap(last.snapshot);
 	removedIds = [last.id];
 	state.applied = (state.applied || []).filter((row) => row.id !== last.id);
 }
+delete state.pendingBoot;
 state.last = {
 	action: "rollback",
 	at: new Date().toISOString(),
@@ -138,7 +182,7 @@ fs.writeFileSync(stateFile, `${JSON.stringify(state, null, 2)}\n`);
 
 const desiredFile =
 	(state.desiredFile && fs.existsSync(state.desiredFile) && state.desiredFile) ||
-	path.join(here, "desired.json");
+	path.join(here, "..", "desired.json");
 if (fs.existsSync(desiredFile) && removedIds.length) {
 	try {
 		const desired = JSON.parse(fs.readFileSync(desiredFile, "utf8"));

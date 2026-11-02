@@ -1,6 +1,18 @@
 - file: "@directus/api/dist/services/tus/data-store.js"
-  before_sha256: "a96538af66afb53f3d2176d2f0e96d963f0c6fc436f82c6ab41731a64cec5d0c"
-  after_sha256: "b22106885df8f459676ebd8bde2b0951ab761722aca175635f112564baf717cb"
+  before_sha256: a96538af66afb53f3d2176d2f0e96d963f0c6fc436f82c6ab41731a64cec5d0c
+  after_sha256: 584f2f817b2745a12b7b0f8f3d3e53bcafd0355dcbaf007facae9c8e2a6853f5
   replace:
-    - from: "\t\tconst primaryKey = await filesItemsService.createOne(fileData, { emitEvents: false });\n\t\tif (!upload.metadata[\"id\"]) upload.metadata[\"id\"] = primaryKey;"
-      to: "\t\tif (existingFile && upload.metadata[\"id\"]) await filesItemsService.readOne(upload.metadata[\"id\"]);\n\t\tconst primaryKey = await filesItemsService.createOne(fileData, { emitEvents: false });\n\t\tif (!existingFile) upload.metadata[\"id\"] = primaryKey;"
+    - from: |-
+        		const primaryKey = await filesItemsService.createOne(fileData, { emitEvents: false });
+        		if (!upload.metadata["id"]) upload.metadata["id"] = primaryKey;
+      to: |-
+        		if (existingFile && upload.metadata["id"]) await filesItemsService.readOne(upload.metadata["id"]);
+        		const primaryKey = await filesItemsService.createOne(fileData, { emitEvents: false });
+        		if (!existingFile) upload.metadata["id"] = primaryKey;
+    - from: |-
+        		let existingFile = null;
+        		if (upload.metadata["id"]) {
+      to: |-
+        		delete upload.metadata["replace_id"];
+        		let existingFile = null;
+        		if (upload.metadata["id"]) {

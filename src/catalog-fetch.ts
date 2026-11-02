@@ -13,6 +13,7 @@ import {
 } from "./catalog-source.js";
 import { writeJson } from "./paths.js";
 import { extractCatalogTarGz } from "./tar-catalog.js";
+import { cachedSequence, verifyCatalogDir } from "./trust.js";
 
 export type CatalogRemoteStatus = {
 	configured: boolean;
@@ -23,6 +24,8 @@ export type CatalogRemoteStatus = {
 	cacheDir: string;
 	fetchedAt: string | null;
 	advisories: string | null;
+	/** Signing check of the downloaded cache. Null when no download is in use. */
+	signature: { verified: boolean; sequence?: number; key?: string; error?: string } | null;
 };
 
 export type CatalogRefreshResult = {
@@ -32,6 +35,8 @@ export type CatalogRefreshResult = {
 	files: number;
 	fetchedAt: string;
 	cacheDir: string;
+	sequence: number;
+	key: string;
 };
 
 function authHeaders(): Record<string, string> {
@@ -57,10 +62,18 @@ export function catalogRemoteStatus(): CatalogRemoteStatus {
 	const source = loadCatalogSource();
 	let using: CatalogRemoteStatus["using"] = "none";
 	let advisories: string | null = null;
+	let signature: CatalogRemoteStatus["signature"] = null;
 	if (hasLocalCatalog()) {
 		const dir = resolveCatalogDir();
 		using = dir === remoteCatalogDir() ? "remote" : "bundled";
 		advisories = path.join(dir, "advisories.yml");
+		if (using === "remote") {
+			try {
+				signature = { verified: true, ...verifyCatalogDir(dir) };
+			} catch (err) {
+				signature = { verified: false, error: err instanceof Error ? err.message : String(err) };
+			}
+		}
 	}
 	return {
 		configured: Boolean(source.github),
@@ -71,6 +84,7 @@ export function catalogRemoteStatus(): CatalogRemoteStatus {
 		cacheDir: remoteCatalogDir(),
 		fetchedAt: readFetchedAt(),
 		advisories,
+		signature,
 	};
 }
 
@@ -94,18 +108,30 @@ export async function refreshRemoteCatalog(): Promise<CatalogRefreshResult> {
 	const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "directus-backport-catalog-"));
 	try {
 		const { files } = extractCatalogTarGz(archive, tmp);
+		const trust = verifyCatalogDir(tmp);
 		loadCatalog(tmp);
 		const dest = remoteCatalogDir();
-		fs.rmSync(dest, { recursive: true, force: true });
-		fs.mkdirSync(path.dirname(dest), { recursive: true });
-		fs.cpSync(tmp, dest, { recursive: true });
+		const current = cachedSequence(dest);
+		if (trust.sequence < current) {
+			throw new Error(`Refusing an older catalog (sequence ${trust.sequence}, this host has ${current}).`);
+		}
 		const fetchedAt = new Date().toISOString();
-		writeJson(remoteMetaPath(), {
+		writeJson(path.join(tmp, ".fetched.json"), {
 			github: source.github,
 			ref: source.ref,
 			fetchedAt,
 			files: files.length,
+			sequence: trust.sequence,
 		});
+		// Swap on one filesystem so a failure never leaves a host without a catalog.
+		const staged = `${dest}.new-${process.pid}`;
+		const retired = `${dest}.old-${process.pid}`;
+		fs.mkdirSync(path.dirname(dest), { recursive: true });
+		fs.rmSync(staged, { recursive: true, force: true });
+		fs.cpSync(tmp, staged, { recursive: true });
+		if (fs.existsSync(dest)) fs.renameSync(dest, retired);
+		fs.renameSync(staged, dest);
+		fs.rmSync(retired, { recursive: true, force: true });
 		return {
 			ok: true,
 			github: source.github as string,
@@ -113,6 +139,8 @@ export async function refreshRemoteCatalog(): Promise<CatalogRefreshResult> {
 			files: files.length,
 			fetchedAt,
 			cacheDir: dest,
+			sequence: trust.sequence,
+			key: trust.key,
 		};
 	} finally {
 		fs.rmSync(tmp, { recursive: true, force: true });

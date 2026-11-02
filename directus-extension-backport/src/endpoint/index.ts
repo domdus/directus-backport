@@ -1,9 +1,11 @@
 import type { Request, Response, Router } from "express";
 import { applyPatches, rollbackAdvisory, rollbackAll, rollbackLast, statusReport } from "../../../src/engine.js";
+import { statusForVersion, targetsForVersion } from "../../../src/catalog.js";
+import type { Advisory } from "../../../src/types.js";
 import { cliStatus, purgeWorkingFiles, rollbackCommands } from "../../../src/cli-tools.js";
 import { catalogRemoteStatus, refreshRemoteCatalog } from "../../../src/catalog-fetch.js";
 import { accountabilityIsAdmin } from "../shared/admin.js";
-import { catalogRoot, installFromEnv, pinExtensionRoot } from "../shared/runtime.js";
+import { catalogRoot, installFromEnv, pinExtensionRoot, restartProcess, workerCount } from "../shared/runtime.js";
 import { checkForUpdates } from "./update-check.js";
 
 function requireAdmin(req: Request, res: Response): boolean {
@@ -21,9 +23,7 @@ function sendError(res: Response, status: number, message: string) {
 }
 
 function exitAfterResponse(res: Response) {
-	res.on("finish", () => {
-		setTimeout(() => process.exit(0), 250);
-	});
+	res.on("finish", () => restartProcess());
 }
 
 function publicReport() {
@@ -32,6 +32,7 @@ function publicReport() {
 	const catalog = catalogRoot();
 	const report = statusReport(install, catalog);
 	const tools = { packageRoot, catalogRoot: catalog };
+	const view = (advisory: Advisory) => publicAdvisory(advisory, install.version);
 	const cli = cliStatus(install, tools);
 	const commands = rollbackCommands(tools);
 	return {
@@ -48,16 +49,21 @@ function publicReport() {
 			const advisory = report.appliedCatalog.find((item) => item.id === row.id);
 			if (!advisory) return null;
 			const snapshotIds = report.applied.filter((item) => item.snapshot === row.snapshot).map((item) => item.id);
-			return { ...publicAdvisory(advisory), snapshot: row.snapshot, snapshotIds };
+			return { ...view(advisory), snapshot: row.snapshot, snapshotIds };
 		}).filter(Boolean),
 		lastApplyIds: report.lastApplyIds,
 		write: report.write,
 		desired: report.desired,
 		desiredFile: report.desiredFile,
-		open: report.open.map(publicAdvisory),
-		ready: report.ready.map(publicAdvisory),
-		waiting: report.waiting.map(publicAdvisory),
-		alreadyFixed: report.alreadyFixed.map(publicAdvisory),
+		drift: report.drift,
+		unprotected: report.unprotected,
+		lastReapply: report.lastReapply,
+		pendingBoot: report.pendingBoot,
+		workers: workerCount(),
+		open: report.open.map(view),
+		ready: report.ready.map(view),
+		waiting: report.waiting.map(view),
+		alreadyFixed: report.alreadyFixed.map(view),
 		cli,
 		rollbackCli: commands.cli,
 		rollbackDocker: commands.docker,
@@ -66,15 +72,7 @@ function publicReport() {
 	};
 }
 
-function publicAdvisory(a: {
-	id: string;
-	title: string;
-	severity: string;
-	advisory: string;
-	affects: string;
-	upstreamPatched: string;
-	port: { status: string; risk: string; notes?: string };
-}) {
+function publicAdvisory(a: Advisory, version: string) {
 	return {
 		id: a.id,
 		title: a.title,
@@ -82,7 +80,16 @@ function publicAdvisory(a: {
 		advisory: a.advisory,
 		affects: a.affects,
 		upstreamPatched: a.upstreamPatched,
-		port: a.port,
+		port: {
+			status: statusForVersion(a, version),
+			risk: a.port.risk,
+			notes: a.port.notes,
+		},
+		// What Apply would really write here, so it can be read first.
+		changes: targetsForVersion(a, version).map((target) => ({
+			file: target.file,
+			replace: target.replace ?? [],
+		})),
 	};
 }
 
@@ -170,6 +177,8 @@ export default (router: Router) => {
 				{
 					ids,
 					rollbackOnFail: false,
+					preflight: true,
+					guardBoot: true,
 				},
 				catalog,
 			);
@@ -181,7 +190,7 @@ export default (router: Router) => {
 				data: {
 					...result,
 					restarting: true,
-					note: "Directus process will exit so a supervisor (or you) can start it again with the patched files. If it never comes back, run the bundled CLI rollback from the host.",
+					note: "Directus shuts down so a supervisor (or you) can start it again with the patched files. If it fails after loading extensions, the next boots roll the patch back. If it never comes back, run the bundled CLI rollback from the host.",
 				},
 			});
 			exitAfterResponse(res);

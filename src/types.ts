@@ -30,6 +30,8 @@ export type PortInfo = {
 	risk: PortRisk;
 	notes?: string;
 	sourceCommit?: string;
+	/** Status per pinned Directus version. Falls back to `status`. */
+	pins?: Record<string, PortStatus>;
 	targets: PatchTarget[];
 };
 
@@ -72,6 +74,18 @@ export type AppliedPatch = {
 	files: string[];
 };
 
+export type PendingBoot = {
+	ids: string[];
+	at: string;
+	boots: number;
+};
+
+export type ReapplyReport = {
+	at: string;
+	applied: string[];
+	failed: { id: string; error: string }[];
+};
+
 export type HealthStatus = "pending" | "ok" | "failed" | "rolled-back";
 
 export type StateFile = {
@@ -79,6 +93,10 @@ export type StateFile = {
 	/** Path to desired.json so rollback can clear persisted ids even if cwd differs. */
 	desiredFile?: string;
 	applied: AppliedPatch[];
+	/** Set after an apply until a restart proves Directus still reaches server.start. */
+	pendingBoot?: PendingBoot;
+	/** Outcome of the last boot re-apply, so failures reach Studio and not only the log. */
+	lastReapply?: ReapplyReport;
 	last?: {
 		action: "apply" | "rollback";
 		at: string;
@@ -98,6 +116,10 @@ export type ApplyOptions = {
 	rollbackOnFail?: boolean;
 	/** Write GHSA ids to desired.json (default true). Boot re-apply sets this false. */
 	persistDesired?: boolean;
+	/** Load the patched modules in a child process and undo the apply if that fails. */
+	preflight?: boolean;
+	/** Arm the boot guard so a Directus that never starts again gets rolled back. */
+	guardBoot?: boolean;
 };
 
 export type ApplyResult = {

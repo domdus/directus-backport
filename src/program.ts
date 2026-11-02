@@ -1,8 +1,7 @@
 import { Command } from "commander";
 import { detectInstall } from "./detect.js";
-import { applyPatches, rollbackAdvisory, rollbackAll, rollbackLast, rollbackSnapshot, statusReport, verifyInstall } from "./engine.js";
-import { loadDesired } from "./desired.js";
-import { hasApplyablePatch, isFixedOnThisVersion, isStillVulnerable, loadCatalog } from "./catalog.js";
+import { applyPatches, ensureDesiredApplied, rollbackAdvisory, rollbackAll, rollbackLast, rollbackSnapshot, statusReport, verifyInstall } from "./engine.js";
+import { isFixedOnThisVersion, isStillVulnerable, loadCatalog, statusForVersion, targetsForVersion } from "./catalog.js";
 import { catalogRemoteStatus, refreshRemoteCatalog, resolveCatalogDir } from "./catalog-fetch.js";
 import { hasLocalCatalog } from "./catalog-source.js";
 import { findPackageRoot } from "./paths.js";
@@ -29,16 +28,48 @@ function statusLabel(advisory: Advisory, version?: string): string {
 	if (version && isFixedOnThisVersion(advisory, version)) {
 		return pc.green(`already in ${advisory.upstreamPatched}+`);
 	}
-	if (version && isStillVulnerable(advisory, version)) {
-		if (hasApplyablePatch(advisory, version)) return pc.yellow("experimental");
+	if (version && isStillVulnerable(advisory, version) && targetsForVersion(advisory, version).length === 0) {
 		return pc.dim("needs-port");
 	}
-	const s = advisory.port.status;
+	const s = version ? statusForVersion(advisory, version) : advisory.port.status;
 	if (s === "stable") return pc.green("stable");
 	if (s === "experimental") return pc.yellow("experimental");
 	if (s === "needs-port") return pc.dim("needs-port");
 	if (s === "already-fixed") return pc.green(`already in ${advisory.upstreamPatched}+`);
 	return pc.dim(s);
+}
+
+/** The exact code a patch swaps, so an operator can read it before it runs. */
+function formatChanges(advisory: Advisory, version: string): string {
+	const out: string[] = [`${advisory.id}  ${advisory.title}`];
+	for (const target of targetsForVersion(advisory, version)) {
+		out.push(pc.bold(target.file));
+		for (const op of target.replace ?? []) {
+			out.push(...op.from.split("\n").map((line) => pc.red(`- ${line}`)));
+			out.push(...op.to.split("\n").map((line) => pc.green(`+ ${line}`)));
+		}
+		if (target.diff) out.push(target.diff);
+	}
+	return out.join("\n");
+}
+
+/** Say out loud when the files and the records disagree. */
+function warnDrift(report: { drift: { missing: string[]; untracked: string[]; unverified: string[] }; unprotected: string[]; lastReapply?: { failed: { id: string; error: string }[] } }): void {
+	if (report.drift.missing.length) {
+		p.log.error(`Recorded as applied but NOT in the files: ${report.drift.missing.join(", ")}. node_modules was probably replaced.`);
+	}
+	if (report.drift.untracked.length) {
+		p.log.warn(`In the files without a record: ${report.drift.untracked.join(", ")}. Rollback uses the catalog for these.`);
+	}
+	if (report.drift.unverified.length) {
+		p.log.error(`Files changed, so these cannot be confirmed: ${report.drift.unverified.join(", ")}.`);
+	}
+	if (report.unprotected.length) {
+		p.log.error(`Kept in desired.json but NOT applied: ${report.unprotected.join(", ")}. Run: directus-backport apply --yes --desired`);
+	}
+	for (const item of report.lastReapply?.failed ?? []) {
+		p.log.error(`Boot re-apply failed for ${item.id}: ${item.error.split("\n")[0]}`);
+	}
 }
 
 /** Action-oriented summary for operators — omit catalog gaps the host cannot act on. */
@@ -71,6 +102,8 @@ export async function interactive(
 		p.outro(`No catalog yet. Opt in: ${pc.bold("directus-backport catalog --refresh")} (or Studio Check for Updates).`);
 		return;
 	}
+
+	warnDrift(report);
 
 	if (report.last?.health === "failed") {
 		p.log.error(`Last apply failed health check. Run ${pc.bold("directus-backport rollback")} if Studio is down.`);
@@ -107,6 +140,12 @@ export async function interactive(
 		"Will snapshot these files first",
 	);
 
+	const review = await p.confirm({ message: "Show the code changes first?", initialValue: true });
+	cancelIf(review);
+	if (review) {
+		for (const advisory of chosen) p.log.message(formatChanges(advisory, install.version));
+	}
+
 	const go = await p.confirm({
 		message: `Snapshot node_modules and apply ${chosen.length} patch(es)?`,
 		initialValue: true,
@@ -123,13 +162,6 @@ export async function interactive(
 	});
 	cancelIf(rollbackOnFail);
 
-	const healthUrl = await p.text({
-		message: "Health URL (empty to skip boot check)",
-		placeholder: opts.healthUrl ?? "http://127.0.0.1:8055/server/ping",
-		defaultValue: opts.healthUrl ?? "",
-	});
-	cancelIf(healthUrl);
-
 	const restartCmd = await p.text({
 		message: "Restart command (empty to skip — you restart yourself)",
 		placeholder: opts.restartCmd ?? "docker compose restart directus",
@@ -137,13 +169,25 @@ export async function interactive(
 	});
 	cancelIf(restartCmd);
 
+	// Only meaningful after a restart: until then the old code answers the ping.
+	let healthUrl: string | symbol = "";
+	if (restartCmd.trim()) {
+		healthUrl = await p.text({
+			message: "Health URL (empty to skip boot check)",
+			placeholder: opts.healthUrl ?? "http://127.0.0.1:8055/server/ping",
+			defaultValue: opts.healthUrl ?? "",
+		});
+		cancelIf(healthUrl);
+	}
+
 	const spin = p.spinner();
 	spin.start("Applying patches…");
 	const result = await applyPatches(install, {
 		ids: chosen.map((a) => a.id),
-		healthUrl: healthUrl.trim() || undefined,
+		healthUrl: (healthUrl as string).trim() || undefined,
 		restartCmd: restartCmd.trim() || undefined,
 		rollbackOnFail: Boolean(rollbackOnFail),
+		preflight: true,
 	});
 	spin.stop(result.ok ? "Done" : "Failed");
 
@@ -204,6 +248,7 @@ export function createProgram(): Command {
 				p.outro(`No catalog yet. Opt in: ${pc.bold("directus-backport catalog --refresh")}.`);
 				return;
 			}
+			warnDrift(report);
 			if (report.last) {
 				p.log.message(`Last ${report.last.action}  health=${report.last.health}  snapshot=${report.last.snapshot}`);
 			}
@@ -323,6 +368,23 @@ export function createProgram(): Command {
 		});
 
 	program
+		.command("diff")
+		.description("Show the exact code a backport changes (does not apply it)")
+		.argument("<id>", "GHSA id")
+		.action(async (id: string) => {
+			const opts = program.opts<{ root?: string; json?: boolean }>();
+			const install = resolveInstall(opts.root);
+			const advisory = loadCatalog().advisories.find((item) => item.id === id);
+			if (!advisory || targetsForVersion(advisory, install.version).length === 0) {
+				process.stderr.write(`${id} has no backport for Directus ${install.version}\n`);
+				process.exitCode = 1;
+				return;
+			}
+			if (opts.json) printJson(targetsForVersion(advisory, install.version));
+			else process.stdout.write(`${formatChanges(advisory, install.version)}\n`);
+		});
+
+	program
 		.command("apply")
 		.description("Apply one or more GHSA backports (non-interactive with --yes)")
 		.argument("[ids...]", "GHSA ids")
@@ -349,7 +411,7 @@ export function createProgram(): Command {
 				process.exitCode = 1;
 				return;
 			}
-			if (!cmdOpts.yes && !cmdOpts.all) {
+			if (!cmdOpts.yes) {
 				await interactive(install, { healthUrl: cmdOpts.healthUrl, restartCmd: cmdOpts.restartCmd });
 				return;
 			}
@@ -365,11 +427,13 @@ export function createProgram(): Command {
 					return;
 				}
 			} else if (!ids.length && cmdOpts.desired) {
-				ids = loadDesired().ids;
-				if (!ids.length) {
-					process.stdout.write("desired.json has no ids\n");
-					return;
-				}
+				const result = await ensureDesiredApplied(install, undefined, { preflight: true });
+				if (opts.json) printJson(result);
+				else if (result.error) process.stderr.write(`${result.error}\n`);
+				else if (result.applied.length) process.stdout.write(`applied ${result.applied.join(", ")}\n`);
+				else process.stdout.write("Everything in desired.json is already applied\n");
+				if (result.error) process.exitCode = 1;
+				return;
 			}
 			if (!ids.length) {
 				process.stderr.write("Pass GHSA ids, --all, --desired, or run without --yes for the prompt UI.\n");
@@ -383,10 +447,15 @@ export function createProgram(): Command {
 				restartCmd: cmdOpts.restartCmd,
 				rollbackOnFail: cmdOpts.rollbackOnFail,
 				healthTimeoutMs: Number(cmdOpts.healthTimeout),
+				preflight: true,
 			});
 			if (opts.json) printJson(result);
-			else if (result.ok) process.stdout.write(`applied ${result.applied.join(", ")}\n`);
-			else process.stderr.write(`${result.error}\n`);
+			else if (result.ok) {
+				process.stdout.write(`applied ${result.applied.join(", ")}\n`);
+				if (cmdOpts.healthUrl && !cmdOpts.restartCmd) {
+					process.stderr.write("Health not checked: Directus was not restarted, so the old code would answer. Restart it, then run verify.\n");
+				}
+			} else process.stderr.write(`${result.error}\n`);
 			if (!result.ok) process.exitCode = 1;
 		});
 
@@ -399,7 +468,8 @@ export function createProgram(): Command {
 		.action(async (cmdOpts: { snapshot?: string; id?: string; all?: boolean }) => {
 			const opts = program.opts<{ root?: string; json?: boolean }>();
 			const install = resolveInstall(opts.root);
-			const catalogDir = resolveCatalogDir();
+			// Rollback must work with no catalog at all; snapshots are enough for most cases.
+			const catalogDir = hasLocalCatalog() ? resolveCatalogDir() : undefined;
 			const result = cmdOpts.all
 				? rollbackAll(install, catalogDir)
 				: cmdOpts.id
@@ -455,6 +525,10 @@ export function createProgram(): Command {
 			p.log.info(`Open ${report.counts.open} · ready ${report.counts.ready} · applied ${report.counts.applied}`);
 			if (report.catalogMissing) {
 				p.log.warn("No catalog yet. Opt in with catalog --refresh (or Studio Check for Updates).");
+			}
+			if (!report.catalogMissing) warnDrift(report);
+			if (catalog.signature && !catalog.signature.verified) {
+				p.log.error(catalog.signature.error ?? "Catalog signature is not valid.");
 			}
 			if (!report.write.writable) {
 				p.log.warn(report.write.reason || "This process cannot write node_modules.");

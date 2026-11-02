@@ -2,7 +2,7 @@
 	"name": "directus-extension-backport",
 	"description": "Studio UI for optional Directus 10.13.4 and 11.17.4 security backports of 12.x fixes. Patches are checksum-pinned to those builds and will not apply on other versions.",
 	"icon": "swords",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"license": "MIT",
 	"keywords": [
 		"directus",
