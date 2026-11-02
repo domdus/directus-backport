@@ -27,8 +27,9 @@ the advisory `already-fixed` and delete the overlay.
 ## When a new 12.x advisory lands
 
 1. Read the GHSA (affected range, patched 12.x version, which files changed).
-2. Add it to `catalog/advisories.yml` as `needs-port` if it still hits a pinned
-   build. Skip it if the range never includes 9.26.0 / 10.13.4 / 11.17.4.
+2. If it still hits 9.26.0 / 10.13.4 / 11.17.4, **port it** onto those pins in
+   the same change. Do not leave it as `needs-port`. Skip it only if the range
+   never includes those builds.
 3. Port on a playground of that exact version. Checksums:
 
 ```bash

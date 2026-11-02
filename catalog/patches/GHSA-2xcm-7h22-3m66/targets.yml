@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/items.js"
+  before_sha256: "a80fe763cc85f3e96510bb0d75ba29f15772b33574d678f3c9495367bb60e67c"
+  after_sha256: "d60434a26c3ef60be4950f45ea2455f434fd75e9b38e1bb3160fa5e0fa984a29"
+  replace:
+    - from: "\t\treturn (await new ItemsService(this.collection, {\n\t\t\tknex: this.knex,\n\t\t\tschema: this.schema\n\t\t}).readByQuery(readQuery)).map((item) => item[primaryKeyField]).filter((pk) => pk);"
+      to: "\t\treturn (await this.readByQuery(readQuery)).map((item) => item[primaryKeyField]).filter((pk) => pk);"

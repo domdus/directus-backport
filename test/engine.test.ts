@@ -84,18 +84,28 @@ describe("bundled catalog", () => {
 		assert.ok(parts.open.some((a) => a.id === "GHSA-97xr-jchp-xm3c"));
 		assert.ok(parts.alreadyFixed.some((a) => a.id === "GHSA-38hg-ww64-rrwc"));
 		assert.equal(parts.waiting.length, 0);
-		assert.equal(parts.ready.length, 21);
+		assert.equal(parts.ready.length, 26);
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-xw72-c69j-h2rj"));
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-97xr-jchp-xm3c"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-32cw-mf7w-gpqr"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-95f8-mvw7-gpj9"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-2xcm-7h22-3m66"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-jvxj-w2qp-5vmx"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-xf86-hfpm-92xr"));
 	});
 
 	it("classifies 10.13.4 with version-specific pins", () => {
 		const catalog = loadCatalog(path.join(findPackageRoot(), "catalog"));
 		const parts = partitionAdvisories(catalog, "10.13.4");
 		assert.equal(parts.alreadyFixed.length, 0);
-		assert.equal(parts.ready.length, 17);
+		assert.equal(parts.ready.length, 20);
 		assert.equal(parts.waiting.length, 9);
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-97xr-jchp-xm3c"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-32cw-mf7w-gpqr"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-95f8-mvw7-gpj9"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-2xcm-7h22-3m66"));
+		assert.ok(!parts.open.some((a) => a.id === "GHSA-jvxj-w2qp-5vmx"));
+		assert.ok(!parts.open.some((a) => a.id === "GHSA-xf86-hfpm-92xr"));
 		assert.ok(parts.ready.every((a) => a.port.targets.some((t) => (t.pin || "11.17.4") === "10.13.4")));
 		assert.ok(parts.waiting.some((a) => a.id === "GHSA-38hg-ww64-rrwc"));
 		assert.ok(!parts.open.some((a) => a.id === "GHSA-4jw7-6mqj-vrhq"));
@@ -106,7 +116,7 @@ describe("bundled catalog", () => {
 		const catalog = loadCatalog(path.join(findPackageRoot(), "catalog"));
 		const parts = partitionAdvisories(catalog, "9.26.0");
 		assert.equal(parts.alreadyFixed.length, 0);
-		assert.equal(parts.ready.length, 18);
+		assert.equal(parts.ready.length, 21);
 		assert.equal(parts.waiting.length, 4);
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-wxwm-3fxv-mrvx"));
 		assert.ok(parts.ready.every((a) => a.port.targets.some((t) => t.pin === "9.26.0")));
@@ -118,7 +128,12 @@ describe("bundled catalog", () => {
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-xw72-c69j-h2rj"));
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-38hg-ww64-rrwc"));
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-cf45-hxwj-4cfj"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-32cw-mf7w-gpqr"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-95f8-mvw7-gpj9"));
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-2xcm-7h22-3m66"));
 		assert.ok(!parts.open.some((a) => a.id === "GHSA-mww8-4gwh-rjfw"));
+		assert.ok(!parts.open.some((a) => a.id === "GHSA-jvxj-w2qp-5vmx"));
+		assert.ok(!parts.open.some((a) => a.id === "GHSA-xf86-hfpm-92xr"));
 		assert.ok(!parts.ready.some((a) => a.id === "GHSA-97xr-jchp-xm3c"));
 	});
 });

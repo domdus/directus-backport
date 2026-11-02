@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/ai/chat/utils/chat-request-tool-to-ai-sdk-tool.js"
+  before_sha256: "c5a12d069405292fbac3a4b01aad694a9a28abb7e3b9d33c1211ceb1a53fdf6b"
+  after_sha256: "02beb0cbe68624348dac5c7c8be47572f01e74819a892285c1176995fe570067"
+  replace:
+    - from: "import { InvalidPayloadError } from \"@directus/errors\";"
+      to: "import { ForbiddenError, InvalidPayloadError } from \"@directus/errors\";"
+    - from: "\t\tconst directusTool = ALL_TOOLS.find(({ name }) => name === chatRequestTool);\n\t\tif (!directusTool) throw new InvalidPayloadError({ reason: `Tool by name \"${chatRequestTool}\" does not exist` });"
+      to: "\t\tconst directusTool = ALL_TOOLS.find(({ name }) => name === chatRequestTool);\n\t\tif (!directusTool) throw new InvalidPayloadError({ reason: `Tool by name \"${chatRequestTool}\" does not exist` });\n\t\tif (directusTool.admin && accountability.admin !== true) throw new ForbiddenError({ reason: \"You must be an admin to access this tool\" });"

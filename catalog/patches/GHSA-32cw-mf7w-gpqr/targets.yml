@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/import-export.js"
+  before_sha256: "d5ca77024bf133e82e46f6f6ad7b5b92c62abea5ce632a3fb27e3619864eefb4"
+  after_sha256: "091b379eabeec757f90c6d6773c3f86d1b47b97faef69dbc98f03afa9263597e"
+  replace:
+    - from: "const env = useEnv();\nconst logger = useLogger();\nconst MAX_IMPORT_ERRORS = env[\"MAX_IMPORT_ERRORS\"];"
+      to: "const env = useEnv();\nconst logger = useLogger();\nconst MAX_IMPORT_ERRORS = env[\"MAX_IMPORT_ERRORS\"];\nfunction setDeepSafe(root, path, value) {\n\tconst segments = String(path).split(\".\");\n\tif (!segments.length || segments.some((s) => s.length === 0)) return root;\n\tconst assignOwn = (obj, key, val) => {\n\t\tObject.defineProperty(obj, key, { value: val, writable: true, enumerable: true, configurable: true });\n\t};\n\tlet node = root;\n\tfor (let i = 0; i < segments.length - 1; i++) {\n\t\tconst key = segments[i];\n\t\tif (!Object.prototype.hasOwnProperty.call(node, key) || typeof node[key] !== \"object\" || node[key] === null) assignOwn(node, key, Object.create(null));\n\t\tnode = node[key];\n\t}\n\tassignOwn(node, segments[segments.length - 1], value);\n\treturn root;\n}"
+    - from: "\t\t\t\t\t\t\tconst result = {};\n\t\t\t\t\t\t\tfor (const field in obj) if (obj[field] !== void 0) set(result, field, obj[field]);"
+      to: "\t\t\t\t\t\t\tconst result = Object.create(null);\n\t\t\t\t\t\t\tfor (const field in obj) if (obj[field] !== void 0) setDeepSafe(result, field, obj[field]);"

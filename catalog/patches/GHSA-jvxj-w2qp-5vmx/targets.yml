@@ -1,0 +1,14 @@
+- file: "@directus/api/dist/websocket/controllers/graphql.js"
+  before_sha256: "52d5b9bff7c81cee65195b9c4ae1ffb46cbae5a960b8b8481c018bf60d7b8f34"
+  after_sha256: "3201ad50182ad5232f24b513f2788d264cfca1ce8394533fcbba24a0315104cd"
+  replace:
+    - from: "const { accountability, expires_at } = await authenticateConnection({ access_token: params.access_token }, { ip: client.accountability?.ip ?? null });"
+      to: "const { accountability, expires_at } = await authenticateConnection({ access_token: params.access_token }, { ip: client.accountability?.ip ?? null, userAgent: client.accountability?.userAgent, origin: client.accountability?.origin });"
+    - from: "\tasync handleHandshakeUpgrade({ request, socket, head }) {\n\t\tthis.server.handleUpgrade(request, socket, head, async (ws) => {\n\t\t\tthis.server.emit(\"connection\", ws, {\n\t\t\t\taccountability: createDefaultAccountability(),\n\t\t\t\texpires_at: null\n\t\t\t});\n\t\t});\n\t}"
+      to: "\tasync handleHandshakeUpgrade({ request, socket, head, accountabilityOverrides }) {\n\t\tthis.server.handleUpgrade(request, socket, head, async (ws) => {\n\t\t\tthis.server.emit(\"connection\", ws, {\n\t\t\t\taccountability: createDefaultAccountability(accountabilityOverrides),\n\t\t\t\texpires_at: null\n\t\t\t});\n\t\t});\n\t}"
+- file: "@directus/api/dist/permissions/modules/fetch-global-access/fetch-global-access.js"
+  before_sha256: "ae807e63da75abcbc5f4d3aaeba8426785ff3afc185e17c2ef85dc5f1698db8a"
+  after_sha256: "69cb31314f749d7c37a76d89082599c43742fcb8d0056a3fc1c45cc12c92642d"
+  replace:
+    - from: "const fetchGlobalAccess = withCache(\"global-access\", _fetchGlobalAccess, ({ user, roles }, { ip }) => ({\n\tuser,\n\troles,\n\tip\n}));"
+      to: "const fetchGlobalAccess = withCache(\"global-access\", _fetchGlobalAccess, ({ user, roles, ip }) => ({\n\tuser,\n\troles,\n\tip\n}));"

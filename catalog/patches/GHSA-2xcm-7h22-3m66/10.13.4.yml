@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/items.js"
+  before_sha256: "ff7d00f8ecb67157917f94b0abb21f6a48fd709375b7aa1e0c8f120810c23b50"
+  after_sha256: "deb5176ff5601553fd7e5c35f058a3204be3efc4c6c9f77b96bed05c196af11b"
+  replace:
+    - from: "        // Allow unauthenticated access\n        const itemsService = new ItemsService(this.collection, {\n            knex: this.knex,\n            schema: this.schema,\n        });\n        // We read the IDs of the items based on the query, and then run `updateMany`. `updateMany` does it's own\n        // permissions check for the keys, so we don't have to make this an authenticated read\n        const items = await itemsService.readByQuery(readQuery);"
+      to: "        // Validate read permissions for the query so hidden field values cannot leak (GHSA-2xcm-7h22-3m66)\n        const items = await this.readByQuery(readQuery);"

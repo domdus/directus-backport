@@ -8,7 +8,7 @@
 #   wont-port      — depends on a 12.x refactor; use config/WAF or upgrade
 
 catalog_version: 1
-updated: "2026-10-02"
+updated: "2026-11-02"
 notes: >
   Upstream Directus does not ship 12.x security fixes onto 9 / 10 / 11. This catalog
   is the optional stopgap: it tracks what is still open on a pinned build and, when a
@@ -17,6 +17,61 @@ notes: >
   Studio loads on 10.13.4 and 11.17.4 only; 9.26.0 is CLI-only.
 
 advisories:
+  - id: GHSA-32cw-mf7w-gpqr
+    title: Authenticated persistent Denial of Service via prototype pollution in CSV import
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-32cw-mf7w-gpqr
+    affects: "< 12.5.0"
+    upstream_patched: "12.5.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. CSV import builds rows with a null-prototype setter that never follows inherited properties. Restart required."
+
+  - id: GHSA-95f8-mvw7-gpj9
+    title: File uploads can write into the extensions directory
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-95f8-mvw7-gpj9
+    affects: "< 12.5.0"
+    upstream_patched: "12.5.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. filename_disk is rejected when it resolves inside EXTENSIONS_PATH or TEMP_PATH, including TUS on 10.13.4 and 11.17.4. Restart required."
+
+  - id: GHSA-jvxj-w2qp-5vmx
+    title: IP-restricted policies bypassed via GraphQL WebSocket subscriptions
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-jvxj-w2qp-5vmx
+    affects: ">= 11.0.0 < 12.4.0"
+    upstream_patched: "12.4.0"
+    port:
+      status: experimental
+      risk: medium
+      notes: "Checksum-pinned to Directus 11.17.4. GraphQL handshake keeps request IP/userAgent/origin; global-access cache keys include accountability.ip. Restart required."
+
+  - id: GHSA-2xcm-7h22-3m66
+    title: Update and delete by query evaluate filters without read permissions
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-2xcm-7h22-3m66
+    affects: "< 12.4.0"
+    upstream_patched: "12.4.0"
+    port:
+      status: experimental
+      risk: high
+      notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. getKeysByQuery uses this.readByQuery so filters honor the caller's accountability. Restart required."
+
+  - id: GHSA-xf86-hfpm-92xr
+    title: AI Chat route exposes admin-only tools to non-admin users
+    severity: low
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-xf86-hfpm-92xr
+    affects: ">= 11.14.0 < 12.3.0"
+    upstream_patched: "12.3.0"
+    port:
+      status: experimental
+      risk: low
+      notes: "Checksum-pinned to Directus 11.17.4. Chat tool lookup rejects admin tools unless accountability.admin is true. Restart required."
+
   - id: GHSA-97xr-jchp-xm3c
     title: Public WebSocket clients gain unrestricted item access after a failed auth message
     severity: critical
