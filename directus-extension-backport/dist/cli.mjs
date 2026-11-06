@@ -14067,12 +14067,23 @@ function loadDesired(catalogRoot, file) {
     updated: ""
   });
 }
+var UNWRITABLE = /* @__PURE__ */ new Set(["EROFS", "EACCES", "EPERM"]);
 function saveDesired(desired, catalogRoot, file) {
-  writeJson(file || desiredPath(catalogRoot), {
-    version: desired.version,
-    ids: [...new Set(desired.ids)].sort(),
-    updated: (/* @__PURE__ */ new Date()).toISOString()
-  });
+  const target = file || desiredPath(catalogRoot);
+  try {
+    writeJson(target, {
+      version: desired.version,
+      ids: [...new Set(desired.ids)].sort(),
+      updated: (/* @__PURE__ */ new Date()).toISOString()
+    });
+  } catch (err) {
+    const code = err?.code;
+    if (!code || !UNWRITABLE.has(code)) throw err;
+    process.stderr.write(
+      `warning: could not write ${target} (${code}); the Studio boot hook will not re-apply this change. Set DIRECTUS_BACKPORT_DESIRED to a writable path if you use it.
+`
+    );
+  }
 }
 function addDesiredIds(ids, version, catalogRoot, file) {
   if (ids.length === 0) return;

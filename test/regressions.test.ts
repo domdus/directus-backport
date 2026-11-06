@@ -409,3 +409,33 @@ describe("write ordering", () => {
 		}
 	});
 });
+
+describe("desired.json on a read-only CLI location", () => {
+	it("warns instead of failing when the folder cannot be written", async () => {
+		const { saveDesired, loadDesired } = await import("../src/desired.js");
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dbp-ro-"));
+		fs.chmodSync(dir, 0o555);
+		const file = path.join(dir, "desired.json");
+		try {
+			if (process.getuid?.() === 0) return; // root ignores the mode bits
+			assert.doesNotThrow(() => saveDesired({ version: "10.13.4", ids: ["GHSA-xxxx-xxxx-xxxx"], updated: "" }, undefined, file));
+			assert.deepEqual(loadDesired(undefined, file).ids, []);
+		} finally {
+			fs.chmodSync(dir, 0o755);
+			fs.rmSync(dir, { recursive: true, force: true });
+		}
+	});
+
+	it("still throws for other write errors", async () => {
+		const { saveDesired } = await import("../src/desired.js");
+		const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dbp-dir-"));
+		try {
+			// a directory where the file should be → EISDIR, not a permissions problem
+			const file = path.join(dir, "desired.json");
+			fs.mkdirSync(file);
+			assert.throws(() => saveDesired({ version: "", ids: ["GHSA-xxxx-xxxx-xxxx"], updated: "" }, undefined, file), /EISDIR/);
+		} finally {
+			fs.rmSync(dir, { recursive: true, force: true });
+		}
+	});
+});
