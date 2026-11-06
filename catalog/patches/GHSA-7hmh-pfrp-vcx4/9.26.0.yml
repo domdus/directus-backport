@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/middleware/graphql.js"
+  before_sha256: "dbf126a5318eb094776db0b0bd204ec46bd1b53167749f1222b3e8e87d57243e"
+  after_sha256: "8431e34cc5ccb796feb9bd6b91eff5dc97411eda91e3eb56980ee7f196dc30bb"
+  replace:
+    - from: "        document = parse(new Source(query));"
+      to: "        document = parse(new Source(query), { maxTokens: Number(process.env['GRAPHQL_QUERY_TOKEN_LIMIT'] ?? 5000) });"

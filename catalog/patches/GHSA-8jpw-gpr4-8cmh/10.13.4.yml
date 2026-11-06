@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/utils/apply-query.js"
+  before_sha256: "c75490afacc47845783120cea430f646a8936342d9fdd3eb5c0574367f565ca6"
+  after_sha256: "c547a57d44f6cce4226affee8260185d4a378d3598a12af92d637d326c400a1f"
+  replace:
+    - from: "    dbQuery.andWhere(function () {\n        let needsFallbackCondition = true;\n        fields.forEach(([name, field]) => {"
+      to: "    dbQuery.andWhere(function () {\n        let needsFallbackCondition = true;\n        fields.forEach(([name, field]) => {\n            if (Array.isArray(field.special) && field.special.includes('conceal'))\n                return;"

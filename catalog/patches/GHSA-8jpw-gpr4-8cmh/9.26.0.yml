@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/utils/apply-query.js"
+  before_sha256: "beb1df986ac4394a1d2281cd09afdc3b1900d218dac758be770a4149498d86e7"
+  after_sha256: "bf08064dd072b0e5f6371e48eb19e350bf9fcbdaeb8beeecb5564621664d4b46"
+  replace:
+    - from: "    dbQuery.andWhere(function () {\n        fields.forEach(([name, field]) => {"
+      to: "    dbQuery.andWhere(function () {\n        fields.forEach(([name, field]) => {\n            if (Array.isArray(field.special) && field.special.includes('conceal'))\n                return;"

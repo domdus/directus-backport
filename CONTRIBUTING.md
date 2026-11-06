@@ -80,6 +80,14 @@ the catalog and CI fails. To rotate the key, add the new public key to
 for rollback without a snapshot. `diff_file: change.patch` only applies to the exact
 pinned file. Targets must be `dist` files of an `@directus/*` package.
 
+## Fixes that landed before 12.x
+
+11.17.4 is the newest pin, so a fix shipped in 10.x or 11.x can still be missing on
+10.13.4 or 9.26.0. Register those advisories as `already-fixed` (true for 11.17.4)
+with `port.pins` for the older versions, and narrow `affects` when a pin never had
+the vulnerable code (say why in `notes`). Overlays come from
+`scripts/gen-legacy-ghsas.mjs`. App-bundle fixes are `wont-port`.
+
 ## Why checksums refuse to apply
 
 The CLI takes known catalog patches out of the file in memory and hashes what is

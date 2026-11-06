@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/utils/get-permissions.js"
+  before_sha256: "3da302c2afff7a1067a82fc4a359d748c60250944a4baf8407311393e859f7bf"
+  after_sha256: "c2acf2a613bcdb6b54d63719814840f6f6bdea76a3ff9105afd8839545cd357c"
+  replace:
+    - from: "        permission.permissions = parseFilter(permission.permissions, accountability, filterContext);\n        permission.validation = parseFilter(permission.validation, accountability, filterContext);"
+      to: "        const denyEmptyIn = (filter) => {\n            if (Array.isArray(filter))\n                return filter.map(denyEmptyIn);\n            if (filter === null || typeof filter !== 'object')\n                return filter;\n            const output = {};\n            for (const [key, value] of Object.entries(filter)) {\n                output[key] = key === '_in' && (value === undefined || value === null || (Array.isArray(value) && value.length === 0)) ? ['__directus_backport_no_match__'] : denyEmptyIn(value);\n            }\n            return output;\n        };\n        permission.permissions = parseFilter(permission.permissions, accountability, filterContext);\n        permission.validation = denyEmptyIn(parseFilter(permission.validation, accountability, filterContext));"

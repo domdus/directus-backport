@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/authentication.js"
+  before_sha256: "fa13122e8c23bfcefcd15a7e96ccbdf381048ae2d224bc6a62f734e615294daf"
+  after_sha256: "ba9a06614cae0020c0b1dcc65acc0e7c1fef42a45d6b9ab91a4539527fa88e25"
+  replace:
+    - from: "        else if (user.provider !== providerName) {\n            await stall(STALL_TIME, timeStart);\n            throw new InvalidProviderException();\n        }"
+      to: "        else if (user.provider !== providerName) {\n            emitStatus('fail');\n            await stall(STALL_TIME, timeStart);\n            throw new InvalidCredentialsException();\n        }"

@@ -1,0 +1,12 @@
+- file: "@directus/api/dist/controllers/utils.js"
+  before_sha256: "73997a3605724979dd5eaf0264f24183226f7e9a35383d83d53b17054ded1cca"
+  after_sha256: "cc258817d8e8bc4131c71bb64d8da4b3c7bc3ed33bf5216d518e5d9bca74feb9"
+  replace:
+    - from: "    if (req.query && req.query['length'] && Number(req.query['length']) > 500)\n        throw new InvalidQueryException(`\"length\" can't be more than 500 characters`);\n    const string = nanoid(req.query?.['length'] ? Number(req.query['length']) : 32);"
+      to: "    const rawLength = req.query?.['length'];\n    const length = rawLength === undefined || rawLength === '' ? 32 : Number(rawLength);\n    if (!Number.isInteger(length) || length < 1 || length > 500)\n        throw new InvalidQueryException(`\"length\" must be an integer between 1 and 500`);\n    const string = nanoid(length);"
+- file: "@directus/api/dist/services/graphql/index.js"
+  before_sha256: "3f7ed9145984cfb42aed0466eb9fb86eebfc69cf307fb8cbe542f7c380aaa372"
+  after_sha256: "e0d5f192bae1e2df75ba209418e9a7e003f854fcc5ca0bc06ef8819f138d1a05"
+  replace:
+    - from: "                    if (args['length'] && Number(args['length']) > 500) {\n                        throw new InvalidPayloadException(`\"length\" can't be more than 500 characters`);"
+      to: "                    if (args['length'] !== undefined && args['length'] !== null && (!Number.isInteger(args['length']) || args['length'] < 1 || args['length'] > 500)) {\n                        throw new InvalidPayloadException(`\"length\" must be between 1 and 500`);"

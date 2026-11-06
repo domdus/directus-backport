@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/users.js"
+  before_sha256: "534b7be9914af6b7b03b249e8cea49fc45d7917d90c7ec8e1b65234fed2ab3e5"
+  after_sha256: "bdd7641668e21def4d48417c6cfbef7878c56c25a2b3819a1f901455d758fbd8"
+  replace:
+    - from: "            (opts || (opts = {})).preMutationError = err;\n        }\n        return await super.updateMany(keys, data, opts);\n    }"
+      to: "            (opts || (opts = {})).preMutationError = err;\n        }\n        const updatedKeys = await super.updateMany(keys, data, opts);\n        if (data['status'] !== undefined && data['status'] !== 'active') {\n            await this.knex.from('directus_sessions').whereIn('user', keys).delete();\n        }\n        return updatedKeys;\n    }"

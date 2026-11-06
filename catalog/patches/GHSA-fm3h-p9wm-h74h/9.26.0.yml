@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/operations/condition/index.js"
+  before_sha256: "8f7228366d61c161e1ba7c9f249e2229e1fa90f29532d3dcf4f868139f2f259a"
+  after_sha256: "ff7b709c7b1e3e6482edbb9730905988998cd0ce1472bfd75d2808bb0ac6d079"
+  replace:
+    - from: "import { defineOperationApi, validatePayload } from '@directus/utils';"
+      to: "import { defineOperationApi, validatePayload } from '@directus/utils';\nimport { FailedValidationException } from '@directus/exceptions';"
+    - from: "            throw errors;"
+      to: "            throw errors.flatMap((error) => (error.details ?? []).map((details) => new FailedValidationException(details)));"

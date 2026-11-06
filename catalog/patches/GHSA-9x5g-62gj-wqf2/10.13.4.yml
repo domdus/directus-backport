@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/fields.js"
+  before_sha256: "14e0b44a6ff8637a4334eb855dd67ef3ca78dfcd1662efd5418c63af3c3c55f3"
+  after_sha256: "9b344c68a20369136321f2264c5ac852be672df7e9c42a7cd91d061656124c90"
+  replace:
+    - from: "                await trx('directus_fields').delete().where({ collection, field });"
+      to: "                await trx('directus_fields').delete().where({ collection, field });\n                const permissionRows = await trx\n                    .select('id', 'fields')\n                    .from('directus_permissions')\n                    .where('collection', collection)\n                    .andWhere('fields', 'like', '%' + field + '%');\n                for (const permissionRow of permissionRows) {\n                    const current = String(permissionRow.fields ?? '').split(',');\n                    if (!current.includes(field))\n                        continue;\n                    const next = current.filter((value) => value !== field).join(',');\n                    await trx('directus_permissions')\n                        .update({ fields: next.length > 0 ? next : null })\n                        .where('id', permissionRow.id);\n                }"

@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/app.js"
+  before_sha256: "5b46d13707ca580ae5a9226680deb4d7ef7d41e77bb76cf7902aa4b2f8ba0a84"
+  after_sha256: "67a52b30a3c66567e161a93eedbb53ec1bd87649ec5357e3450f2deca20b4e99"
+  replace:
+    - from: "        app.use(helmet.hsts(getConfigFromEnv('HSTS_', ['HSTS_ENABLED'])));\n    }\n    await emitter.emitInit('app.before', { app });"
+      to: "        app.use(helmet.hsts(getConfigFromEnv('HSTS_', ['HSTS_ENABLED'])));\n    }\n    if (env['CROSS_ORIGIN_OPENER_POLICY_ENABLED'] !== false && env['CROSS_ORIGIN_OPENER_POLICY_ENABLED'] !== 'false') {\n        app.use(helmet.crossOriginOpenerPolicy({ policy: env['CROSS_ORIGIN_OPENER_POLICY'] ?? 'same-origin-allow-popups' }));\n    }\n    await emitter.emitInit('app.before', { app });"

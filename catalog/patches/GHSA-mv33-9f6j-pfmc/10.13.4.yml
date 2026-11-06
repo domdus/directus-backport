@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/files.js"
+  before_sha256: "dd2ac5e1701d268d41fc28f33a57842585fa641504fc637002b93d220e26123e"
+  after_sha256: "b36ae74d7aea51d3363a255236f5235f821d8d43e7a2065e218c094ffe4105ee"
+  replace:
+    - from: "        const tempFilenameDisk = 'temp_' + payload.filename_disk;"
+      to: "        const tempFilenameDisk = 'temp_' + primaryKey + (fileExtension || '');"
+    - from: "        if (isReplacement === true) {\n            await this.updateOne(primaryKey, payload, { emitEvents: false });\n            // delete the previously saved file and thumbnails to ensure they're generated fresh\n            for await (const filepath of disk.list(String(primaryKey))) {\n                await disk.delete(filepath);\n            }\n            // Upgrade the temp file to the final filename\n            await disk.move(tempFilenameDisk, payload.filename_disk);\n        }"
+      to: "        if (isReplacement === true) {\n            try {\n                await this.updateOne(primaryKey, payload, { emitEvents: false });\n                // delete the previously saved file and thumbnails to ensure they're generated fresh\n                for await (const filepath of disk.list(String(primaryKey))) {\n                    await disk.delete(filepath);\n                }\n                // Upgrade the temp file to the final filename\n                await disk.move(tempFilenameDisk, payload.filename_disk);\n            }\n            catch (err) {\n                await cleanUp();\n                throw err;\n            }\n        }"

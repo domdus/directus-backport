@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/auth/drivers/saml.js"
+  before_sha256: "00e4ab14cb2035f9791e7d001a672aa70c726b1680221fbb921fe7b6f10138d2"
+  after_sha256: "aa8632a24c4a790d28ca65f22cda4420f83d2e3b47f353fd1fd42bc77064aae0"
+  replace:
+    - from: "        const relayState = req.body?.RelayState;\n        const authMode = (env[`AUTH_${providerName.toUpperCase()}_MODE`] ?? 'session');"
+      to: "        const relayState = req.body?.RelayState;\n        if (relayState && isLoginRedirectAllowed(relayState, providerName) === false) {\n            throw new InvalidPayloadError({ reason: `URL \"${relayState}\" can't be used to redirect after login` });\n        }\n        const authMode = (env[`AUTH_${providerName.toUpperCase()}_MODE`] ?? 'session');"

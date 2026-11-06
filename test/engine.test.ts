@@ -97,9 +97,13 @@ describe("bundled catalog", () => {
 	it("classifies 10.13.4 with version-specific pins", () => {
 		const catalog = loadCatalog(path.join(findPackageRoot(), "catalog"));
 		const parts = partitionAdvisories(catalog, "10.13.4");
-		assert.equal(parts.alreadyFixed.length, 0);
-		assert.equal(parts.ready.length, 20);
-		assert.equal(parts.waiting.length, 9);
+		// 10.x-era advisories (fixed upstream at or before 10.13.3) count as fixed here.
+		assert.equal(parts.alreadyFixed.length, 14);
+		assert.ok(parts.alreadyFixed.some((a) => a.id === "GHSA-cff8-x7jv-4fm8"));
+		assert.equal(parts.ready.length, 37);
+		assert.equal(parts.waiting.length, 11);
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-mv33-9f6j-pfmc"));
+		assert.ok(parts.waiting.some((a) => a.id === "GHSA-vv2v-pw69-8crf"));
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-97xr-jchp-xm3c"));
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-32cw-mf7w-gpqr"));
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-95f8-mvw7-gpj9"));
@@ -116,8 +120,11 @@ describe("bundled catalog", () => {
 		const catalog = loadCatalog(path.join(findPackageRoot(), "catalog"));
 		const parts = partitionAdvisories(catalog, "9.26.0");
 		assert.equal(parts.alreadyFixed.length, 0);
-		assert.equal(parts.ready.length, 21);
-		assert.equal(parts.waiting.length, 4);
+		assert.equal(parts.ready.length, 45);
+		assert.equal(parts.waiting.length, 9);
+		assert.ok(parts.ready.some((a) => a.id === "GHSA-qw9g-7549-7wg5"));
+		assert.ok(!parts.open.some((a) => a.id === "GHSA-393c-p46r-7c95"));
+		assert.ok(!parts.open.some((a) => a.id === "GHSA-mv33-9f6j-pfmc"));
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-wxwm-3fxv-mrvx"));
 		assert.ok(parts.ready.every((a) => a.port.targets.some((t) => t.pin === "9.26.0")));
 		assert.ok(parts.ready.some((a) => a.id === "GHSA-c6w9-5g5j-jh2p"));

@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/database/system-data/app-access-permissions/index.js"
+  before_sha256: "c514297fc893baa1e037a709eba0178f0a665e50750d0cc10793dd08d27e508c"
+  after_sha256: "bcf761dae40a506cc3a57a1f10f718f3a769fb6435458e943e409c00d3799b0c"
+  replace:
+    - from: "const permissions = requireYAML(path.resolve(__dirname, './app-access-permissions.yaml'));"
+      to: "const permissions = requireYAML(path.resolve(__dirname, './app-access-permissions.yaml'));\nfor (const row of permissions) {\n    if (row.collection === 'directus_presets' && row.action === 'update' && !row.validation)\n        row.validation = { user: { _eq: '$CURRENT_USER' } };\n}"

@@ -1,0 +1,20 @@
+- file: "@directus/api/dist/utils/apply-query.js"
+  before_sha256: "c75490afacc47845783120cea430f646a8936342d9fdd3eb5c0574367f565ca6"
+  after_sha256: "e40d4f9cb16998957d0af40d19d818df166b5dbd4bad94bab2d69c5c5e7a6abe"
+  replace:
+    - from: "        applySearch(knex, schema, dbQuery, query.search, collection);"
+      to: "        applySearch(knex, schema, dbQuery, query.search, collection, query.__backportSearchFields);"
+    - from: "export async function applySearch(knex, schema, dbQuery, searchQuery, collection) {\n    const { number: numberHelper } = getHelpers(knex);\n    const fields = Object.entries(schema.collections[collection].fields);"
+      to: "export async function applySearch(knex, schema, dbQuery, searchQuery, collection, allowedFields) {\n    const { number: numberHelper } = getHelpers(knex);\n    let fields = Object.entries(schema.collections[collection].fields);\n    if (allowedFields !== undefined) {\n        const allowed = allowedFields === null ? [] : typeof allowedFields === 'string' ? allowedFields.split(',') : allowedFields;\n        if (!allowed.includes('*'))\n            fields = fields.filter(([name]) => allowed.includes(name));\n    }"
+- file: "@directus/api/dist/services/meta.js"
+  before_sha256: "cb459bbe4ed969e56fd802f98bce1d6f8a70b21436f341ee9cbbbbe334727d7a"
+  after_sha256: "c462b534d001a0bc6b82ed02d7ee608625e271bd42bb8d59889c06fba15afcae"
+  replace:
+    - from: "            applySearch(this.knex, this.schema, dbQuery, query.search, collection);"
+      to: "            applySearch(this.knex, this.schema, dbQuery, query.search, collection, this.accountability && this.accountability.admin !== true ? (this.accountability.permissions?.find((permission) => permission.action === 'read' && permission.collection === collection)?.fields ?? null) : undefined);"
+- file: "@directus/api/dist/services/authorization.js"
+  before_sha256: "092028e37af616c80ca05a59802c9c7b2b5bfd1e4430e69eead14fc9b294507e"
+  after_sha256: "55d71191c37bbb900ee2d261abd81ebb21c763b6af2372a909732d25a5df22ed"
+  replace:
+    - from: "        applyFilters(ast, this.accountability);\n        return ast;"
+      to: "        applyFilters(ast, this.accountability);\n        if (ast.query?.search && this.accountability && this.accountability.admin !== true) {\n            const rootPermission = permissionsForCollections.find((permission) => permission.collection === ast.name);\n            ast.query.__backportSearchFields = rootPermission?.fields ?? null;\n        }\n        return ast;"

@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/middleware/respond.js"
+  before_sha256: "d135f25dcba1bc2bdf8cfb692949799b2c7205cf0400bc8f51fa9041f77a5796"
+  after_sha256: "cfba1ee58601312165da61959fb6eb024e7bef3d3d4f81c3e9e8847255e2241a"
+  replace:
+    - from: "        env['CACHE_ENABLED'] === true &&\n        cache &&"
+      to: "        env['CACHE_ENABLED'] === true &&\n        req.originalUrl?.startsWith('/auth') === false &&\n        cache &&"

@@ -1,0 +1,12 @@
+- file: "@directus/api/dist/services/users.js"
+  before_sha256: "d4629f762f979062842c99f41b16834548309d7bd2d9a1047f37ddbd692893b8"
+  after_sha256: "a0e52f8080a59c399a271d623c8fb216fcb20492d7ac18a11bb63246d7c254e4"
+  replace:
+    - from: "            .select('id', 'role', 'status', 'password')"
+      to: "            .select('id', 'role', 'status', 'password', 'email')"
+    - from: "                    to: email,\n                    subject: subjectLine,\n                    template: {\n                        name: 'user-invitation',\n                        data: {\n                            url: this.inviteUrl(email, url),\n                            email,"
+      to: "                    to: user?.email ?? email,\n                    subject: subjectLine,\n                    template: {\n                        name: 'user-invitation',\n                        data: {\n                            url: this.inviteUrl(user?.email ?? email, url),\n                            email: user?.email ?? email,"
+    - from: "        const payload = { email, scope: 'password-reset', hash: getSimpleHash('' + user.password) };"
+      to: "        const payload = { email: user.email, scope: 'password-reset', hash: getSimpleHash('' + user.password) };"
+    - from: "            to: email,\n            subject: subjectLine,\n            template: {\n                name: 'password-reset',\n                data: {\n                    url: acceptURL,\n                    email,"
+      to: "            to: user.email,\n            subject: subjectLine,\n            template: {\n                name: 'password-reset',\n                data: {\n                    url: acceptURL,\n                    email: user.email,"

@@ -9,7 +9,7 @@
 # port.pins optionally overrides the status per version: { "11.17.4": stable }
 
 catalog_version: 1
-updated: "2026-11-02"
+updated: "2026-11-06"
 notes: >
   Upstream Directus does not ship 12.x security fixes onto 9 / 10 / 11. This catalog
   is the optional stopgap: it tracks what is still open on a pinned build and, when a
@@ -422,7 +422,7 @@ advisories:
       status: already-fixed
       risk: none
       pins: { "9.26.0": stable }
-      notes: Fixed in Directus 11.16.1. Checksum-pinned overlay for 9.26.0 requires OAuth2/OpenID/SAML redirects to match PUBLIC_URL.
+      notes: Fixed in Directus 11.16.1. Checksum-pinned overlay for 9.26.0 requires OAuth2/OpenID/SAML redirects to match PUBLIC_URL. On 9.26.0 this also closes GHSA-fr3w-2p22-6w7p (OAuth2/OpenID redirect, fixed upstream in 10.10.0) and GHSA-3573-4c68-g8cc (SAML RelayState on the callback).
 
   - id: GHSA-wv3h-5fx7-966h
     title: SSRF protection bypass via IPv4-mapped IPv6 addresses in file import
@@ -435,3 +435,399 @@ advisories:
       risk: none
       pins: { "9.26.0": stable }
       notes: Fixed in Directus 11.16.0. Checksum-pinned overlay for 9.26.0 unwraps IPv4-mapped IPv6 before IMPORT_IP_DENY_LIST.
+
+  - id: GHSA-mv33-9f6j-pfmc
+    title: "Unauthenticated file upload and file modification via unsanitized filename_disk"
+    severity: critical
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-mv33-9f6j-pfmc
+    affects: "> 10.8.0 < 11.9.3"
+    upstream_patched: "11.9.3"
+    port:
+      status: already-fixed
+      risk: medium
+      pins: { "10.13.4": experimental }
+      notes: "Fixed in Directus 11.9.3. Checksum-pinned overlay for 10.13.4: replacement uploads write the temp file as temp_<id><ext> instead of temp_<filename_disk>, and the temp file is removed if the permission-checked update fails. 9.26.0 always writes uploads to <id><ext>, so it is not exposed. Restart required."
+
+  - id: GHSA-393c-p46r-7c95
+    title: "Broken access control in file management API via filename_disk"
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-393c-p46r-7c95
+    affects: ">= 10.0.0 < 11.17.0"
+    upstream_patched: "11.17.0"
+    port:
+      status: already-fixed
+      risk: medium
+      pins: { "10.13.4": experimental }
+      notes: "Fixed in Directus 11.17.0 (upstream range < 11.17.0). Checksum-pinned overlay for 10.13.4: user-supplied filename_disk is normalised, must not already belong to another file, and cannot be changed in bulk. Upstream's on-disk rename on filename_disk change is not ported. 9.26.0 writes and deletes by file id, so the overwrite path does not exist there. Restart required."
+
+  - id: GHSA-8m32-p958-jg99
+    title: "Missing Cross-Origin-Opener-Policy on SSO pages"
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-8m32-p958-jg99
+    affects: "< 11.17.0"
+    upstream_patched: "11.17.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.17.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 send Cross-Origin-Opener-Policy (default same-origin-allow-popups). CROSS_ORIGIN_OPENER_POLICY_ENABLED=false and CROSS_ORIGIN_OPENER_POLICY work as upstream. Restart required."
+
+  - id: GHSA-jr94-gj3h-c8rf
+    title: "User enumeration via password reset timing"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-jr94-gj3h-c8rf
+    affects: "< 11.15.0"
+    upstream_patched: "11.15.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.15.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 validate reset_url before looking up the user. Restart required."
+
+  - id: GHSA-3573-4c68-g8cc
+    title: "Open redirect via SAML RelayState on the callback"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-3573-4c68-g8cc
+    affects: ">= 10.0.0 < 11.14.0"
+    upstream_patched: "11.14.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental }
+      notes: "Fixed in Directus 11.14.0 (upstream range < 11.14.0). Checksum-pinned overlay for 10.13.4 runs RelayState through isLoginRedirectAllowed on /acs. On 9.26.0 the GHSA-cf45-hxwj-4cfj overlay already validates RelayState, so apply that one. Restart required."
+
+  - id: GHSA-8jpw-gpr4-8cmh
+    title: "Concealed fields are searchable with read permission"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-8jpw-gpr4-8cmh
+    affects: "< 11.13.0"
+    upstream_patched: "11.13.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.13.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 skip conceal fields (token, tfa_secret, password, …) in ?search. Restart required."
+
+  - id: GHSA-9x5g-62gj-wqf2
+    title: "Deleted fields keep their field permissions"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-9x5g-62gj-wqf2
+    affects: "< 11.13.0"
+    upstream_patched: "11.13.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.13.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 remove the field from directus_permissions.fields when it is deleted. Rows left by fields deleted before the patch are not cleaned up. Restart required."
+
+  - id: GHSA-vv2v-pw69-8crf
+    title: "Stored XSS via the Block Editor interface"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-vv2v-pw69-8crf
+    affects: "< 11.13.0"
+    upstream_patched: "11.13.0"
+    port:
+      status: already-fixed
+      risk: none
+      pins: { "10.13.4": wont-port, "9.26.0": wont-port }
+      notes: "Fixed in Directus 11.13.0 in the app bundle, which this catalog does not patch. Restrict who has both file upload and edit permission on Block Editor fields, and keep the default CSP."
+
+  - id: GHSA-7cvf-pxgp-42fc
+    title: "Missing permission checks for manual trigger Flows"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-7cvf-pxgp-42fc
+    affects: ">= 9.12.0 < 11.9.0"
+    upstream_patched: "11.9.0"
+    port:
+      status: already-fixed
+      risk: medium
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.9.0/11.9.3. Checksum-pinned overlays for 10.13.4 and 9.26.0 require an authenticated caller and a keys array, and non-admins must be able to read every key. Flows with requireSelection=false may run with no keys. Restart required."
+
+  - id: GHSA-rmjh-cf9q-pv7q
+    title: "Directus version disclosed in the OpenAPI spec"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-rmjh-cf9q-pv7q
+    affects: ">= 9.0.0 < 11.9.0"
+    upstream_patched: "11.9.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.9.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 replace info.version in /server/specs/oas with a per-request hash, as upstream does. Restart required."
+
+  - id: GHSA-x3vm-88hf-gpxp
+    title: "Sensitive user data not redacted in Log to Console"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-x3vm-88hf-gpxp
+    affects: ">= 9.0.0 < 11.9.0"
+    upstream_patched: "11.9.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.9.0 (same commit as GHSA-f24x-rm6g-3w5v). Checksum-pinned overlays for 10.13.4 and 9.26.0 redact payload.password, token, tfa_secret, external_identifier and auth_data in data given to Log to Console. Restart required."
+
+  - id: GHSA-f24x-rm6g-3w5v
+    title: "Tokens not redacted in Flow logs"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-f24x-rm6g-3w5v
+    affects: ">= 9.0.0 < 11.9.0"
+    upstream_patched: "11.9.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.9.0 (same commit as GHSA-x3vm-88hf-gpxp). Checksum-pinned overlays for 10.13.4 and 9.26.0 redact headers.authorization, headers.cookie and query.access_token in data given to Log to Console. Restart required."
+
+  - id: GHSA-j8xj-7jff-46mx
+    title: "S3 assets unavailable after a burst of malformed transformations"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-j8xj-7jff-46mx
+    affects: ">= 9.22.0 < 11.5.0"
+    upstream_patched: "11.5.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.5.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 open the source stream only after the transformation has been applied to sharp, so an invalid transform no longer leaks an S3 socket. Restart required."
+
+  - id: GHSA-rv78-qqrq-73m5
+    title: "S3 assets unavailable after a burst of HEAD requests"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-rv78-qqrq-73m5
+    affects: ">= 9.22.0 < 11.5.0"
+    upstream_patched: "11.5.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.5.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 destroy the unread storage stream on HEAD /assets so the S3 socket is released. Restart required."
+
+  - id: GHSA-fm3h-p9wm-h74h
+    title: "Webhook flows leak data through a failed condition"
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-fm3h-p9wm-h74h
+    affects: ">= 9.12.0 < 11.5.0"
+    upstream_patched: "11.5.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.5.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 throw failed-validation errors from the Condition operation instead of raw Joi errors, which carried the whole evaluated data (including $env and $accountability). Restart required."
+
+  - id: GHSA-7wq3-jr35-275c
+    title: "search query parameter enumerates non-permitted fields"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-7wq3-jr35-275c
+    affects: "< 11.5.0"
+    upstream_patched: "11.5.0"
+    port:
+      status: already-fixed
+      risk: medium
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.5.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 limit ?search on the root collection (items and meta=filter_count) to the fields the role's read permission allows. Admins and internal calls are unchanged. Restart required."
+
+  - id: GHSA-56p6-qw3c-fq2g
+    title: "Suspended users keep using session tokens"
+    severity: low
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-56p6-qw3c-fq2g
+    affects: ">= 10.10.0 < 11.5.0"
+    upstream_patched: "11.5.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental }
+      notes: "Fixed in Directus 11.5.0. Checksum-pinned overlay for 10.13.4 deletes a user's directus_sessions rows when their status is set to anything other than active, which invalidates session JWTs. 9.26.0 has no session auth mode. Restart required."
+
+  - id: GHSA-9qrm-48qf-r2rw
+    title: "DOM-based XSS via layout_options"
+    severity: low
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-9qrm-48qf-r2rw
+    affects: "< 11.3.3"
+    upstream_patched: "11.3.3"
+    port:
+      status: already-fixed
+      risk: none
+      pins: { "10.13.4": wont-port, "9.26.0": wont-port }
+      notes: "Fixed in Directus 11.3.3 in the app bundle, which this catalog does not patch. On 9.26.0 apply GHSA-3fff-gqw3-vj86, which blocks the preset-reassignment half of the chain."
+
+  - id: GHSA-pmf4-v838-29hg
+    title: "Privilege escalation using the Share feature"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-pmf4-v838-29hg
+    affects: "< 11.2.0"
+    upstream_patched: "11.2.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "10.13.4": experimental, "9.26.0": experimental }
+      notes: "Fixed in Directus 11.2.0. Checksum-pinned overlays for 10.13.4 and 9.26.0 let non-admins create a share only with their own role. Updates are covered by GHSA-7h45-q5jx-7r87. Restart required."
+
+  - id: GHSA-cff8-x7jv-4fm8
+    title: "Session cached for OpenID and OAuth2 if redirect is not used"
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-cff8-x7jv-4fm8
+    affects: "<= 10.13.2"
+    upstream_patched: "10.13.3"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.13.3. Checksum-pinned overlay for 9.26.0 never caches /auth responses. Restart required."
+
+  - id: GHSA-vw58-ph65-6rxp
+    title: "Access token from query string written to logs"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-vw58-ph65-6rxp
+    affects: "< 10.13.2"
+    upstream_patched: "10.13.2"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.13.2. Checksum-pinned overlay for 9.26.0 redacts req.query.access_token when LOG_STYLE=raw. Restart required."
+
+  - id: GHSA-3fff-gqw3-vj86
+    title: "Insecure object reference via PATCH presets"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-3fff-gqw3-vj86
+    affects: "<= 10.13.1"
+    upstream_patched: "10.13.2"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.13.2. Checksum-pinned overlay for 9.26.0 adds the upstream validation (user = $CURRENT_USER) to the app-access directus_presets update permission. Restart required."
+
+  - id: GHSA-68g8-c275-xf2m
+    title: "SSRF loopback filter bypass via 127.0.0.0/8"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-68g8-c275-xf2m
+    affects: "<= 10.13.2"
+    upstream_patched: "10.13.3"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.13.3. Checksum-pinned overlay for 9.26.0 treats every 127.x address as loopback when IMPORT_IP_DENY_LIST contains 0.0.0.0. Restart required."
+
+  - id: GHSA-jgf4-vwc3-r46v
+    title: "SSO user enumeration through local login"
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-jgf4-vwc3-r46v
+    affects: ">= 9.11.0 < 10.13.0"
+    upstream_patched: "10.13.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.13.0. Checksum-pinned overlay for 9.26.0 answers a local login for an SSO account with the same invalid-credentials error and delay as a wrong password. Restart required."
+
+  - id: GHSA-632p-p495-25m5
+    title: "Soft-lock via non-numeric length in random string util"
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-632p-p495-25m5
+    affects: "<= 10.11.1"
+    upstream_patched: "10.11.2"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.11.2. Checksum-pinned overlay for 9.26.0 accepts only integers 1–500 for length on /utils/random/string and the GraphQL resolver. Restart required."
+
+  - id: GHSA-7hmh-pfrp-vcx4
+    title: "GraphQL field duplication DoS"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-7hmh-pfrp-vcx4
+    affects: "< 10.12.0"
+    upstream_patched: "10.12.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.12.0. Checksum-pinned overlay for 9.26.0 parses GraphQL documents with maxTokens = GRAPHQL_QUERY_TOKEN_LIMIT (default 5000). Restart required."
+
+  - id: GHSA-p8v3-m643-4xqx
+    title: "Redacted data extraction through alias"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-p8v3-m643-4xqx
+    affects: "< 10.11.0"
+    upstream_patched: "10.11.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.11.0. Checksum-pinned overlay for 9.26.0 applies hash/conceal handling to aliased fields too. Restart required."
+
+  - id: GHSA-hxgm-ghmv-xjjm
+    title: "Incorrect handling of _in filter with empty values"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-hxgm-ghmv-xjjm
+    affects: ">= 9.23.0 <= 10.5.3"
+    upstream_patched: "10.6.0"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.6.0. Checksum-pinned overlay for 9.26.0 makes an _in rule in permission validation fail when its dynamic value is empty or missing. Item permissions are SQL filters and already match nothing for an empty _in. Restart required."
+
+  - id: GHSA-8p72-rcq4-h6pw
+    title: "Blind SSRF on file import via redirects"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-8p72-rcq4-h6pw
+    affects: "< 10.9.3"
+    upstream_patched: "10.9.3"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.9.3. Checksum-pinned overlay for 9.26.0 checks every outgoing connection, including redirects, against IMPORT_IP_DENY_LIST before it connects. Restart required."
+
+  - id: GHSA-2ccr-g2rv-h677
+    title: "Session token in URL"
+    severity: low
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-2ccr-g2rv-h677
+    affects: "< 10.10.0"
+    upstream_patched: "10.10.0"
+    port:
+      status: already-fixed
+      risk: none
+      pins: { "9.26.0": wont-port }
+      notes: "Fixed in Directus 10.10.0 by session cookie auth, which 9.26.0 does not have. Keep access logs that record full URLs restricted."
+
+  - id: GHSA-qw9g-7549-7wg5
+    title: "MySQL accent-insensitive email matching in password reset"
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-qw9g-7549-7wg5
+    affects: "<= 10.8.2"
+    upstream_patched: "10.8.3"
+    port:
+      status: already-fixed
+      risk: low
+      pins: { "9.26.0": experimental }
+      notes: "Fixed in Directus 10.8.3. Checksum-pinned overlay for 9.26.0 sends reset and invite emails and tokens to the stored address, not the submitted one. Restart required."
+
+  - id: GHSA-5mhg-wv8w-p59j
+    title: "Directus version number in app bundles"
+    severity: medium
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-5mhg-wv8w-p59j
+    affects: "<= 10.8.2"
+    upstream_patched: "10.8.3"
+    port:
+      status: already-fixed
+      risk: none
+      pins: { "9.26.0": wont-port }
+      notes: "Fixed in Directus 10.8.3 in the app bundle, which this catalog does not patch."
+
+  - id: GHSA-22rr-f3p8-5gf8
+    title: "vm2 sandbox escape in the Run Script operation"
+    severity: high
+    advisory: https://github.com/directus/directus/security/advisories/GHSA-22rr-f3p8-5gf8
+    affects: "< 10.6.0"
+    upstream_patched: "10.6.0"
+    port:
+      status: already-fixed
+      risk: none
+      pins: { "9.26.0": wont-port }
+      notes: "Fixed in Directus 10.6.0 by replacing vm2 with isolated-vm, which is too big to port. Only admins can create Flows. Treat Run Script as admin-level code execution."

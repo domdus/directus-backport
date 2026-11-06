@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/assets.js"
+  before_sha256: "fb7d993ec6bf56ea82ee7426ba6f518a2569d3e5631e1730bb0e4de0bd47b5f6"
+  after_sha256: "76832decc72b8d85f8b65dea2ccddb77ffe20dc09681e92487d900631cb24613"
+  replace:
+    - from: "            const readStream = await storage.location(file.storage).read(file.filename_disk, range);\n            const transformer = getSharpInstance();\n            transformer.timeout({\n                seconds: clamp(Math.round(getMilliseconds(env['ASSETS_TRANSFORM_TIMEOUT'], 0) / 1000), 1, 3600),\n            });\n            if (transforms.find((transform) => transform[0] === 'rotate') === undefined)\n                transformer.rotate();\n            transforms.forEach(([method, ...args]) => transformer[method].apply(transformer, args));"
+      to: "            const transformer = getSharpInstance();\n            transformer.timeout({\n                seconds: clamp(Math.round(getMilliseconds(env['ASSETS_TRANSFORM_TIMEOUT'], 0) / 1000), 1, 3600),\n            });\n            if (transforms.find((transform) => transform[0] === 'rotate') === undefined)\n                transformer.rotate();\n            transforms.forEach(([method, ...args]) => transformer[method].apply(transformer, args));\n            const readStream = await storage.location(file.storage).read(file.filename_disk, range);"

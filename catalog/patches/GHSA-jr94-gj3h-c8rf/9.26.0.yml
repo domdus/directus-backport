@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/users.js"
+  before_sha256: "d4629f762f979062842c99f41b16834548309d7bd2d9a1047f37ddbd692893b8"
+  after_sha256: "8015a8916a369d153153b422b8f638599256ca32eda8d9ccf31429ba8f074e02"
+  replace:
+    - from: "        const user = await this.getUserByEmail(email);\n        if (user?.status !== 'active') {\n            await stall(STALL_TIME, timeStart);\n            throw new ForbiddenException();\n        }\n        if (url && isUrlAllowed(url, env['PASSWORD_RESET_URL_ALLOW_LIST']) === false) {\n            throw new InvalidPayloadException(`Url \"${url}\" can't be used to reset passwords.`);\n        }"
+      to: "        if (url && isUrlAllowed(url, env['PASSWORD_RESET_URL_ALLOW_LIST']) === false) {\n            throw new InvalidPayloadException(`Url \"${url}\" can't be used to reset passwords.`);\n        }\n        const user = await this.getUserByEmail(email);\n        if (user?.status !== 'active') {\n            await stall(STALL_TIME, timeStart);\n            throw new ForbiddenException();\n        }"

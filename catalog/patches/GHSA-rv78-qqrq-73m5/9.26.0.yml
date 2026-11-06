@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/controllers/assets.js"
+  before_sha256: "dbfed6263357ecba50635bbbd2897cfee69bd7900c2eb1895653dac4cd0be8a8"
+  after_sha256: "b46bd42a330527c496bcc4b8490eae3e2cf443e4d72447bcd25d1740ccacadb2"
+  replace:
+    - from: "    if (req.method.toLowerCase() === 'head') {\n        res.status(200);\n        res.setHeader('Accept-Ranges', 'bytes');\n        res.setHeader('Content-Length', stat.size);\n        return res.end();\n    }"
+      to: "    if (req.method.toLowerCase() === 'head') {\n        if (typeof stream?.destroy === 'function')\n            stream.destroy();\n        res.status(200);\n        res.setHeader('Accept-Ranges', 'bytes');\n        res.setHeader('Content-Length', stat.size);\n        return res.end();\n    }"

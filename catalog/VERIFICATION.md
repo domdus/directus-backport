@@ -13,7 +13,9 @@ A port is `stable` only when all three hold:
 `E` means tested end to end through the API. `F` means tested by calling the
 patched function inside the real install, because the feature needs something the
 lab did not have. `n/r` means it did not reproduce on stock, so nothing was proven
-and the port stays `experimental`. A dash means there is no port for that version.
+and the port stays `experimental`. A dash means there is no port for that version. `u` means a port exists but has not
+been run against a live instance yet: it applies, parses and rolls back cleanly in
+`npm run verify:catalog`, and nothing more is claimed, so it stays `experimental`.
 
 | Advisory | 11.17.4 | 10.13.4 | 9.26.0 |
 |---|---|---|---|
@@ -50,6 +52,34 @@ and the port stays `experimental`. A dash means there is no port for that versio
 | GHSA-wxwm-3fxv-mrvx | - | - | E |
 | GHSA-cf45-hxwj-4cfj | - | - | E |
 | GHSA-wv3h-5fx7-966h | - | - | F |
+| GHSA-mv33-9f6j-pfmc | - | u | - |
+| GHSA-393c-p46r-7c95 | - | u | - |
+| GHSA-8m32-p958-jg99 | - | u | u |
+| GHSA-jr94-gj3h-c8rf | - | u | u |
+| GHSA-3573-4c68-g8cc | - | u | - |
+| GHSA-8jpw-gpr4-8cmh | - | u | u |
+| GHSA-9x5g-62gj-wqf2 | - | u | u |
+| GHSA-7cvf-pxgp-42fc | - | u | u |
+| GHSA-rmjh-cf9q-pv7q | - | u | u |
+| GHSA-x3vm-88hf-gpxp | - | u | u |
+| GHSA-f24x-rm6g-3w5v | - | u | u |
+| GHSA-j8xj-7jff-46mx | - | u | u |
+| GHSA-rv78-qqrq-73m5 | - | u | u |
+| GHSA-fm3h-p9wm-h74h | - | u | u |
+| GHSA-7wq3-jr35-275c | - | u | u |
+| GHSA-56p6-qw3c-fq2g | - | u | - |
+| GHSA-pmf4-v838-29hg | - | u | u |
+| GHSA-cff8-x7jv-4fm8 | - | - | u |
+| GHSA-vw58-ph65-6rxp | - | - | u |
+| GHSA-3fff-gqw3-vj86 | - | - | u |
+| GHSA-68g8-c275-xf2m | - | - | u |
+| GHSA-jgf4-vwc3-r46v | - | - | u |
+| GHSA-632p-p495-25m5 | - | - | u |
+| GHSA-7hmh-pfrp-vcx4 | - | - | u |
+| GHSA-p8v3-m643-4xqx | - | - | u |
+| GHSA-hxgm-ghmv-xjjm | - | - | u |
+| GHSA-8p72-rcq4-h6pw | - | - | u |
+| GHSA-qw9g-7549-7wg5 | - | - | u |
 
 Limits of this table:
 

@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/flows.js"
+  before_sha256: "f2bad3b3dcefab56268e645dcd9a8ac201e7666eb0244903cdc6078094999546"
+  after_sha256: "7c46d81b6fdfb4738540afb8cd47589fc1bb8fe80b812dc1ad8c9edd193585c3"
+  replace:
+    - from: "        const handler = this.operations[operation.type];"
+      to: "        const handler = this.operations[operation.type];\n        if (operation.type === 'log') {\n            const redactLogPayload = (value, parent) => {\n                if (Array.isArray(value))\n                    return value.map((entry) => redactLogPayload(entry, parent));\n                if (value === null || typeof value !== 'object' || value instanceof Date)\n                    return value;\n                const output = {};\n                for (const [key, entry] of Object.entries(value)) {\n                    output[key] = ({'payload':['password','token','tfa_secret','external_identifier','auth_data']}[parent] ?? []).includes(key) ? '--redacted--' : redactLogPayload(entry, key);\n                }\n                return output;\n            };\n            keyedData = redactLogPayload(keyedData, null);\n        }"

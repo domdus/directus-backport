@@ -1,0 +1,12 @@
+- file: "@directus/api/dist/services/payload.js"
+  before_sha256: "f9dbffabdc41ebcd98170b9190f4bf5234ee96b5fee4c1ae734be926ebb9a0ac"
+  after_sha256: "c61ffe5c934cce096562570fcc325c06292f8e2b332ac1394e4100495d291356"
+  replace:
+    - from: "    async processValues(action, payload) {\n        const processedPayload = toArray(payload);\n        if (processedPayload.length === 0)\n            return [];\n        const fieldsInPayload = Object.keys(processedPayload[0]);\n        let specialFieldsInCollection = Object.entries(this.schema.collections[this.collection].fields).filter(([_name, field]) => field.special && field.special.length > 0);"
+      to: "    async processValues(action, payload, aliasMap = {}) {\n        const processedPayload = toArray(payload);\n        if (processedPayload.length === 0)\n            return [];\n        const fieldsInPayload = Object.keys(processedPayload[0]);\n        let specialFieldsInCollection = Object.entries(this.schema.collections[this.collection].fields).filter(([_name, field]) => field.special && field.special.length > 0);\n        for (const [aliasName, fieldName] of Object.entries(aliasMap ?? {})) {\n            const aliased = specialFieldsInCollection.find(([name]) => name === fieldName);\n            if (aliased)\n                specialFieldsInCollection.push([aliasName, { ...aliased[1], field: aliasName }]);\n        }"
+- file: "@directus/api/dist/database/run-ast.js"
+  before_sha256: "84f34c1003b2284d6a7b9108ef208b3a46538e6baee2eb67e8a1d747d60c5b9a"
+  after_sha256: "201c7d6295ffed29739141dee6e7796cb9052912b6c0daddefe2d40b2033bc71"
+  replace:
+    - from: "        let items = await payloadService.processValues('read', rawItems);"
+      to: "        let items = await payloadService.processValues('read', rawItems, query.alias ?? {});"

@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/services/shares.js"
+  before_sha256: "b935f88b9ce7cc2422a4955be0e2b1ed059baf7d002a5902d2822f49222abb72"
+  after_sha256: "23bb1636a92577427570a2dcb08a2453540b7b5dfe2e01bdbb78051cdcb5cd11"
+  replace:
+    - from: "    async createOne(data, opts) {"
+      to: "    async createOne(data, opts) {\n        if (data && data['role'] && this.accountability && this.accountability.admin !== true) {\n            const shareRole = data['role']?.id ?? data['role'];\n            if (shareRole !== this.accountability.role)\n                throw new ForbiddenError();\n        }"

@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/operations/condition/index.js"
+  before_sha256: "f7705f5f63fcf6bb8dfe9c17933762d6217957816f1079ab1d5f699a0adcba99"
+  after_sha256: "d5027dc0e5b0b684febaa5c9f9945f1e8f487b021d64ec2223840965d8239fef"
+  replace:
+    - from: "import { defineOperationApi } from '@directus/extensions';"
+      to: "import { defineOperationApi } from '@directus/extensions';\nimport { FailedValidationError, joiValidationErrorItemToErrorExtensions } from '@directus/validation';"
+    - from: "            throw errors;"
+      to: "            throw errors.flatMap((error) => (error.details ?? []).map((details) => new FailedValidationError(joiValidationErrorItemToErrorExtensions(details))));"

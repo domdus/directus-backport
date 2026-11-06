@@ -1,0 +1,20 @@
+- file: "@directus/api/dist/utils/apply-query.js"
+  before_sha256: "beb1df986ac4394a1d2281cd09afdc3b1900d218dac758be770a4149498d86e7"
+  after_sha256: "cf41f3ab280779268bf551d87417a5c0a758190d861a38b78cdf020da69b4245"
+  replace:
+    - from: "        applySearch(schema, dbQuery, query.search, collection);"
+      to: "        applySearch(schema, dbQuery, query.search, collection, query.__backportSearchFields);"
+    - from: "export async function applySearch(schema, dbQuery, searchQuery, collection) {\n    const fields = Object.entries(schema.collections[collection].fields);"
+      to: "export async function applySearch(schema, dbQuery, searchQuery, collection, allowedFields) {\n    let fields = Object.entries(schema.collections[collection].fields);\n    if (allowedFields !== undefined) {\n        const allowed = allowedFields === null ? [] : typeof allowedFields === 'string' ? allowedFields.split(',') : allowedFields;\n        if (!allowed.includes('*'))\n            fields = fields.filter(([name]) => allowed.includes(name));\n    }"
+- file: "@directus/api/dist/services/meta.js"
+  before_sha256: "11edb934dcc003c02c6a105825c473964dff7b606958edc0c2e4ecf9190f7e69"
+  after_sha256: "d3d099629959cc151987e94dff791a05d55bb30f38e9a61cfbad38c8a148c317"
+  replace:
+    - from: "            applySearch(this.schema, dbQuery, query.search, collection);"
+      to: "            applySearch(this.schema, dbQuery, query.search, collection, this.accountability && this.accountability.admin !== true ? (this.accountability.permissions?.find((permission) => permission.action === 'read' && permission.collection === collection)?.fields ?? null) : undefined);"
+- file: "@directus/api/dist/services/authorization.js"
+  before_sha256: "16c4c25a1145897cd79dbd99fdd40733f82b70cb68698dad99e81318d0bc8d92"
+  after_sha256: "f59770e5e448b83848a5b344ff2a777461d7224d6ae07c836631f3ae1c799465"
+  replace:
+    - from: "        applyFilters(ast, this.accountability);\n        return ast;"
+      to: "        applyFilters(ast, this.accountability);\n        if (ast.query?.search && this.accountability && this.accountability.admin !== true) {\n            const rootPermission = permissionsForCollections.find((permission) => permission.collection === ast.name);\n            ast.query.__backportSearchFields = rootPermission?.fields ?? null;\n        }\n        return ast;"

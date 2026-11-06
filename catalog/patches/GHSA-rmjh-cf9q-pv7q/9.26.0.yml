@@ -1,0 +1,8 @@
+- file: "@directus/api/dist/services/specifications.js"
+  before_sha256: "f01eacaa259adb98e0d4f4291c74546fbf471215e332521bfc81522d9c39aa7b"
+  after_sha256: "901279e3f62abb58694f616fecd6a2acaf16e8e05515bd9371ecc3009ec82978"
+  replace:
+    - from: "import { version } from '../utils/package.js';"
+      to: "import { createHash } from 'node:crypto';"
+    - from: "                version: version,"
+      to: "                version: createHash('sha1').update(JSON.stringify({ now: new Date().toISOString(), user: this.accountability?.user ?? null })).digest('hex'),"

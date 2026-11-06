@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/flows.js"
+  before_sha256: "5164b796e8e359da1c1f1ebd1c3c16b5a7a18a996ab009f3d0ea1eca98f27299"
+  after_sha256: "b3eed72f6fa16000e1cd2cab683619e71728352a6becf217dac656c38f842c54"
+  replace:
+    - from: "            logger.warn(`Couldn't find operation ${operation.type}`);\n            return { successor: null, status: 'unknown', data: null, options: null };\n        }"
+      to: "            logger.warn(`Couldn't find operation ${operation.type}`);\n            return { successor: null, status: 'unknown', data: null, options: null };\n        }\n        if (operation.type === 'log') {\n            const redactLogRequest = (value, parent) => {\n                if (Array.isArray(value))\n                    return value.map((entry) => redactLogRequest(entry, parent));\n                if (value === null || typeof value !== 'object' || value instanceof Date)\n                    return value;\n                const output = {};\n                for (const [key, entry] of Object.entries(value)) {\n                    output[key] = ({'headers':['authorization','cookie'],'query':['access_token']}[parent] ?? []).includes(key) ? getRedactedString(key) : redactLogRequest(entry, key);\n                }\n                return output;\n            };\n            keyedData = redactLogRequest(keyedData, null);\n        }"

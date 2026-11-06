@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/request/validate-ip.js"
+  before_sha256: "0e021c07d449b8698782aa1e377ea88d4ed880990cf5f655f4e6b9364206e0c4"
+  after_sha256: "9f8af247b385ea7b980face77769dfb8a2750a7c605679fdf999ebfaadf15a19"
+  replace:
+    - from: "            for (const info of networkInfo) {\n                if (info.address === ip) {"
+      to: "            for (const info of networkInfo) {\n                if (info.internal && info.family === 'IPv4' && String(info.address).startsWith('127.') && String(ip).startsWith('127.')) {\n                    throw new Error(`Requested URL \"${url}\" resolves to a denied IP address`);\n                }\n                if (info.address === ip) {"

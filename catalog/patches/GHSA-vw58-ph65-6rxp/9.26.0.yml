@@ -1,0 +1,6 @@
+- file: "@directus/api/dist/logger.js"
+  before_sha256: "33616dea5646d39c979d7df1ab6f8ca095bf588d0a83dc224752fff31991c775"
+  after_sha256: "7b36f66e6ed829480803583ab7eb3fd2860f07dca3ddcc48b0e92f0db823c9fc"
+  replace:
+    - from: "        paths: ['req.headers.authorization', 'req.headers.cookie', 'res.headers'],"
+      to: "        paths: ['req.headers.authorization', 'req.headers.cookie', 'res.headers', 'req.query.access_token'],"
