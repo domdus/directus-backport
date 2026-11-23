@@ -343,6 +343,23 @@ describe("preflight", () => {
 		}
 	});
 
+	it("loads patched files the way Directus does when its modules import each other", async () => {
+		// y.js alone loads x.js first, which reads y's export too early. app.js loads x.js first, which works.
+		const Y = "import { x } from './x.js';\nexport const yv = 2;\nexport const getX = () => x;\n";
+		const t = setup([{ id: A, file: "@directus/api/dist/y.js", before: Y, from: "export const yv = 2;", to: "export const yv = 2;\nexport const patched = true;" }]);
+		try {
+			const dist = path.join(t.nodeModules, "@directus", "api", "dist");
+			fs.writeFileSync(path.join(dist, "y.js"), Y);
+			fs.writeFileSync(path.join(dist, "x.js"), "import { yv } from './y.js';\nexport const x = yv;\n");
+			fs.writeFileSync(path.join(dist, "app.js"), "import './x.js';\n");
+			const result = await applyPatches(t.install, { ids: [A], preflight: true }, t.catalog);
+			assert.equal(result.ok, true, result.error);
+			assert.match(fs.readFileSync(path.join(dist, "y.js"), "utf8"), /patched = true/);
+		} finally {
+			t.restore();
+		}
+	});
+
 	it("boot re-apply keeps the good fix and names the bad one", async () => {
 		const t = setup([insertion, { id: C, file: OTHER, from: "three = 3;", to: "three = 3; throw new Error('boom');" }]);
 		try {

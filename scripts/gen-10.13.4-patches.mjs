@@ -339,20 +339,28 @@ if (env['GRAPHQL_INTROSPECTION'] === false) {
 if (env['GRAPHQL_INTROSPECTION'] === false) {
     validationRules.push(NoSchemaIntrospectionCustomRule);
 }
-const sensitiveMutations = new Set(['users_register', 'users_invite', 'auth_login', 'auth_password_request', 'auth_password_reset', 'users_me_tfa_enable', 'users_me_tfa_disable', 'users_me_tfa_generate']);
+const sensitiveMutations = new Set(['users_register', 'users_invite', 'users_register_verify_email', 'auth_login', 'auth_password_request', 'auth_password_reset', 'users_me_tfa_enable', 'users_me_tfa_disable', 'users_me_tfa_generate']);
 validationRules.push((context) => {
     const counts = new Map();
+    const onMutationRoot = () => {
+        const mutationType = context.getSchema().getMutationType();
+        return Boolean(mutationType) && context.getParentType() === mutationType;
+    };
+    const count = (key, label) => {
+        const n = (counts.get(key) ?? 0) + 1;
+        counts.set(key, n);
+        if (n > 1) context.reportError(new GraphQLError(\`"\${label}" can only be used once per request\`));
+    };
     return {
         Field(node) {
-            if (context.getOperation()?.operation !== 'mutation')
-                return;
+            if (!onMutationRoot()) return;
             const name = node.name.value;
-            if (!sensitiveMutations.has(name) && !name.includes('users_register') && !name.includes('password') && !name.includes('invite') && !name.includes('tfa'))
-                return;
-            const n = (counts.get(name) ?? 0) + 1;
-            counts.set(name, n);
-            if (n > 1)
-                context.reportError(new GraphQLError(\`"\${name}" can only be used once per request\`));
+            if (!sensitiveMutations.has(name) && !name.includes('users_register') && !name.includes('password') && !name.includes('invite') && !name.includes('tfa')) return;
+            count(name, name);
+        },
+        // A repeated fragment would multiply its fields without visiting them twice.
+        FragmentSpread(node) {
+            if (onMutationRoot()) count(\`...\${node.name.value}\`, \`...\${node.name.value}\`);
         },
     };
 });`,

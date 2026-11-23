@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 
@@ -10,6 +12,25 @@ const LOADER = `
 for (const url of JSON.parse(process.env.DIRECTUS_BACKPORT_PREFLIGHT)) await import(url);
 process.exit(0);
 `;
+
+const API_DIST = `${path.sep}${path.join("@directus", "api", "dist")}${path.sep}`;
+
+/**
+ * Directus's own app module for each patched file. Directus has circular imports, so
+ * loading a file such as controllers/utils.js on its own can fail on a stock install
+ * ("Cannot access 'respond' before initialization"). Loading app.js first imports
+ * everything in the order Directus itself uses, patched files included.
+ */
+function entriesFor(files: string[]): string[] {
+	const entries = new Set<string>();
+	for (const file of files) {
+		const at = file.lastIndexOf(API_DIST);
+		if (at < 0) continue;
+		const app = file.slice(0, at + API_DIST.length) + "app.js";
+		if (fs.existsSync(app)) entries.add(app);
+	}
+	return [...entries];
+}
 
 function failure(err: unknown): string {
 	const { stderr, message } = err as { stderr?: string; message?: string };
@@ -37,7 +58,7 @@ export async function preflightFiles(root: string, files: string[]): Promise<voi
 			maxBuffer: 16 * 1024 * 1024,
 			env: {
 				...process.env,
-				DIRECTUS_BACKPORT_PREFLIGHT: JSON.stringify(files.map((file) => pathToFileURL(file).href)),
+				DIRECTUS_BACKPORT_PREFLIGHT: JSON.stringify([...entriesFor(files), ...files].map((file) => pathToFileURL(file).href)),
 			},
 		});
 	} catch (err) {

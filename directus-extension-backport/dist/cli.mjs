@@ -1195,8 +1195,8 @@ var require_command = __commonJS({
   "../node_modules/commander/lib/command.js"(exports) {
     var EventEmitter = __require("node:events").EventEmitter;
     var childProcess = __require("node:child_process");
-    var path13 = __require("node:path");
-    var fs11 = __require("node:fs");
+    var path14 = __require("node:path");
+    var fs12 = __require("node:fs");
     var process2 = __require("node:process");
     var { Argument: Argument2, humanReadableArgName } = require_argument();
     var { CommanderError: CommanderError2 } = require_error();
@@ -2190,7 +2190,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} subcommandName
        */
       _checkForMissingExecutable(executableFile, executableDir, subcommandName) {
-        if (fs11.existsSync(executableFile)) return;
+        if (fs12.existsSync(executableFile)) return;
         const executableDirMessage = executableDir ? `searched for local subcommand relative to directory '${executableDir}'` : "no directory for search for local subcommand, use .executableDir() to supply a custom directory";
         const executableMissing = `'${executableFile}' does not exist
  - if '${subcommandName}' is not meant to be an executable command, remove description parameter from '.command()' and use '.description()' instead
@@ -2208,11 +2208,11 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path13.resolve(baseDir, baseName);
-          if (fs11.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path13.extname(baseName))) return void 0;
+          const localBin = path14.resolve(baseDir, baseName);
+          if (fs12.existsSync(localBin)) return localBin;
+          if (sourceExt.includes(path14.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
-            (ext) => fs11.existsSync(`${localBin}${ext}`)
+            (ext) => fs12.existsSync(`${localBin}${ext}`)
           );
           if (foundExt) return `${localBin}${foundExt}`;
           return void 0;
@@ -2224,21 +2224,21 @@ Expecting one of '${allowedValues.join("', '")}'`);
         if (this._scriptPath) {
           let resolvedScriptPath;
           try {
-            resolvedScriptPath = fs11.realpathSync(this._scriptPath);
+            resolvedScriptPath = fs12.realpathSync(this._scriptPath);
           } catch {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path13.resolve(
-            path13.dirname(resolvedScriptPath),
+          executableDir = path14.resolve(
+            path14.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path13.basename(
+            const legacyName = path14.basename(
               this._scriptPath,
-              path13.extname(this._scriptPath)
+              path14.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -2249,7 +2249,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path13.extname(executableFile));
+        launchWithNode = sourceExt.includes(path14.extname(executableFile));
         let proc;
         if (process2.platform !== "win32") {
           if (launchWithNode) {
@@ -3164,7 +3164,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path13.basename(filename, path13.extname(filename));
+        this._name = path14.basename(filename, path14.extname(filename));
         return this;
       }
       /**
@@ -3178,9 +3178,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path14) {
-        if (path14 === void 0) return this._executableDir;
-        this._executableDir = path14;
+      executableDir(path15) {
+        if (path15 === void 0) return this._executableDir;
+        this._executableDir = path15;
         return this;
       }
       /**
@@ -3535,17 +3535,17 @@ var require_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    function visit_(key, node, visitor, path13) {
-      const ctrl = callVisitor(key, node, visitor, path13);
+    function visit_(key, node, visitor, path14) {
+      const ctrl = callVisitor(key, node, visitor, path14);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path13, ctrl);
-        return visit_(key, ctrl, visitor, path13);
+        replaceNode(key, path14, ctrl);
+        return visit_(key, ctrl, visitor, path14);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path13 = Object.freeze(path13.concat(node));
+          path14 = Object.freeze(path14.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = visit_(i, node.items[i], visitor, path13);
+            const ci = visit_(i, node.items[i], visitor, path14);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -3556,13 +3556,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path13 = Object.freeze(path13.concat(node));
-          const ck = visit_("key", node.key, visitor, path13);
+          path14 = Object.freeze(path14.concat(node));
+          const ck = visit_("key", node.key, visitor, path14);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = visit_("value", node.value, visitor, path13);
+          const cv = visit_("value", node.value, visitor, path14);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3583,17 +3583,17 @@ var require_visit = __commonJS({
     visitAsync.BREAK = BREAK;
     visitAsync.SKIP = SKIP;
     visitAsync.REMOVE = REMOVE;
-    async function visitAsync_(key, node, visitor, path13) {
-      const ctrl = await callVisitor(key, node, visitor, path13);
+    async function visitAsync_(key, node, visitor, path14) {
+      const ctrl = await callVisitor(key, node, visitor, path14);
       if (identity.isNode(ctrl) || identity.isPair(ctrl)) {
-        replaceNode(key, path13, ctrl);
-        return visitAsync_(key, ctrl, visitor, path13);
+        replaceNode(key, path14, ctrl);
+        return visitAsync_(key, ctrl, visitor, path14);
       }
       if (typeof ctrl !== "symbol") {
         if (identity.isCollection(node)) {
-          path13 = Object.freeze(path13.concat(node));
+          path14 = Object.freeze(path14.concat(node));
           for (let i = 0; i < node.items.length; ++i) {
-            const ci = await visitAsync_(i, node.items[i], visitor, path13);
+            const ci = await visitAsync_(i, node.items[i], visitor, path14);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -3604,13 +3604,13 @@ var require_visit = __commonJS({
             }
           }
         } else if (identity.isPair(node)) {
-          path13 = Object.freeze(path13.concat(node));
-          const ck = await visitAsync_("key", node.key, visitor, path13);
+          path14 = Object.freeze(path14.concat(node));
+          const ck = await visitAsync_("key", node.key, visitor, path14);
           if (ck === BREAK)
             return BREAK;
           else if (ck === REMOVE)
             node.key = null;
-          const cv = await visitAsync_("value", node.value, visitor, path13);
+          const cv = await visitAsync_("value", node.value, visitor, path14);
           if (cv === BREAK)
             return BREAK;
           else if (cv === REMOVE)
@@ -3637,23 +3637,23 @@ var require_visit = __commonJS({
       }
       return visitor;
     }
-    function callVisitor(key, node, visitor, path13) {
+    function callVisitor(key, node, visitor, path14) {
       if (typeof visitor === "function")
-        return visitor(key, node, path13);
+        return visitor(key, node, path14);
       if (identity.isMap(node))
-        return visitor.Map?.(key, node, path13);
+        return visitor.Map?.(key, node, path14);
       if (identity.isSeq(node))
-        return visitor.Seq?.(key, node, path13);
+        return visitor.Seq?.(key, node, path14);
       if (identity.isPair(node))
-        return visitor.Pair?.(key, node, path13);
+        return visitor.Pair?.(key, node, path14);
       if (identity.isScalar(node))
-        return visitor.Scalar?.(key, node, path13);
+        return visitor.Scalar?.(key, node, path14);
       if (identity.isAlias(node))
-        return visitor.Alias?.(key, node, path13);
+        return visitor.Alias?.(key, node, path14);
       return void 0;
     }
-    function replaceNode(key, path13, node) {
-      const parent = path13[path13.length - 1];
+    function replaceNode(key, path14, node) {
+      const parent = path14[path14.length - 1];
       if (identity.isCollection(parent)) {
         parent.items[key] = node;
       } else if (identity.isPair(parent)) {
@@ -4265,10 +4265,10 @@ var require_Collection = __commonJS({
     var createNode = require_createNode();
     var identity = require_identity();
     var Node = require_Node();
-    function collectionFromPath(schema, path13, value) {
+    function collectionFromPath(schema, path14, value) {
       let v2 = value;
-      for (let i = path13.length - 1; i >= 0; --i) {
-        const k3 = path13[i];
+      for (let i = path14.length - 1; i >= 0; --i) {
+        const k3 = path14[i];
         if (typeof k3 === "number" && Number.isInteger(k3) && k3 >= 0) {
           const a = [];
           a[k3] = v2;
@@ -4287,7 +4287,7 @@ var require_Collection = __commonJS({
         sourceObjects: /* @__PURE__ */ new Map()
       });
     }
-    var isEmptyPath = (path13) => path13 == null || typeof path13 === "object" && !!path13[Symbol.iterator]().next().done;
+    var isEmptyPath = (path14) => path14 == null || typeof path14 === "object" && !!path14[Symbol.iterator]().next().done;
     var Collection = class extends Node.NodeBase {
       constructor(type, schema) {
         super(type);
@@ -4317,11 +4317,11 @@ var require_Collection = __commonJS({
        * be a Pair instance or a `{ key, value }` object, which may not have a key
        * that already exists in the map.
        */
-      addIn(path13, value) {
-        if (isEmptyPath(path13))
+      addIn(path14, value) {
+        if (isEmptyPath(path14))
           this.add(value);
         else {
-          const [key, ...rest] = path13;
+          const [key, ...rest] = path14;
           const node = this.get(key, true);
           if (identity.isCollection(node))
             node.addIn(rest, value);
@@ -4335,8 +4335,8 @@ var require_Collection = __commonJS({
        * Removes a value from the collection.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path13) {
-        const [key, ...rest] = path13;
+      deleteIn(path14) {
+        const [key, ...rest] = path14;
         if (rest.length === 0)
           return this.delete(key);
         const node = this.get(key, true);
@@ -4350,8 +4350,8 @@ var require_Collection = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path13, keepScalar) {
-        const [key, ...rest] = path13;
+      getIn(path14, keepScalar) {
+        const [key, ...rest] = path14;
         const node = this.get(key, true);
         if (rest.length === 0)
           return !keepScalar && identity.isScalar(node) ? node.value : node;
@@ -4369,8 +4369,8 @@ var require_Collection = __commonJS({
       /**
        * Checks if the collection includes a value with the key `key`.
        */
-      hasIn(path13) {
-        const [key, ...rest] = path13;
+      hasIn(path14) {
+        const [key, ...rest] = path14;
         if (rest.length === 0)
           return this.has(key);
         const node = this.get(key, true);
@@ -4380,8 +4380,8 @@ var require_Collection = __commonJS({
        * Sets a value in this collection. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path13, value) {
-        const [key, ...rest] = path13;
+      setIn(path14, value) {
+        const [key, ...rest] = path14;
         if (rest.length === 0) {
           this.set(key, value);
         } else {
@@ -6896,9 +6896,9 @@ var require_Document = __commonJS({
           this.contents.add(value);
       }
       /** Adds a value to the document. */
-      addIn(path13, value) {
+      addIn(path14, value) {
         if (assertCollection(this.contents))
-          this.contents.addIn(path13, value);
+          this.contents.addIn(path14, value);
       }
       /**
        * Create a new `Alias` node, ensuring that the target `node` has the required anchor.
@@ -6973,14 +6973,14 @@ var require_Document = __commonJS({
        * Removes a value from the document.
        * @returns `true` if the item was found and removed.
        */
-      deleteIn(path13) {
-        if (Collection.isEmptyPath(path13)) {
+      deleteIn(path14) {
+        if (Collection.isEmptyPath(path14)) {
           if (this.contents == null)
             return false;
           this.contents = null;
           return true;
         }
-        return assertCollection(this.contents) ? this.contents.deleteIn(path13) : false;
+        return assertCollection(this.contents) ? this.contents.deleteIn(path14) : false;
       }
       /**
        * Returns item at `key`, or `undefined` if not found. By default unwraps
@@ -6995,10 +6995,10 @@ var require_Document = __commonJS({
        * scalar values from their surrounding node; to disable set `keepScalar` to
        * `true` (collections are always returned intact).
        */
-      getIn(path13, keepScalar) {
-        if (Collection.isEmptyPath(path13))
+      getIn(path14, keepScalar) {
+        if (Collection.isEmptyPath(path14))
           return !keepScalar && identity.isScalar(this.contents) ? this.contents.value : this.contents;
-        return identity.isCollection(this.contents) ? this.contents.getIn(path13, keepScalar) : void 0;
+        return identity.isCollection(this.contents) ? this.contents.getIn(path14, keepScalar) : void 0;
       }
       /**
        * Checks if the document includes a value with the key `key`.
@@ -7009,10 +7009,10 @@ var require_Document = __commonJS({
       /**
        * Checks if the document includes a value at `path`.
        */
-      hasIn(path13) {
-        if (Collection.isEmptyPath(path13))
+      hasIn(path14) {
+        if (Collection.isEmptyPath(path14))
           return this.contents !== void 0;
-        return identity.isCollection(this.contents) ? this.contents.hasIn(path13) : false;
+        return identity.isCollection(this.contents) ? this.contents.hasIn(path14) : false;
       }
       /**
        * Sets a value in this document. For `!!set`, `value` needs to be a
@@ -7029,13 +7029,13 @@ var require_Document = __commonJS({
        * Sets a value in this document. For `!!set`, `value` needs to be a
        * boolean to add/remove the item from the set.
        */
-      setIn(path13, value) {
-        if (Collection.isEmptyPath(path13)) {
+      setIn(path14, value) {
+        if (Collection.isEmptyPath(path14)) {
           this.contents = value;
         } else if (this.contents == null) {
-          this.contents = Collection.collectionFromPath(this.schema, Array.from(path13), value);
+          this.contents = Collection.collectionFromPath(this.schema, Array.from(path14), value);
         } else if (assertCollection(this.contents)) {
-          this.contents.setIn(path13, value);
+          this.contents.setIn(path14, value);
         }
       }
       /**
@@ -8996,9 +8996,9 @@ var require_cst_visit = __commonJS({
     visit.BREAK = BREAK;
     visit.SKIP = SKIP;
     visit.REMOVE = REMOVE;
-    visit.itemAtPath = (cst, path13) => {
+    visit.itemAtPath = (cst, path14) => {
       let item = cst;
-      for (const [field, index] of path13) {
+      for (const [field, index] of path14) {
         const tok = item?.[field];
         if (tok && "items" in tok) {
           item = tok.items[index];
@@ -9007,23 +9007,23 @@ var require_cst_visit = __commonJS({
       }
       return item;
     };
-    visit.parentCollection = (cst, path13) => {
-      const parent = visit.itemAtPath(cst, path13.slice(0, -1));
-      const field = path13[path13.length - 1][0];
+    visit.parentCollection = (cst, path14) => {
+      const parent = visit.itemAtPath(cst, path14.slice(0, -1));
+      const field = path14[path14.length - 1][0];
       const coll = parent?.[field];
       if (coll && "items" in coll)
         return coll;
       throw new Error("Parent collection not found");
     };
-    function _visit(path13, item, visitor) {
-      let ctrl = visitor(item, path13);
+    function _visit(path14, item, visitor) {
+      let ctrl = visitor(item, path14);
       if (typeof ctrl === "symbol")
         return ctrl;
       for (const field of ["key", "value"]) {
         const token = item[field];
         if (token && "items" in token) {
           for (let i = 0; i < token.items.length; ++i) {
-            const ci = _visit(Object.freeze(path13.concat([[field, i]])), token.items[i], visitor);
+            const ci = _visit(Object.freeze(path14.concat([[field, i]])), token.items[i], visitor);
             if (typeof ci === "number")
               i = ci - 1;
             else if (ci === BREAK)
@@ -9034,10 +9034,10 @@ var require_cst_visit = __commonJS({
             }
           }
           if (typeof ctrl === "function" && field === "key")
-            ctrl = ctrl(item, path13);
+            ctrl = ctrl(item, path14);
         }
       }
-      return typeof ctrl === "function" ? ctrl(item, path13) : ctrl;
+      return typeof ctrl === "function" ? ctrl(item, path14) : ctrl;
     }
     exports.visit = visit;
   }
@@ -10339,14 +10339,14 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs11 = this.flowScalar(this.type);
+              const fs12 = this.flowScalar(this.type);
               if (atNextItem || it.value) {
-                map.items.push({ start, key: fs11, sep: [] });
+                map.items.push({ start, key: fs12, sep: [] });
                 this.onKeyLine = true;
               } else if (it.sep) {
-                this.stack.push(fs11);
+                this.stack.push(fs12);
               } else {
-                Object.assign(it, { key: fs11, sep: [] });
+                Object.assign(it, { key: fs12, sep: [] });
                 this.onKeyLine = true;
               }
               return;
@@ -10474,13 +10474,13 @@ var require_parser = __commonJS({
             case "scalar":
             case "single-quoted-scalar":
             case "double-quoted-scalar": {
-              const fs11 = this.flowScalar(this.type);
+              const fs12 = this.flowScalar(this.type);
               if (!it || it.value)
-                fc.items.push({ start: [], key: fs11, sep: [] });
+                fc.items.push({ start: [], key: fs12, sep: [] });
               else if (it.sep)
-                this.stack.push(fs11);
+                this.stack.push(fs12);
               else
-                Object.assign(it, { key: fs11, sep: [] });
+                Object.assign(it, { key: fs12, sep: [] });
               return;
             }
             case "flow-map-end":
@@ -13082,8 +13082,8 @@ function resolveNodeFile(nodeModules, rel) {
 }
 
 // ../src/engine.ts
-import fs8 from "node:fs";
-import path10 from "node:path";
+import fs9 from "node:fs";
+import path11 from "node:path";
 
 // ../src/catalog.ts
 var import_yaml2 = __toESM(require_dist(), 1);
@@ -13949,6 +13949,8 @@ async function waitForHealth(url, timeoutMs, required = 2) {
 
 // ../src/preflight.ts
 import { execFile } from "node:child_process";
+import fs6 from "node:fs";
+import path7 from "node:path";
 import { pathToFileURL } from "node:url";
 import { promisify as promisify2 } from "node:util";
 var run = promisify2(execFile);
@@ -13957,6 +13959,17 @@ var LOADER = `
 for (const url of JSON.parse(process.env.DIRECTUS_BACKPORT_PREFLIGHT)) await import(url);
 process.exit(0);
 `;
+var API_DIST = `${path7.sep}${path7.join("@directus", "api", "dist")}${path7.sep}`;
+function entriesFor(files) {
+  const entries = /* @__PURE__ */ new Set();
+  for (const file of files) {
+    const at = file.lastIndexOf(API_DIST);
+    if (at < 0) continue;
+    const app = file.slice(0, at + API_DIST.length) + "app.js";
+    if (fs6.existsSync(app)) entries.add(app);
+  }
+  return [...entries];
+}
 function failure(err) {
   const { stderr, message } = err;
   const detail = String(stderr || message || err).trim();
@@ -13978,7 +13991,7 @@ ${failure(err)}`);
       maxBuffer: 16 * 1024 * 1024,
       env: {
         ...process.env,
-        DIRECTUS_BACKPORT_PREFLIGHT: JSON.stringify(files.map((file) => pathToFileURL(file).href))
+        DIRECTUS_BACKPORT_PREFLIGHT: JSON.stringify([...entriesFor(files), ...files].map((file) => pathToFileURL(file).href))
       }
     });
   } catch (err) {
@@ -13988,12 +14001,12 @@ ${failure(err)}`);
 }
 
 // ../src/writable.ts
-import fs6 from "node:fs";
-import path7 from "node:path";
+import fs7 from "node:fs";
+import path8 from "node:path";
 function tryOpenForWrite(file) {
   try {
-    const fd = fs6.openSync(file, "r+");
-    fs6.closeSync(fd);
+    const fd = fs7.openSync(file, "r+");
+    fs7.closeSync(fd);
     return true;
   } catch {
     return false;
@@ -14001,24 +14014,24 @@ function tryOpenForWrite(file) {
 }
 function tryWriteDir(dir) {
   try {
-    fs6.mkdirSync(dir, { recursive: true });
-    const probe = path7.join(dir, ".write-probe");
-    fs6.writeFileSync(probe, "ok");
-    fs6.unlinkSync(probe);
+    fs7.mkdirSync(dir, { recursive: true });
+    const probe = path8.join(dir, ".write-probe");
+    fs7.writeFileSync(probe, "ok");
+    fs7.unlinkSync(probe);
     return { ok: true };
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
 function sampleNodeFiles(nodeModules) {
-  const files = [path7.join(nodeModules, "directus", "package.json")];
+  const files = [path8.join(nodeModules, "directus", "package.json")];
   for (const rel of ["@directus/api/package.json", "@directus/api/dist/index.js"]) {
     try {
       files.push(resolveNodeFile(nodeModules, rel));
     } catch {
     }
   }
-  return files.filter((file) => fs6.existsSync(file));
+  return files.filter((file) => fs7.existsSync(file));
 }
 function probeWriteAccess(install) {
   const snapshot = tryWriteDir(dataDir(install.nodeModules));
@@ -14030,7 +14043,7 @@ function probeWriteAccess(install) {
     nodeReason = `Cannot write ${file}`;
     break;
   }
-  if (!fs6.existsSync(install.nodeModules)) {
+  if (!fs7.existsSync(install.nodeModules)) {
     nodeModulesWritable = false;
     nodeReason = `node_modules does not exist: ${install.nodeModules}`;
   }
@@ -14052,13 +14065,13 @@ function probeWriteAccess(install) {
 }
 
 // ../src/desired.ts
-import path8 from "node:path";
+import path9 from "node:path";
 function desiredPath(catalogRoot) {
   if (process.env.DIRECTUS_BACKPORT_DESIRED) {
-    return path8.resolve(process.env.DIRECTUS_BACKPORT_DESIRED);
+    return path9.resolve(process.env.DIRECTUS_BACKPORT_DESIRED);
   }
-  const catalog = catalogRoot || path8.join(findPackageRoot(), "catalog");
-  return path8.join(path8.dirname(path8.resolve(catalog)), "desired.json");
+  const catalog = catalogRoot || path9.join(findPackageRoot(), "catalog");
+  return path9.join(path9.dirname(path9.resolve(catalog)), "desired.json");
 }
 function loadDesired(catalogRoot, file) {
   return readJson(file || desiredPath(catalogRoot), {
@@ -14115,8 +14128,8 @@ function removeDesiredIds(ids, catalogRoot, file) {
 
 // ../src/trust.ts
 import { createHash as createHash2, createPublicKey, verify } from "node:crypto";
-import fs7 from "node:fs";
-import path9 from "node:path";
+import fs8 from "node:fs";
+import path10 from "node:path";
 var MANIFEST_FILE = "manifest.json";
 var SIGNATURE_FILE = "manifest.sig";
 var SIGNABLE = /\.(yml|yaml|md|patch|txt)$/i;
@@ -14133,9 +14146,9 @@ function keyId(key) {
 }
 function walk(dir, prefix = "") {
   const out = [];
-  for (const entry of fs7.readdirSync(dir, { withFileTypes: true })) {
+  for (const entry of fs8.readdirSync(dir, { withFileTypes: true })) {
     const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
-    if (entry.isDirectory()) out.push(...walk(path9.join(dir, entry.name), rel));
+    if (entry.isDirectory()) out.push(...walk(path10.join(dir, entry.name), rel));
     else out.push(rel);
   }
   return out;
@@ -14144,13 +14157,13 @@ function catalogFiles(dir) {
   return walk(dir).filter(isSignableCatalogFile).sort();
 }
 function verifyCatalogDir(dir) {
-  const manifestPath = path9.join(dir, MANIFEST_FILE);
-  const signaturePath = path9.join(dir, SIGNATURE_FILE);
-  if (!fs7.existsSync(manifestPath) || !fs7.existsSync(signaturePath)) {
+  const manifestPath = path10.join(dir, MANIFEST_FILE);
+  const signaturePath = path10.join(dir, SIGNATURE_FILE);
+  if (!fs8.existsSync(manifestPath) || !fs8.existsSync(signaturePath)) {
     throw new Error("Catalog is not signed. Refusing to use it.");
   }
-  const manifestBytes = fs7.readFileSync(manifestPath);
-  const signature = Buffer.from(fs7.readFileSync(signaturePath, "utf8").trim(), "base64");
+  const manifestBytes = fs8.readFileSync(manifestPath);
+  const signature = Buffer.from(fs8.readFileSync(signaturePath, "utf8").trim(), "base64");
   const key = trustedKeys().find((candidate) => {
     try {
       const publicKey = createPublicKey({
@@ -14171,7 +14184,7 @@ function verifyCatalogDir(dir) {
     throw new Error("Catalog files do not match its signed manifest. Refusing to use it.");
   }
   for (const rel of listed) {
-    const actual = createHash2("sha256").update(fs7.readFileSync(path9.join(dir, rel))).digest("hex");
+    const actual = createHash2("sha256").update(fs8.readFileSync(path10.join(dir, rel))).digest("hex");
     if (actual !== manifest.files[rel]) {
       throw new Error(`Catalog file changed after signing: ${rel}. Refusing to use it.`);
     }
@@ -14183,7 +14196,7 @@ function verifyCatalogDir(dir) {
 }
 function cachedSequence(dir) {
   try {
-    const manifest = JSON.parse(fs7.readFileSync(path9.join(dir, MANIFEST_FILE), "utf8"));
+    const manifest = JSON.parse(fs8.readFileSync(path10.join(dir, MANIFEST_FILE), "utf8"));
     return Number.isSafeInteger(manifest.sequence) ? manifest.sequence : 0;
   } catch {
     return 0;
@@ -14195,7 +14208,7 @@ function snapshotId() {
   return (/* @__PURE__ */ new Date()).toISOString().replaceAll(":", "-").replaceAll(".", "-");
 }
 function resolveOptionalCatalogRoot(catalogRoot) {
-  if (catalogRoot) return path10.resolve(catalogRoot);
+  if (catalogRoot) return path11.resolve(catalogRoot);
   if (hasLocalCatalog()) return resolveCatalogDir();
   return null;
 }
@@ -14213,11 +14226,11 @@ function assertCatalogTrusted(catalogRoot) {
   } catch {
     return;
   }
-  if (path10.resolve(catalogRoot) === path10.resolve(remote)) verifyCatalogDir(catalogRoot);
+  if (path11.resolve(catalogRoot) === path11.resolve(remote)) verifyCatalogDir(catalogRoot);
 }
 function readTarget(nodeModules, file) {
   try {
-    return fs8.readFileSync(resolveNodeFile(nodeModules, file), "utf8");
+    return fs9.readFileSync(resolveNodeFile(nodeModules, file), "utf8");
   } catch {
     return null;
   }
@@ -14374,7 +14387,7 @@ function sortByCatalog(selected, catalog) {
   return [...selected].sort((a, b3) => (rank.get(a.id) ?? 0) - (rank.get(b3.id) ?? 0));
 }
 function snapshotDirFor(nodeModules, snapId) {
-  return path10.join(dataDir(nodeModules), "snapshots", snapId);
+  return path11.join(dataDir(nodeModules), "snapshots", snapId);
 }
 function restoreAppliedSnapshots(install, rows) {
   const files = [];
@@ -14399,7 +14412,7 @@ function planAdvisory(install, advisory, catalog) {
   return plans;
 }
 async function applyPatches2(install, options, catalogRoot) {
-  const root = catalogRoot ? path10.resolve(catalogRoot) : resolveCatalogDir();
+  const root = catalogRoot ? path11.resolve(catalogRoot) : resolveCatalogDir();
   assertCatalogTrusted(root);
   const catalog = loadCatalog(root);
   reconcileAndSave(install, catalog);
@@ -14628,7 +14641,7 @@ function planRollback(install, catalog, advisory, files) {
 function assertReverted(install, catalog, advisory, files) {
   for (const target of targetsForVersion(advisory, install.version)) {
     if (!files.has(target.file)) continue;
-    const content = fs8.readFileSync(resolveNodeFile(install.nodeModules, target.file), "utf8");
+    const content = fs9.readFileSync(resolveNodeFile(install.nodeModules, target.file), "utf8");
     const { base, peeled } = peelPatches(content, targetsForFile(catalog, install.version, target.file));
     if (peeled.includes(target) || sha256(base) !== target.beforeSha256) {
       throw new Error(`Rollback of ${advisory.id} left ${target.file} different from the pinned build.`);
@@ -14695,7 +14708,7 @@ function rollbackOne(install, id, catalogRoot) {
 }
 function rollbackSnapshot(install, snapId, catalogRoot) {
   const snapshotDir = snapshotDirFor(install.nodeModules, snapId);
-  if (!fs8.existsSync(snapshotDir)) {
+  if (!fs9.existsSync(snapshotDir)) {
     throw new Error(`Snapshot ${snapId} not found at ${snapshotDir}`);
   }
   const state = reconcileAndSave(install, tryLoadCatalog(catalogRoot));
@@ -14703,7 +14716,7 @@ function rollbackSnapshot(install, snapId, catalogRoot) {
   if (rows.length) {
     return { ...rollbackIds(install, rows.map((row) => row.id), catalogRoot), snapshot: snapId };
   }
-  const manifest = JSON.parse(fs8.readFileSync(path10.join(snapshotDir, "manifest.json"), "utf8"));
+  const manifest = JSON.parse(fs9.readFileSync(path11.join(snapshotDir, "manifest.json"), "utf8"));
   const rels = new Set(manifest.files.map((item) => item.rel));
   const blocking = state.applied.filter((row) => row.files.some((file) => rels.has(file)));
   if (blocking.length) {
@@ -14723,7 +14736,7 @@ function rollbackSnapshot(install, snapId, catalogRoot) {
   return { snapshot: snapId, files };
 }
 async function ensureDesiredApplied(install, catalogRoot, options = {}) {
-  const root = catalogRoot ? path10.resolve(catalogRoot) : resolveCatalogDir();
+  const root = catalogRoot ? path11.resolve(catalogRoot) : resolveCatalogDir();
   const state = reconcileAndSave(install, tryLoadCatalog(root));
   const desired = loadDesired(root, state.desiredFile);
   if (desired.ids.length === 0) {
@@ -14811,13 +14824,13 @@ async function verifyInstall(install, healthUrl, timeoutMs = 3e4) {
 }
 
 // ../src/catalog-fetch.ts
-import fs10 from "node:fs";
+import fs11 from "node:fs";
 import os from "node:os";
-import path12 from "node:path";
+import path13 from "node:path";
 
 // ../src/tar-catalog.ts
-import fs9 from "node:fs";
-import path11 from "node:path";
+import fs10 from "node:fs";
+import path12 from "node:path";
 import { gunzipSync } from "node:zlib";
 var MAX_FILE = 2 * 1024 * 1024;
 var MAX_TOTAL = 20 * 1024 * 1024;
@@ -14873,9 +14886,9 @@ function extractCatalogTarGz(archive, dest) {
     if (total > MAX_TOTAL) throw new Error("Catalog archive is larger than 20MB");
     const rel = catalogRelFromTarPath(name);
     if (!rel) continue;
-    const out = path11.join(dest, rel);
-    fs9.mkdirSync(path11.dirname(out), { recursive: true });
-    fs9.writeFileSync(out, payload);
+    const out = path12.join(dest, rel);
+    fs10.mkdirSync(path12.dirname(out), { recursive: true });
+    fs10.writeFileSync(out, payload);
     files.push(rel);
   }
   if (!files.includes("advisories.yml")) {
@@ -14896,7 +14909,7 @@ function authHeaders() {
 }
 function readFetchedAt() {
   try {
-    const meta = JSON.parse(fs10.readFileSync(remoteMetaPath(), "utf8"));
+    const meta = JSON.parse(fs11.readFileSync(remoteMetaPath(), "utf8"));
     return meta.fetchedAt || null;
   } catch {
     return null;
@@ -14910,7 +14923,7 @@ function catalogRemoteStatus() {
   if (hasLocalCatalog()) {
     const dir = resolveCatalogDir();
     using = dir === remoteCatalogDir() ? "remote" : "bundled";
-    advisories = path12.join(dir, "advisories.yml");
+    advisories = path13.join(dir, "advisories.yml");
     if (using === "remote") {
       try {
         signature = { verified: true, ...verifyCatalogDir(dir) };
@@ -14946,7 +14959,7 @@ async function download(source) {
 async function refreshRemoteCatalog() {
   const source = loadCatalogSource();
   const archive = await download(source);
-  const tmp = fs10.mkdtempSync(path12.join(os.tmpdir(), "directus-backport-catalog-"));
+  const tmp = fs11.mkdtempSync(path13.join(os.tmpdir(), "directus-backport-catalog-"));
   try {
     const { files } = extractCatalogTarGz(archive, tmp);
     const trust = verifyCatalogDir(tmp);
@@ -14957,7 +14970,7 @@ async function refreshRemoteCatalog() {
       throw new Error(`Refusing an older catalog (sequence ${trust.sequence}, this host has ${current}).`);
     }
     const fetchedAt = (/* @__PURE__ */ new Date()).toISOString();
-    writeJson(path12.join(tmp, ".fetched.json"), {
+    writeJson(path13.join(tmp, ".fetched.json"), {
       github: source.github,
       ref: source.ref,
       fetchedAt,
@@ -14966,12 +14979,12 @@ async function refreshRemoteCatalog() {
     });
     const staged = `${dest}.new-${process.pid}`;
     const retired = `${dest}.old-${process.pid}`;
-    fs10.mkdirSync(path12.dirname(dest), { recursive: true });
-    fs10.rmSync(staged, { recursive: true, force: true });
-    fs10.cpSync(tmp, staged, { recursive: true });
-    if (fs10.existsSync(dest)) fs10.renameSync(dest, retired);
-    fs10.renameSync(staged, dest);
-    fs10.rmSync(retired, { recursive: true, force: true });
+    fs11.mkdirSync(path13.dirname(dest), { recursive: true });
+    fs11.rmSync(staged, { recursive: true, force: true });
+    fs11.cpSync(tmp, staged, { recursive: true });
+    if (fs11.existsSync(dest)) fs11.renameSync(dest, retired);
+    fs11.renameSync(staged, dest);
+    fs11.rmSync(retired, { recursive: true, force: true });
     return {
       ok: true,
       github: source.github,
@@ -14983,7 +14996,7 @@ async function refreshRemoteCatalog() {
       key: trust.key
     };
   } finally {
-    fs10.rmSync(tmp, { recursive: true, force: true });
+    fs11.rmSync(tmp, { recursive: true, force: true });
   }
 }
 
