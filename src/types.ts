@@ -92,6 +92,8 @@ export type StateFile = {
 	installVersion?: string;
 	/** Path to desired.json so rollback can clear persisted ids even if cwd differs. */
 	desiredFile?: string;
+	/** node_modules this state was written for; a copied install is detected by a mismatch. */
+	installRoot?: string;
 	applied: AppliedPatch[];
 	/** Set after an apply until a restart proves Directus still reaches server.start. */
 	pendingBoot?: PendingBoot;
