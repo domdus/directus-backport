@@ -136,7 +136,9 @@ export async function interactive(
 
 	const chosen = report.ready.filter((a) => selected.includes(a.id));
 	p.note(
-		chosen.map((a) => `${a.id}  risk=${a.port.risk}\n${a.port.notes ?? a.title}`).join("\n\n"),
+		chosen
+			.map((a) => `${a.id}  risk=${a.port.risk}\n${a.port.notes ?? a.title}${a.port.warning ? `\nCheck first: ${a.port.warning}` : ""}`)
+			.join("\n\n"),
 		"Will snapshot these files first",
 	);
 

@@ -13332,6 +13332,7 @@ function toAdvisory(raw, catalogRoot) {
       status: raw.port.status,
       risk: raw.port.risk,
       notes: raw.port.notes,
+      warning: raw.port.warning,
       sourceCommit: raw.port.source_commit,
       pins: raw.port.pins,
       targets: fs4.existsSync(patchDir) ? loadTargets(raw.port, patchDir, raw.id) : withPin((raw.port.targets ?? []).map((t) => ({
@@ -13910,11 +13911,34 @@ import path6 from "node:path";
 function stateFile(nodeModules) {
   return path6.join(dataDir(nodeModules), "state.json");
 }
+var warnedForeign = /* @__PURE__ */ new Set();
+function stateFromOtherInstall(nodeModules, state) {
+  const here = path6.resolve(nodeModules);
+  if (state.installRoot) return path6.resolve(state.installRoot) !== here;
+  if (!state.desiredFile) return false;
+  const marker = `${path6.sep}extensions${path6.sep}`;
+  const file = path6.resolve(state.desiredFile);
+  const at = file.indexOf(marker);
+  if (at < 0) return false;
+  return file.slice(0, at) !== path6.dirname(here);
+}
 function loadState(nodeModules) {
-  return readJson(stateFile(nodeModules), { applied: [] });
+  const state = readJson(stateFile(nodeModules), { applied: [] });
+  if (stateFromOtherInstall(nodeModules, state)) {
+    const key = path6.resolve(nodeModules);
+    if (!warnedForeign.has(key)) {
+      warnedForeign.add(key);
+      process.stderr.write(
+        `directus-backport: state.json in ${dataDir(nodeModules)} was written for another install (desired.json ${state.desiredFile ?? "?"}); using this install's own desired.json.
+`
+      );
+    }
+    delete state.desiredFile;
+  }
+  return state;
 }
 function saveState(nodeModules, state) {
-  writeJson(stateFile(nodeModules), state);
+  writeJson(stateFile(nodeModules), { ...state, installRoot: path6.resolve(nodeModules) });
 }
 
 // ../src/health.ts
@@ -15747,7 +15771,8 @@ ${import_picocolors3.default.dim(install.nodeModules)}`);
   const chosen = report.ready.filter((a) => selected.includes(a.id));
   Me(
     chosen.map((a) => `${a.id}  risk=${a.port.risk}
-${a.port.notes ?? a.title}`).join("\n\n"),
+${a.port.notes ?? a.title}${a.port.warning ? `
+Check first: ${a.port.warning}` : ""}`).join("\n\n"),
     "Will snapshot these files first"
   );
   const review = await ye({ message: "Show the code changes first?", initialValue: true });

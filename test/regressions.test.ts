@@ -456,3 +456,11 @@ describe("desired.json on a read-only CLI location", () => {
 		}
 	});
 });
+
+describe("advisory warnings", () => {
+	it("GHSA-2xcm warns that nested creates need read permission on the junction collection", () => {
+		const catalog = loadCatalog(path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "catalog"));
+		const advisory = catalog.advisories.find((item) => item.id === "GHSA-2xcm-7h22-3m66");
+		assert.match(advisory?.port.warning ?? "", /read permission on the junction collection/);
+	});
+});

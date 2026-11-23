@@ -204,6 +204,10 @@
 							</div>
 							<p class="item-meta">{{ item.id }} · Fixed upstream in {{ item.upstreamPatched }}</p>
 							<p v-if="item.port.notes" class="item-note">{{ item.port.notes }}</p>
+							<p v-if="item.port.warning" class="item-warning">
+								<v-icon name="warning" x-small />
+								<span>Check first: {{ item.port.warning }}</span>
+							</p>
 							<a
 								class="advisory-link"
 								:href="item.advisory"
@@ -250,6 +254,10 @@
 									<v-chip class="patched" x-small>Patched</v-chip>
 								</div>
 								<p class="item-meta">{{ item.id }} · Fixed upstream in {{ item.upstreamPatched }}</p>
+								<p v-if="item.port.warning" class="item-warning">
+									<v-icon name="warning" x-small />
+									<span>{{ item.port.warning }}</span>
+								</p>
 								<a class="advisory-link" :href="item.advisory" target="_blank" rel="noreferrer">Advisory</a>
 							</div>
 							<div class="item-actions">
@@ -276,6 +284,14 @@
 					These are 12.x security fixes that this Directus version never received. Apply copies the current
 					files first so you can roll one back later without undoing the others. Directus then restarts so
 					the patched files load. If this page never comes back, run the rollback command from the host.
+					<template v-if="pendingWarnings.length">
+						<p class="dialog-warning-title">Check first:</p>
+						<ul class="dialog-warnings">
+							<li v-for="item in pendingWarnings" :key="item.id">
+								<strong>{{ item.title }}</strong>: {{ item.port.warning }}
+							</li>
+						</ul>
+					</template>
 				</v-card-text>
 				<v-card-actions class="dialog-actions">
 					<v-button :loading="busy" :disabled="!canWrite" @click="apply">Apply and Restart</v-button>
@@ -348,7 +364,7 @@ type Advisory = {
 	advisory: string;
 	affects: string;
 	upstreamPatched: string;
-	port: { status: string; risk: string; notes?: string };
+	port: { status: string; risk: string; notes?: string; warning?: string };
 	changes?: { file: string; replace: { from: string; to: string }[] }[];
 };
 
@@ -494,6 +510,11 @@ function toggle(id: string, on: boolean | null) {
 		selected.value = selected.value.filter((item) => item !== id);
 	}
 }
+
+/** Warnings of the backports in the Apply dialog. */
+const pendingWarnings = computed(() =>
+	(report.value?.ready ?? []).filter((item) => pendingApplyIds.value.includes(item.id) && item.port.warning),
+);
 
 function askApply(ids: string[]) {
 	if (!ids.length) return;
@@ -848,6 +869,32 @@ onUnmounted(() => {
 	font-size: 13px;
 	line-height: 1.45;
 	color: var(--theme--foreground-subdued);
+}
+
+.item-warning {
+	display: flex;
+	gap: 6px;
+	align-items: flex-start;
+	margin: 6px 0 0;
+	font-size: 13px;
+	line-height: 1.45;
+	color: var(--theme--warning);
+}
+
+.item-warning .v-icon {
+	flex-shrink: 0;
+	margin-top: 2px;
+}
+
+.dialog-warning-title {
+	margin: 12px 0 4px;
+	font-weight: 600;
+	color: var(--theme--warning);
+}
+
+.dialog-warnings {
+	margin: 0;
+	padding-left: 18px;
 }
 
 .item-note {

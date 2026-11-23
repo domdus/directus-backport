@@ -29,6 +29,8 @@ export type PortInfo = {
 	status: PortStatus;
 	risk: PortRisk;
 	notes?: string;
+	/** Behaviour change to check before applying, e.g. permissions a role now needs. Shown before Apply. */
+	warning?: string;
 	sourceCommit?: string;
 	/** Status per pinned Directus version. Falls back to `status`. */
 	pins?: Record<string, PortStatus>;

@@ -65,6 +65,7 @@ advisories:
       risk: high
       pins: { "11.17.4": stable, "10.13.4": stable, "9.26.0": stable }
       notes: "Checksum-pinned to Directus 9.26.0, 10.13.4, and 11.17.4. getKeysByQuery uses this.readByQuery so filters honor the caller's accountability. Restart required."
+      warning: "Roles that create items with nested one-to-many or many-to-any items (for example a payment with its items) now also need read permission on the junction collection, at least its primary key and foreign key fields. Without it, these creates fail with 403 Forbidden. Directus 12.4 and later behave the same."
 
   - id: GHSA-xf86-hfpm-92xr
     title: AI Chat route exposes admin-only tools to non-admin users

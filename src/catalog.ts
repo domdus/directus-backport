@@ -61,6 +61,7 @@ type RawPort = {
 	status: PortInfo["status"];
 	risk: PortInfo["risk"];
 	notes?: string;
+	warning?: string;
 	source_commit?: string;
 	pins?: Record<string, PortStatus>;
 	targets?: RawTarget[];
@@ -149,6 +150,7 @@ function toAdvisory(raw: RawAdvisory, catalogRoot: string): Advisory {
 			status: raw.port.status,
 			risk: raw.port.risk,
 			notes: raw.port.notes,
+			warning: raw.port.warning,
 			sourceCommit: raw.port.source_commit,
 			pins: raw.port.pins,
 			targets: fs.existsSync(patchDir) ? loadTargets(raw.port, patchDir, raw.id) : withPin((raw.port.targets ?? []).map((t) => ({

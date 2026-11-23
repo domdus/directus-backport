@@ -84,6 +84,7 @@ function publicAdvisory(a: Advisory, version: string) {
 			status: statusForVersion(a, version),
 			risk: a.port.risk,
 			notes: a.port.notes,
+			warning: a.port.warning,
 		},
 		// What Apply would really write here, so it can be read first.
 		changes: targetsForVersion(a, version).map((target) => ({

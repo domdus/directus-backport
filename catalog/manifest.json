@@ -1,10 +1,10 @@
 {
 	"manifest_version": 1,
-	"sequence": 1793983240,
+	"sequence": 1795467890,
 	"files": {
 		"README.md": "1e1f33cdc767ee73b46c98e32dcd156993eef8a7d4e2568a762ea4a29d43a9d1",
 		"VERIFICATION.md": "a01a7a019d2406729cbbb584731cb825cc62159885c3a62ce613f43b949f4e9e",
-		"advisories.yml": "19f335d98216df5b1bc6453046bd884c2d1b1272eabd67ecb9310bfb70a7c778",
+		"advisories.yml": "14e27cde169ddebec30cf5a47578139fb2cd4f1b432e1ba0d8d8faac13c1636a",
 		"patches/GHSA-2xcm-7h22-3m66/10.13.4.yml": "2358fdc6840e3e251936309c43541d8522d95c8ee4e5a37af0977584ebb84419",
 		"patches/GHSA-2xcm-7h22-3m66/9.26.0.yml": "327f9cc85c4750f3f32efee09fd5f158db4a421c216f7bc9826b77b8ad782268",
 		"patches/GHSA-2xcm-7h22-3m66/targets.yml": "bcd0ae3d789f1cdcac6588a324ac15ff3803396f6870a868bebf202baec21cd4",
